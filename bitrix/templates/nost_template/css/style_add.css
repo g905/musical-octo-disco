@@ -1,0 +1,189 @@
+/*
+
+adl 20.05.14 Здесь css, перенесенный из шаблона старого сайта, и добавляемый мною вновь
+
+*/
+
+#attention h1{
+  color: black;
+  text-transform: uppercase;
+  font-family: Arial, Tahoma;
+  font-style: italic;
+  font-size: 8.4px;
+  font-weight: bold;
+}
+
+.spoiler_body {
+  display:none;
+  background: none repeat scroll 0% 0% #FFFFF9;
+  margin-top: 230px;
+}
+
+.spoiler_body p {
+  text-align: justify;
+}
+
+#content {
+	margin-top: 50px;
+}
+
+
+.miniatures{margin-top:10px; width:585px;}
+.miniatures div{border:3px solid #e0e0e0;display:inline-block;margin-right:5px;cursor:pointer;margin-bottom:4px;}
+.miniatures div:last-child{margin-right:0;}
+.miniatures div.activ{border:3px solid #f8d635;display:inline-block;margin-right:5px;cursor:pointer;}
+
+
+.text-left p {
+    text-align: left;
+}
+
+.thumbnail > img {
+	margin-top: 10px;
+}
+
+.thumbnail .caption {
+	padding: 0px;
+}
+
+.proizv .thumbnail .caption h3.h4 {
+	margin-top: 20px;
+}
+
+#content #description #tabs .tab-content .tab-pane .table-bordered {
+    background: none repeat scroll 0% 0% #FFFFFF;
+}
+
+#content #description #tabs .tab-content #skidki.tab-pane table.table.table-bordered td {
+	line-height: normal;
+}
+
+#content {
+	padding-bottom: 50px;
+}
+
+.news_nazad div {
+	height: 24px;
+}
+
+#content .jumbotron {
+	background: none;
+	min-height: 375px;
+	padding-left: 1px;
+	padding-right: 0px;
+	padding-bottom: 0px;
+	padding-top: 0px;
+}
+
+#content #description .headings {
+  float: left;
+  width: 220px;
+}
+
+
+.bordery {
+  border: 11px solid #f4f1f1;
+  padding: 0px;
+  -moz-border-image: url(../images/imgb.png) 12 21 12 21 round round;
+  -webkit-border-image: url(../images/imgb.png) 12 21 12 21 round round;
+  -o-border-image: url(../images/imgb.png) 12 21 12 21 round round;
+  border-image: url(../images/imgb.png) 12 21 12 21 round round;
+}
+
+.borderyForFilter {
+  border: 5px solid #f4f1f1;
+  padding: 0px;
+  -moz-border-image: url(../images/imgb2.png) 5 round stretch;
+  -webkit-border-image: url(../images/imgb2.png) 5 round stretch;
+  -o-border-image: url(../images/imgb2.png) 5 round stretch;
+  border-image: url(../images/imgb2.png) 5 round stretch;
+  -webkit-transition: border-image 0.3s linear 0;
+  -moz-transition: border-image 0.3s linear 0;
+  -o-transition: border-image 0.3s linear 0;
+  transition: border-image 0.3s linear 0;
+  cursor: pointer;
+}
+
+.borderyForFilter:hover {
+  border: 5px solid #e32a2a;
+  padding: 0px;
+  -moz-border-image: url(../images/imgb2hover.png) 5 round stretch;
+  -webkit-border-image: url(../images/imgb2hover.png) 5 round stretch;
+  -o-border-image: url(../images/imgb2hover.png) 5 round stretch;
+  border-image: url(../images/imgb2hover.png) 5 round stretch;
+}
+
+.activeimg {
+  border: 5px solid #e32a2a;
+  padding: 0px;
+  -moz-border-image: url(../images/imgb2hover.png) 5 round stretch;
+  -webkit-border-image: url(../images/imgb2hover.png) 5 round stretch;
+  -o-border-image: url(../images/imgb2hover.png) 5 round stretch;
+  border-image: url(../images/imgb2hover.png) 5 round stretch;
+}
+
+.pricetable {
+  margin: 0;
+  text-align: center;
+  background: #f4f1f1;
+  border: 2px solid #f4f1f1;
+  border-collapse: collapse;
+}
+
+.pricetable tbody > tr > td {
+  border: 1px solid #e3e7e9;
+}
+
+.navitable {
+  margin: 0;
+  text-align: center;
+  background: #f4f1f1;
+  border: 2px solid #f4f1f1;
+  border-collapse: collapse;
+}
+
+.navitable tbody > tr > td {
+  border-left: 1px solid #e3e7e9;
+  border-top: none;
+  border-bottom: none;
+  border-right: none;
+}
+
+.navitable tbody > tr > td #active {
+  color: #e32a2a;
+}
+
+.navitable tbody > tr > td a {
+  text-decoration: none;
+  color: #606060;
+}
+
+.navitable tbody > tr > td a:hover {
+  text-decoration: underline;
+  color: #eb1414;
+}
+
+
+#attention {
+  color: #b91212;
+  font-family: 'Aleksandrac';
+  font-weight: bold;
+  font-size: 15.0px;
+}
+
+p#date {
+  font-family: 'Aleksandrac';
+  font-size: 13.0px;
+}
+
+.catalog-title .borderyForFilter{display:inline-block;padding:10px;text-align:center;float:left;color:#343434;margin-top:14px;font-family: Tahoma;font-size:12px;}
+.catalog-title .borderyForFilter .otherimg{padding-bottom: 10px;}
+
+.toTop {
+bottom:30px;
+right: 20px;
+}
+
+h1, .h1, h2, .h2 {
+margin-top: 0px;
+}

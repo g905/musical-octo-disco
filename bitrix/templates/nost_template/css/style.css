@@ -1,0 +1,1119 @@
+body,
+p
+{
+    margin: 0;
+    padding: 0;
+}
+a
+{
+    text-decoration: none;
+}
+span.red
+{
+    color: red;
+}
+span.red2
+{
+    color: #ed4444;
+}
+.zagl
+{
+    font-family: Tahoma;
+    font-size: 25px;
+
+    margin-left: 20px;
+
+    color: #ff3401;
+}
+.zagl2
+{
+    font-family: Tahoma;
+    font-size: 33px;
+    font-weight: bold;
+
+    color: #ce1313;
+}
+.smalltext
+{
+    font-size: 12px;
+}
+.gray
+{
+    color: #b6b5b5;
+}
+
+
+
+/* IE
+-------------------------------------------------------*/
+img
+{
+    border: none;
+}
+
+
+
+/*-----------------------------------------------------*/
+
+
+/* HEADER
+-------------------------------------------------------*/
+#header
+{
+    width: 100%;
+    min-width: 1000px;
+    margin: 0;
+    padding: 0;
+}
+.bgtop
+{
+    height: 4px;
+
+    background: url(../img/header/bgtop.png)/*tpa=http://www.nost.ru/bitrix/templates/nost_template/img/header/bgtop.png*/ repeat-x;
+}
+
+.headertop
+{
+    width: 100%;
+
+    background: #554949;
+}
+.headertop-text
+{
+    width: 920px;
+    height: 55px;
+    margin: 0 auto;
+    padding: 20px 0 20px 0;
+
+    background: white;
+}
+
+.headertop-text .logo
+{
+    float: left;/*margin-left:30px;*/
+
+    margin-top: -20px;
+}
+.headertop-text .logo img:first-child
+{
+    margin-right: 10px;
+}
+.headertop-text .logo img
+{
+    float: left;
+}
+
+.headertop-seo
+{
+    font-family: Tahoma;
+    font-size: 12px;
+    font-weight: bold;
+
+    display: inline-block;
+    float: left;
+
+    margin-top: 59px;
+    margin-left: -270px;
+}
+.headertop-seo h1
+{
+    font-family: Tahoma;
+    font-size: 12px;
+    font-weight: bold;
+
+    display: inline;
+
+    margin-top: 0;
+}
+
+
+.headertop-but
+{
+    float: left;
+}
+.headertop-but a
+{
+    font-weight: bold;
+
+    display: inline-block;
+
+    margin-left: 150px;
+}
+.headertop-but a .but
+{
+    font-family: Tahoma;
+    font-size: 12px;
+    font-weight: normal;
+
+    text-align: center;
+
+    color: red;
+}
+
+.headertop-info
+{
+    font-family: Verdana;
+    font-size: 17px;
+
+    text-align: center;
+
+    color: #554949;
+}
+.headertop-info p:last-child
+{
+    font-size: 12px;/*margin-right:20px;*/
+
+    margin-top: 5px;
+}
+
+
+
+.headerbot
+{
+    width: 100%;
+    height: 30px;
+
+    background: url(../img/header/headerbotbg.png)/*tpa=http://www.nost.ru/bitrix/templates/nost_template/img/header/headerbotbg.png*/ repeat-x;
+}
+.headerbot-text
+{
+    width: 1024px;
+    height: 30px;
+    margin: 0 auto;
+    padding-left: 30px;
+
+    background: url(../img/header/headerbotbg2.png)/*tpa=http://www.nost.ru/bitrix/templates/nost_template/img/header/headerbotbg2.png*/ repeat-x;
+}
+.headerbot-text a
+{
+    font-size: 12px;
+    font-weight: bold;
+
+    display: inline-block;
+
+    width: 100%;
+    margin-left: -5px;
+
+    background: url(../img/header/butbg.png)/*tpa=http://www.nost.ru/bitrix/templates/nost_template/img/header/butbg.png*/ no-repeat left;
+}
+.headerbot-text a:first-child
+{
+    margin-left: 0;
+}
+
+.headerbot-text a .but
+{
+    font-family: Verdana;
+
+    height: 30px;
+    padding: 7px 10px 0 10px;
+
+    text-align: center;
+    text-transform: uppercase;
+
+    color: white;
+    background: url(../img/header/butbg.png)/*tpa=http://www.nost.ru/bitrix/templates/nost_template/img/header/butbg.png*/ no-repeat right;
+}
+
+.headerbot-text a .but.activ
+{
+    font-family: Verdana;
+
+    height: 30px;
+    padding: 7px 10px 0 10px;
+
+    text-align: center;
+    text-transform: uppercase;
+
+    color: white;
+    background: url(../img/header/butbg-act.png) repeat-x right;
+}
+
+.headerbot-text a .with-sub {
+    background: url(../img/header/butbg.png)/*tpa=http://www.nost.ru/bitrix/templates/nost_template/img/header/butbg.png*/ no-repeat right, url(../img/menu-decor.gif) bottom right no-repeat;
+    background-position: right, right 2px bottom 2px;
+}
+
+
+.headerbot-text a .with-sub.activ
+{
+    height: 30px;
+
+    background: url(../img/menu-decor-active.gif) bottom right no-repeat, url(../img/header/butbg-act.png)/*tpa=http://www.nost.ru/bitrix/templates/nost_template/img/header/butbg-act.png*/ repeat-x top;
+    background-position: right 2px bottom 2px, top;
+
+}
+/*-----------------------------------------------------*/
+
+/* SLIDER
+-------------------------------------------------------*/
+#slider
+{
+    width: 100%;
+    min-width: 1000px;
+    padding-bottom: 7px;
+
+    background: #c6c6c6 url(../img/slider/sliderbg.png)/*tpa=http://www.nost.ru/bitrix/templates/nost_template/img/slider/sliderbg.png*/ repeat-x bottom;
+}
+.slidercont
+{
+    width: 920px;
+    margin: 0 auto;
+}
+
+.slidercont img
+{
+    border: 7px solid #dadada;
+    border-bottom: none;
+}
+
+.sliderbut
+{
+    position: absolute;
+
+    height: 30px;
+    margin: 20px 0 0 20px;
+    padding: 5px 5px 0 5px;
+
+    border-radius: 5px;
+    background: #596363;
+}
+.sliderbut div
+{
+    font-family: Verdana;
+    font-size: 12px;
+    font-weight: bold;
+
+    display: inline-block;
+
+    width: 23px;
+    height: 18px;
+    padding-top: 5px;
+
+    cursor: pointer;
+    text-align: center;
+
+    color: white;
+    background: url(../img/slider/sliderbutbg.png)/*tpa=http://www.nost.ru/bitrix/templates/nost_template/img/slider/sliderbutbg.png*/ no-repeat;
+}
+.sliderbut div.activ
+{
+    height: 24px;
+
+    color: black;
+    background: url(../img/slider/sliderbutbg-act.png)/*tpa=http://www.nost.ru/bitrix/templates/nost_template/img/slider/sliderbutbg-act.png*/ no-repeat;
+}
+/*-----------------------------------------------------*/
+
+
+/* CONTENT
+-------------------------------------------------------*/
+#content
+{
+    width: 100%;
+    min-width: 1000px;
+    padding-top: 50px;
+    padding-bottom: 50px;
+}
+.contenttext
+{
+    width: 920px;
+    margin: 0 auto;
+    padding-top: 0;
+}
+
+.contenttext .but
+{
+    margin-top: 20px;
+}
+.contenttext .but a
+{
+    margin-left: 20px;
+}
+
+.contenttext .newstext
+{
+    font-family: Verdana;
+    font-size: 12px;
+    line-height: 16px;
+
+    display: inline-block;
+
+    width: 250px;
+    margin: 20px;
+
+    color: #595959;
+}
+.contenttext .newstext .newsdate
+{
+    font-style: italic;
+
+    color: #f40505;
+}
+.contenttext-item div .newsdate
+{
+    font-size: 14px;
+
+    color: #595959;
+}
+
+.contenttext .banner img:last-child
+{
+    float: right;
+}
+/*-----------------------------------------------------*/
+
+
+
+/* CONTENT ITEMS
+-------------------------------------------------------*/
+.contenttext .contenttext-item
+{
+    position: relative;
+
+    width: 920px;
+    min-height: 460px;
+    margin: 0 auto;
+    padding-top: 10px;
+    padding-bottom: 80px;
+}
+.contenttext .contenttext-item .leftblock,
+.contenttext .contenttext-item .rightblock
+{
+    display: inline-block;
+}
+.contenttext .contenttext-item .leftblock
+{
+    position: absolute;
+    top: 20px;
+    left: 0;
+}
+.contenttext .contenttext-item .rightblock
+{
+    width: 300px;
+    margin-left: 620px;
+}
+.contenttext .contenttext-item .rightblock .discount_table
+{
+    font-family: Tahoma;
+    font-size: 12px;
+}
+.contenttext .contenttext-item div h1
+{
+    font-family: Tahoma;
+    font-size: 33px;
+    font-weight: bold;
+
+    margin: 0;
+    padding: 0;
+
+    color: #ce1313;
+}
+
+
+.nav
+{
+    padding-top: 10px;
+}
+.nav .but
+{
+    font-family: Verdana;
+    font-size: 13px;
+
+    color: #ce3232;
+}
+.nazad div
+{
+    font-family: Verdana;
+    font-size: 11px;
+
+    float: right;
+
+    width: 124px;
+    height: 18px;
+    padding: 6px 0 0 10px;
+
+    color: #ce3232;
+    background: url(../img/content/nazad.png)/*tpa=http://www.nost.ru/bitrix/templates/nost_template/img/content/nazad.png*/ no-repeat;
+}
+.news_nazad div
+{
+    font-family: Verdana;
+    font-size: 11px;
+
+    float: left;
+
+    width: 168px;
+    height: 18px;
+    padding: 6px 0 0 10px;
+
+    color: #ce3232;
+    background: url(../img/content/news_nazad.png)/*tpa=http://www.nost.ru/bitrix/templates/nost_template/img/content/news_nazad.png*/ no-repeat;
+}
+
+
+.items-img
+{
+    margin-top: -5px;
+}
+
+.items-miniimg
+{
+    width: 585px;
+    margin-top: 10px;
+}
+.items-miniimg div
+{
+    display: inline-block;
+
+    margin-right: 5px;
+    margin-bottom: 4px;
+
+    cursor: pointer;
+
+    border: 3px solid #e0e0e0;
+}
+.items-miniimg div:last-child
+{
+    margin-right: 0;
+}
+.items-miniimg div.activ
+{
+    display: inline-block;
+
+    margin-right: 5px;
+
+    cursor: pointer;
+
+    border: 3px solid #f8d635;
+}
+
+.itemstext,
+.minitext p,
+.charac p
+{
+    font-family: Tahoma;
+    font-size: 12px;
+    line-height: 17px;
+
+    color: #666;
+}
+
+.minitext
+{
+    margin-top: 20px;
+    padding: 5px;
+
+    background: #e9e9e9;
+}
+.charac
+{
+    margin-top: 20px;
+}
+.charac p
+{
+    margin-top: 5px;
+
+    color: #4e4e4e;
+}
+
+.params
+{
+    font-family: Tahoma;
+    font-size: 12px;
+
+    width: 100%;
+    margin-top: 10px;
+    margin-bottom: 15px;
+
+    color: #666;
+}
+.params div.temp
+{
+    padding: 3px;
+
+    border-bottom: 1px solid #ccc;/*height:20px;*/
+}
+.params div .paramscount
+{
+    float: right;
+
+    width: 130px;
+    margin-top: 2px;
+}
+
+
+.catalog-title
+{
+    position: relative;
+
+    display: inline-block;
+
+    width: 100%;
+    margin-top: 20px;
+    padding-bottom: 20px;
+}
+.r-catalog .title
+{
+    padding: 5px;
+
+    margin-bottom: 20px;
+    margin-top: 60px;
+}
+.r-catalog .title p
+{
+    font-family: Tahoma;
+    font-size: 29px;
+    font-weight: normal;
+
+    margin: 0;
+    padding: 0;
+
+    color: #EB1414;
+}
+.r-catalog .title h1
+{
+    font-family: Tahoma;
+    font-size: 20px;
+    font-weight: normal;
+
+    margin: 0;
+    padding: 0;
+
+    color: #4e4e4e;
+}
+
+.catalog-title .block
+{
+    /*text-align: center;*/
+}
+.catalog-title .block .block_li
+{
+    display: inline-block;
+
+    width: 32%;
+
+    vertical-align: top;
+}
+
+.catalog-title .otheritems
+{
+    font-family: Tahoma;
+    font-size: 12px;
+
+    display: inline-block;
+    float: left;
+
+    margin-top: 14px;/*margin-left:40px;*/
+    padding: 10px;
+
+    text-align: center;/*height:190px;*/
+
+    color: #343434;
+    border: 1px solid #ccc;
+}
+/*.catalog-title a:first-child{position: absolute;left:0;margin-left:0;}
+.catalog-title a:last-child{position:absolute;right:0;margin-left:0;}*/
+.catalog-title a .first
+{
+    margin-left: 0;
+}
+.catalog-title .otheritems .otherimg
+{
+    /*height:150px;*/padding-bottom: 10px;
+}
+
+.price
+{
+    font-family: Tahoma;
+    font-size: 12px;
+
+    width: 250px;
+    margin-top: 10px;
+    margin-bottom: 30px;
+
+    color: #ce1313;
+}
+.price p
+{
+    height: 20px;
+    padding: 3px;
+}
+/*.price p .oldprice{font-size:17px;font-family:Tahoma;color:#a7a7a7;text-decoration:line-through;}*/
+.price p del
+{
+    font-family: Tahoma;
+    font-size: 20px;
+    font-weight: bold;
+
+    color: #ce1313;
+}
+.price p del > span
+{
+    font-family: Tahoma;
+    font-size: 20px;
+    font-weight: bold;
+
+    color: #a7a7a7;
+}
+.price p .newprice
+{
+    font-family: Tahoma;
+    font-size: 27px;
+    font-weight: bold;
+
+    color: #554949;
+}
+/*.but_buy{width:60px; height:30px; font-size:20px; font-family:Tahoma; color: white; background:#ffe600; border: 3px #ffe600 solid; -moz-border-radius: 10px; -webkit-border-radius: 10px; -khtml-border-radius:10px; border-radius: 10px; padding: 5px;}*/
+/*.but_buy{background:url(../img/header/headerbotbg2.png) repeat-x top;width:100px; height:30px; border: 0px solid; -moz-border-radius: 10px; -webkit-border-radius: 10px; -khtml-border-radius:10px; border-radius: 10px; padding-left: 15px; padding-right: 0px; float:right; margin-top: -21px;}*/
+.but_buy
+{
+    float: right;
+
+    width: 90px;
+    height: 30px;
+    margin-top: -21px;
+    margin-right: -45px;
+    padding-right: 0;
+    padding-left: 10px;
+
+    border: 0 solid;
+    -webkit-border-radius: 10px;
+       -moz-border-radius: 10px;
+            border-radius: 10px;
+    background: url(../img/content/but_buy.png)/*tpa=http://www.nost.ru/bitrix/templates/nost_template/img/content/but_buy.png*/ repeat-x top;
+
+    -khtml-border-radius: 10px;
+}
+.but_buy a
+{
+    font-family: Tahoma;
+    font-size: 20px;
+
+    color: /*#554949*/white;
+}
+
+.spoiler_body
+{
+    display: none;
+}
+.spoiler_links
+{
+    cursor: pointer;
+}
+/*-----------------------------------------------------*/
+
+
+/* FOOTER
+-------------------------------------------------------*/
+#footer
+{
+    font-family: Verdana;
+
+    width: 100%;
+    min-width: 1000px;
+
+    background: #4c4545;
+}
+.footertext
+{
+    width: 920px;
+    margin: 0 auto;
+    padding: 15px;
+}
+
+.footertext .butblock
+{
+    width: 123px;
+
+    color: white;
+}
+.footertext .butblock ul
+{
+    padding-left: 0;
+}
+.footertext .butblock .title
+{
+    font-size: 12px;
+    font-weight: bold;
+
+    margin-left: 0;
+
+    text-align: center;
+    text-transform: uppercase;
+}
+.footertext .butblock a
+{
+    font-size: 12px;
+
+    padding: 5px;
+
+    color: white;/*border-bottom: 1px dotted white;*/
+}
+.footertext .butblock li
+{
+    margin-top: 10px;
+
+    list-style-image: url(../img/footer/ulli.png)/*tpa=http://www.nost.ru/bitrix/templates/nost_template/img/footer/ulli.png*/;
+}
+.footertext .butblock li:last-child a
+{
+    border: none;
+}
+.footertext .butblock.large
+{
+    width: 205px;
+}
+.footertext .butblock.large2
+{
+    width: 270px;
+}
+.footertext .butblock.small
+{
+    width: 95px;
+}
+.footertext .butblock .second_col
+{
+    margin-top: -146px;
+    margin-left: 140px;
+}
+.footertext .cont
+{
+    width: 215px;
+}
+.footertext .cont li
+{
+    margin-bottom: 10px;
+}
+.footertext .cont .smalltext
+{
+    margin-top: 5px;
+    margin-left: 12px;
+}
+
+
+/*-----------------------------------------------------*/
+
+
+/* FOOTER2
+-------------------------------------------------------*/
+#footer2
+{
+    font-family: Verdana;
+
+    width: 100%;
+    min-width: 1000px;
+
+    background: url(../img/footer/footer2bg.png)/*tpa=http://www.nost.ru/bitrix/templates/nost_template/img/footer/footer2bg.png*/ bottom repeat-x;
+}
+.footer2text
+{
+    width: 920px;
+    height: 50px;
+    margin: 0 auto;
+    padding: 20px 0;
+}
+.footer2text p
+{
+    font-size: 12px;
+
+    float: left;
+
+    color: #595959;
+}
+.footer2text p:first-child
+{
+    margin-right: 280px;/*margin-top:20px;*/
+}
+/*-----------------------------------------------------*/
+
+
+/* remedy */
+/*-----------------------------------------------------*/
+
+/* OUR-PRODUCT
+-------------------------------------------------------*/
+
+.our-products, .banner-wide {
+    font-family: Verdana;
+    color: #000000;
+    text-align: center;
+    margin-top: 50px;
+}
+
+.our-products .row {
+    margin: 0px;
+
+}
+
+.our-products .products {
+/*    background: url(../img/product-bg.png);*/
+    padding-top: 30px;
+}
+
+.our-products .category {
+
+}
+
+.our-products .category .title,  .banner-wide .category .title {
+    text-align: left;
+    background-color: #ebebeb;
+    font-size: 18px;
+    padding: 4px;
+    position: relative;
+    margin-right: 25px;
+}
+
+.our-products .goto-section, .banner-wide .goto-section{
+    position: absolute;
+    top: -2px;
+    right: -38px;
+    background-size: contain;
+    background: url(../img/goto-section.png) no-repeat center;
+    height: 33px;
+    display: block;
+    width: 214px;
+}
+
+.products .item, .banner-wide .item {
+    height: 165px;
+    width: 171px;
+    position: relative;
+    cursor: pointer;
+}
+
+.banner-wide .item {
+    height: 145px;
+}
+
+.products .item .product-img {
+
+}
+
+.item .product-name {
+    display: block;
+    margin-top: 6px;
+    font-size: 14px;
+    text-transform: uppercase;
+    font-family: Tahoma;
+    font-weight: bolder;
+}
+
+.item.anchor {
+    display: block;
+    text-decoration: none;
+    color: #000000;
+}
+
+.item.anchor:hover {
+    text-decoration: none;
+    color: #000000;
+}
+
+.item a {
+    text-decoration: none;
+    color: #000000;
+}
+
+.item a:hover {
+    text-decoration: none;
+    color: #000000;
+}
+
+.item .product-price  {
+    position: absolute;
+    top: 70px;
+    right: 5px;
+    color: rgb(66,66,66);
+    background-color: rgb(234,234,234);
+    border-radius: 3px;
+    border: 1px solid #000000;
+    font-weight: bold;
+    padding: 2px 1px;
+}
+
+.item .product-size {
+    font-size: 11px;
+    position: absolute;
+    top: 92px;
+    right: 7px;
+}
+
+.banner-wide {
+    margin: 37px auto;
+    border: 2px dashed red;
+    position: relative;
+    padding-bottom: 0px;
+    border-right: 0px;
+    padding-right: 24px;
+}
+
+.banner-wide .category .title {
+    color: red;
+    font-weight: bold;
+    text-transform: uppercase;
+    padding-left: 100px;
+    margin-right: 0px;
+}
+
+.banner-wide:after {
+    width: 35px;
+    height: 185px;
+    content: "";
+    display: block;
+    position: absolute;
+    right: -34px;
+    top: -2px;
+    background: url(../img/banner-arrow.png) no-repeat;
+}
+
+.like-title {
+    color: red;
+    font-weight: bold;
+    text-transform: uppercase;
+    padding-left: 100px;
+    margin-right: 0px;
+    text-align: left;
+    font-size: 18px;
+    padding: 4px;
+    position: relative;
+    margin-right: 25px;
+    text-decoration: none;
+}
+
+/* CATALOG
+-------------------------------------------------------*/
+
+.r-catalog {
+
+}
+
+.r-catalog div[class^=col] {
+    margin: 0px;
+    margin-right: -1px;
+    padding: 0px;
+    border: 1px solid #bcbcbc;
+}
+
+.r-catalog .item:last-child {
+    border-bottom: none;
+}
+
+.r-catalog .item {
+    border-bottom: 1px solid #bcbcbc;
+    font-family: Tahoma;
+}
+
+.r-catalog .item-inner {
+    width: 247px;
+    margin: 0 auto;
+    margin-top: 12px;
+    text-align: center;
+}
+
+.r-catalog .item-category {
+    margin-top: 4px;
+    display: block;
+    color: black;
+}
+
+.r-catalog .item-name {
+    font-family: Verdana;
+    margin: 0px 0 10px;
+    color: #000000;
+    font-weight: bold;
+    height: 50px;
+}
+
+.r-catalog .prop-block {
+    margin: 5px 0;
+    padding-left: 35px;
+    height: 30px;
+    padding-top: 6px;
+}
+
+.r-catalog .prop-block .prop-name {
+    float: left;
+}
+
+.r-catalog .prop-block .prop-value {
+    float: right;
+}
+.r-catalog .order-block {
+    margin-top: 15px;
+}
+
+.r-catalog .prop-block:after, .order-block:after, .r-catalog .all-prices:after {
+    content: "";
+    height: 0px;
+    width: 0px;
+    display: block;
+    clear: both;
+}
+
+.r-catalog #prop-size {
+    background: url(../img/prop-size.png) no-repeat;
+}
+
+.r-catalog #prop-color {
+    background: url(../img/prop-color.png) no-repeat;
+}
+
+.r-catalog  .item-price {
+    color: #ffffff;
+    background-color: #989898;
+    display: block;
+    width: 145px;
+    margin-right: 5px;
+    padding-top: 1px;
+    height: 31px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 23px;
+    box-sizing: border-box;
+    float: left;
+    font-family: Tahoma;;
+}
+
+.r-catalog .item-order {
+    color: #ffffff;
+    background-color: #ff2b23;
+    display: block;
+    height: 31px;
+    width: 97px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 15px;
+    padding-top: 5px;
+    box-sizing: border-box;
+    float: left;
+}
+
+.r-catalog .all-prices {
+    background: url(../img/price-bg.png) left 0px top 10px repeat-x;
+}
+
+.r-catalog .all-prices .prices {
+    font-size: 22px;
+    font-weight: bold;
+    float: left;
+    text-align: right;
+    background-color: #ffffff;
+    padding-right: 15px;
+}
+
+.r-catalog .all-prices .count {
+    float: right;
+    text-align: left;
+    background-color: #ffffff;
+    padding-left: 15px;
+    line-height: 25px;
+}
+
+.r-catalog .item-note {
+    color: #4c4c4c;
+    font-size: 14px;
+    text-align: left;
+}
+
+

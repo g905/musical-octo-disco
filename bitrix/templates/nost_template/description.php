@@ -1,0 +1,1 @@
+<?$arTemplate = array("NAME"=>"Шаблон nost.ru", "DESCRIPTION"=>"Рабочий шаблон для сайта шашек");?>
