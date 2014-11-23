@@ -10,61 +10,14 @@
 /**
  * HTML Sanitizer
  * Rewrites the HTML based on given rules
- *
- * @param {Element|String} elementOrHtml HTML String to be sanitized OR element whose content should be sanitized
- * @param {Object} [rules] List of rules for rewriting the HTML, if there's no rule for an element it will
- * be converted to a "span". Each rule is a key/value pair where key is the tag to convert, and value the
- * desired substitution.
- * @param {Object} context Document object in which to parse the html, needed to sandbox the parsing
- *
- * @return {Element|String} Depends on the elementOrHtml parameter. When html then the sanitized html as string elsewise the element.
- *
- * @example
- * var userHTML = '<div id="foo" onclick="alert(1);"><p><font color="red">foo</font><script>alert(1);</script></p></div>';
- * wysihtml5.dom.parse(userHTML, {
- * tags {
- * p: "div", // Rename p tags to div tags
- * font: "span" // Rename font tags to span tags
- * div: true, // Keep them, also possible (same result when passing: "div" or true)
- * script: undefined // Remove script elements
- * }
- * });
- * // => <div><div><span>foo bar</span></div></div>
- *
- * var userHTML = '<table><tbody><tr><td>I'm a table!</td></tr></tbody></table>';
- * wysihtml5.dom.parse(userHTML);
- * // => '<span><span><span><span>I'm a table!</span></span></span></span>'
- *
- * var userHTML = '<div>foobar<br>foobar</div>';
- * wysihtml5.dom.parse(userHTML, {
- * tags: {
- * div: undefined,
- * br: true
- * }
- * });
- * // => ''
- *
- * var userHTML = '<div class="red">foo</div><div class="pink">bar</div>';
- * wysihtml5.dom.parse(userHTML, {
- * classes: {
- * red: 1,
- * green: 1
- * },
- * tags: {
- * div: {
- * rename_tag: "p"
- * }
- * }
- * });
- * // => '<p class="red">foo</p><p>bar</p>'
- */
-
+*/
 
 (function()
 {
 	function BXEditorParser(editor)
 	{
 		this.editor = editor;
+		this.specialParsers = {};
 
 		// Rename unknown tags to this
 		this.DEFAULT_NODE_NAME = "span",
@@ -109,16 +62,17 @@
 				{
 					addInvisibleNodes = !parseBx && this.CheckBlockNode(newNode);
 
-
 					if (addInvisibleNodes)
 					{
-						frag.appendChild(this.editor.util.GetInvisibleTextNode());
+						//frag.appendChild(this.editor.util.GetInvisibleTextNode());
 					}
 
 					frag.appendChild(newNode);
 
 					if (addInvisibleNodes)
+					{
 						frag.appendChild(this.editor.util.GetInvisibleTextNode());
+					}
 				}
 			}
 
@@ -151,7 +105,7 @@
 			if (!doc)
 				doc = document;
 
-			var el = doc.createElement("div");
+			var el = doc.createElement("DIV");
 
 			if (typeof(html) === "object" && html.nodeType)
 			{
@@ -170,6 +124,7 @@
 				} catch(e) {}
 				doc.body.removeChild(el);
 			}
+
 			return el;
 		},
 
@@ -183,10 +138,16 @@
 				newChild,
 				i, bxTag;
 
+
 			if (oldNodeType == 1)
 			{
-				if (this.editor.pasteHandleMode && parseBx)
+				if (this.editor.pasteHandleMode && (parseBx || this.editor.bbParseContentMode))
 				{
+					if (oldNode.id == 'bx-cursor-node')
+					{
+						return oldNode.ownerDocument.createTextNode(this.editor.INVISIBLE_CURSOR);
+					}
+
 					bCleanNodeAfterPaste = !oldNode.getAttribute('data-bx-paste-flag');
 
 					if (oldNode && oldNode.id)
@@ -210,17 +171,35 @@
 					}
 					oldNode.removeAttribute('data-bx-paste-flag');
 				}
+				else
+				{
+					if (oldNode.id == 'bx-cursor-node')
+					{
+						return oldNode;
+					}
+				}
 
 				// Doublecheck nodetype
 				if (oldNodeType == 1)
 				{
 					if (!oldNode.__bxparsed)
 					{
-						if (this.IsAnchor(oldNode))
+						if (this.IsAnchor(oldNode) && !oldNode.getAttribute('data-bx-replace_with_children'))
 						{
-							oldNode = this.editor.phpParser.GetSurrogateNode("anchor", BX.message('BXEdAnchor') + ": #" + oldNode.name, null, {
-								html: oldNode.innerHTML,
-								name: oldNode.name
+							newNode = oldNode.cloneNode(true);
+							newNode.innerHTML = '';
+							for (i = 0; i < oldChilds.length; i++)
+							{
+								newChild = this.Convert(oldChilds[i], cleanUp, parseBx);
+								if (newChild)
+								{
+									newNode.appendChild(newChild);
+								}
+							}
+
+							oldNode = this.editor.phpParser.GetSurrogateNode("anchor", BX.message('BXEdAnchor') + ": #" + newNode.name, null, {
+								html: newNode.innerHTML,
+								name: newNode.name
 							});
 						}
 						else if(this.IsPrintBreak(oldNode))
@@ -250,7 +229,7 @@
 
 						if (!newNode && oldNode.nodeType)
 						{
-							newNode = this.ConvertElement(oldNode);
+							newNode = this.ConvertElement(oldNode, parseBx);
 						}
 					}
 				}
@@ -283,7 +262,7 @@
 				}
 
 				// Cleanup senseless <span> elements
-				if (cleanUp && newNode.childNodes.length <= 1 && newNode.nodeName.toLowerCase() === this.DEFAULT_NODE_NAME && !newNode.attributes.length)
+				if (this.editor.config.cleanEmptySpans && cleanUp && newNode.childNodes.length <= 1 && newNode.nodeName.toLowerCase() === this.DEFAULT_NODE_NAME && !newNode.attributes.length)
 				{
 					return newNode.firstChild;
 				}
@@ -292,7 +271,7 @@
 			return newNode;
 		},
 
-		ConvertElement: function(oldNode)
+		ConvertElement: function(oldNode, parseBx)
 		{
 			var
 				rule,
@@ -392,7 +371,7 @@
 			else
 			{
 				newNode = oldNode.ownerDocument.createElement(rule.rename_tag || nodeName);
-				this.HandleAttributes(oldNode, newNode, rule);
+				this.HandleAttributes(oldNode, newNode, rule, parseBx);
 			}
 
 			if (new_rule)
@@ -410,8 +389,9 @@
 			var
 				styleName, styleValue, name, i,
 				nodeName = oldNode.nodeName,
+				innerHtml = BX.util.trim(oldNode.innerHTML),
 				whiteAttributes = {align: 1, alt: 1, bgcolor: 1, border: 1, cellpadding: 1, cellspacing: 1, color:1, colspan:1, height: 1, href: 1, rowspan: 1, size: 1, span: 1, src: 1, style: 1, target: 1, title: 1, type: 1, value: 1, width: 1},
-				cleanEmpty = {"A": 1, "SPAN": 1, "B": 1, "STRONG": 1, "I": 1, "EM": 1, "U": 1, "DEL": 1, "S": 1, "STRIKE": 1, "H1": 1, "H2": 1, "H3": 1, "H4": 1, "H5": 1, "H6": 1, "SPAN": 1},
+				cleanEmpty = {"A": 1, "SPAN": 1, "B": 1, "STRONG": 1, "I": 1, "EM": 1, "U": 1, "DEL": 1, "S": 1, "STRIKE": 1, "H1": 1, "H2": 1, "H3": 1, "H4": 1, "H5": 1, "H6": 1},
 				whiteCssList = {
 					'background-color': 'transparent',
 					'background-image': 1,
@@ -455,15 +435,20 @@
 			}
 
 			// Clean empty nodes
-			if (cleanEmpty[nodeName] &&  (BX.util.trim(oldNode.innerHTML) == ''))
+			if (cleanEmpty[nodeName] && innerHtml == '')
 			{
 				return null;
 			}
 
 			// Clean anchors
-			if (nodeName == 'A' && (BX.util.trim(oldNode.innerHTML) == '' || BX.util.trim(oldNode.innerHTML) == '&nbsp;'))
+			if (nodeName == 'A' && (innerHtml == '' || innerHtml == '&nbsp;'))
 			{
 				return null;
+			}
+
+			if (nodeName == 'A')
+			{
+				// Todo: clean block nodes from link
 			}
 
 			// Clean class
@@ -488,13 +473,22 @@
 			// Clean pasted div's
 			if (nodeName == 'DIV' || oldNode.style.display == 'block')
 			{
-				oldNode.appendChild(oldNode.ownerDocument.createElement("BR")).setAttribute('data-bx-paste-flag', 'Y');
+				if (!oldNode.lastChild || (oldNode.lastChild && oldNode.lastChild.nodeName != 'BR'))
+				{
+					oldNode.appendChild(oldNode.ownerDocument.createElement("BR")).setAttribute('data-bx-paste-flag', 'Y');
+				}
 				oldNode.setAttribute('data-bx-new-rule', 'replace_with_children');
 				oldNode.setAttribute('data-bx-replace_with_children', '1');
 			}
 
 			// Content pastet from google docs sometimes comes with unused <b style="font-weight: normal"> wrapping
 			if (nodeName == 'B' && oldNode.style.fontWeight == 'normal')
+			{
+				oldNode.setAttribute('data-bx-new-rule', 'replace_with_children');
+				oldNode.setAttribute('data-bx-replace_with_children', '1');
+			}
+
+			if (this.IsAnchor(oldNode) && (oldNode.name == '' || BX.util.trim(oldNode.name == '')))
 			{
 				oldNode.setAttribute('data-bx-new-rule', 'replace_with_children');
 				oldNode.setAttribute('data-bx-replace_with_children', '1');
@@ -521,7 +515,7 @@
 					if (styleName.indexOf('color') !== -1)
 					{
 						styleValue = this.editor.util.RgbToHex(styleValue);
-						if (styleValue == whiteCssList[styleName] || styleValue == 'transparent')
+						if (styleValue == whiteCssList[styleName] || styleValue == 'transparent' || styleValue == 'black')
 						{
 							oldNode.style.removeProperty(styleName);
 							continue;
@@ -548,6 +542,10 @@
 					}
 				}
 			}
+			else
+			{
+				oldNode.removeAttribute('style');
+			}
 
 			// Clear useless spans
 			if (nodeName == 'SPAN' && oldNode.style.cssText == '')
@@ -567,10 +565,17 @@
 
 		HandleText: function(oldNode)
 		{
-			return oldNode.ownerDocument.createTextNode(oldNode.data);
+			var data = oldNode.data;
+			if (this.editor.pasteHandleMode && data.indexOf('EndFragment:') !== -1)
+			{
+				// Clean content inserted from OpenOffice in MacOs
+				data = data.replace(/Version:\d\.\d(?:\s|\S)*?StartHTML:\d+(?:\s|\S)*?EndHTML:\d+(?:\s|\S)*?StartFragment:\d+(?:\s|\S)*?EndFragment:\d+(?:\s|\n|\t|\r)*/g, '');
+			}
+
+			return oldNode.ownerDocument.createTextNode(data);
 		},
 
-		HandleAttributes: function(oldNode, newNode, rule)
+		HandleAttributes: function(oldNode, newNode, rule, parseBx)
 		{
 			var
 				attributes = {}, // fresh new set of attributes to set on newNode
@@ -581,7 +586,7 @@
 				checkAttributes = rule.check_attributes, // check/convert values of attributes
 				clearAttributes = rule.clear_attributes, // clean all unknown attributes
 				allowedClasses = this.editor.GetParseRules().classes,
-				i = 0,
+				i = 0, newName, skipAttributes = {},
 				st,
 				classes = [],
 				newClasses = [],
@@ -619,9 +624,24 @@
 
 			if (!clearAttributes)
 			{
-				for (var i = 0; i < oldNode.attributes.length; i++)
+				for (i = 0; i < oldNode.attributes.length; i++)
 				{
 					attribute = oldNode.attributes[i];
+					if (parseBx)
+					{
+						if (attribute.name.substr(0, 15) == 'data-bx-app-ex-')
+						{
+							newName = attribute.name.substr(15);
+							attributes[newName] = oldNode.getAttribute(attribute.name);
+							skipAttributes[newName] = true;
+						}
+
+						if (skipAttributes[attribute.name])
+						{
+							continue;
+						}
+					}
+
 					// clear bitrix attributes
 					if (attribute.name.substr(0, 8) == 'data-bx-'
 						&& attribute.name != 'data-bx-noindex'
@@ -645,8 +665,9 @@
 				}
 			}
 
-			// TODO: !!!
-			if (addClass && false)
+			/*
+			// TODO:
+			if (addClass)
 			{
 				var addClassMethods = {
 					align_img: (function() {
@@ -711,9 +732,7 @@
 						classes.push(newClass);
 				}
 			}
-
-			// make sure that wysihtml5 temp class doesn't get stripped out
-			allowedClasses["_wysihtml5-temp-placeholder"] = 1;
+			*/
 
 			// add old classes last
 			oldClasses = oldNode.getAttribute("class");
@@ -726,15 +745,6 @@
 				currentClass = classes[i];
 				if (allowedClasses[currentClass])
 					newClasses.push(currentClass);
-			}
-
-			// remove duplicate entries and preserve class specificity
-			newClassesLength = newClasses.length;
-			while (newClassesLength--)
-			{
-				currentClass = newClasses[newClassesLength];
-				if (!wysihtml5.lang.array(newUniqueClasses).contains(currentClass))
-					newUniqueClasses.unshift(currentClass);
 			}
 
 			if (newUniqueClasses.length)
@@ -765,11 +775,13 @@
 		GetAttributeEx: function(node, attributeName)
 		{
 			attributeName = attributeName.toLowerCase();
-			var nodeName = node.nodeName;
+			var
+				res,
+				nodeName = node.nodeName;
 
 			if (nodeName == "IMG" && attributeName == "src" && this.IsLoadedImage(node) === true)
 			{
-				return node.getAttribute('src');
+				res = node.getAttribute('src');
 			}
 			else if (!this.editor.util.CheckGetAttributeTruth() && "outerHTML" in node)
 			{
@@ -777,14 +789,15 @@
 					outerHTML = node.outerHTML.toLowerCase(),
 					hasAttribute = outerHTML.indexOf(" " + attributeName + "=") != -1;
 
-				return hasAttribute ? node.getAttribute(attributeName) : null;
+				res = hasAttribute ? node.getAttribute(attributeName) : null;
 			}
 			else
 			{
-				return node.getAttribute(attributeName);
+				res = node.getAttribute(attributeName);
 			}
-		},
 
+			return res;
+		},
 
 		IsLoadedImage: function(node)
 		{
@@ -863,7 +876,6 @@
 				});
 			}
 
-			// Clean invisible spaces this.INVISIBLE_SPACE
 			if (parseBx)
 			{
 				content = content.replace(/\uFEFF/ig, '');
@@ -871,6 +883,16 @@
 			else
 			{
 				content = content.replace(/\uFEFF+/ig, this.editor.INVISIBLE_SPACE);
+			}
+
+			if (parseBx && content.indexOf('#BXAPP') !== -1)
+			{
+				var _this = this;
+				content = content.replace(/#BXAPP(\d+)#/g, function(str, ind)
+				{
+					ind = parseInt(ind, 10);
+					return _this.editor.phpParser.AdvancedPhpGetFragmentByIndex(ind, true);
+				});
 			}
 
 			return content;
@@ -923,6 +945,25 @@
 			'object': true
 		};
 
+		//if((!this.arConfig["bWithoutPHP"] || this.limit_php_access) && this.arConfig["use_advanced_php_parser"] == 'Y')
+		//{
+		this.bUseAPP = true; // APP - AdvancedPHPParser
+		this.APPConfig =
+		{
+			arTags_before : ['tbody','thead','tfoot','tr','td','th'],
+			arTags_after : ['tbody','thead','tfoot','tr','td','th'],
+			arTags :
+			{
+				'a' : ['href','title','class','style'],
+				'img' : ['src','alt','class','style','width','height']
+			}
+		};
+		//}
+//		else
+//		{
+//			this.bUseAPP = false;
+//		}
+
 		this.arScripts = {}; // object which contains all php codes with indexes
 		this.arJavascripts = {}; // object which contains all javascripts codes with indexes
 		this.arHtmlComments = {}; // object which contains all html comments with indexes
@@ -967,6 +1008,9 @@
 				content = this.CleanPhp(content);
 			}
 
+			// Custom parse
+			content = this.CustomContentParse(content);
+
 			// Javascript
 			content = this.ReplaceJavascriptBySymCode(content);
 			// Html comments
@@ -977,8 +1021,10 @@
 			content = this.ReplaceStyleBySymCode(content);
 			// Object && embed
 			content = this.ReplaceObjectBySymCode(content);
+			// <Break>
+			content = this.ParseBreak(content);
 
-			//2. We trying to resolve html tags with PHP code inside.
+			//2. We trying to resolve html tags with PHP code inside
 			content = this.AdvancedPhpParse(content);
 
 			//3. We replace all #BXPHP_IND# and other sym codes by visual custom elements
@@ -1436,7 +1482,7 @@
 		{
 			var
 				tag = "video",
-				params = this.FetchVideoIframeParams(videoParams.html, videoParams.provider);
+				params = videoParams.params || this.FetchVideoIframeParams(videoParams.html, videoParams.provider);
 
 			params.value = videoParams.html;
 
@@ -1493,10 +1539,9 @@
 				}
 				else if (attrName == 'title')// title
 				{
-					attrValue = BX.util.htmlspecialchars(attrValue);
-					attrValue = attrValue.replace('"', '\"');
+					//var title = BX.util.htmlspecialcharsback(attrValue);
+					res.origTitle = BX.util.htmlspecialcharsback(attrValue);
 					res.title += ': ' + attrValue;
-					res.origTitle = attrValue;
 				}
 				return s;
 			});
@@ -1510,6 +1555,11 @@
 			{
 				title = BX.util.htmlspecialchars(title);
 				title = title.replace('"', '\"');
+			}
+
+			if (!params)
+			{
+				params = {};
 			}
 
 			var
@@ -1536,6 +1586,9 @@
 				doc = this.editor.GetIframeDoc(),
 				id = this.editor.SetBxTag(false, {tag: tag, name: name, params: params, title: title}),
 				surrogateId = this.editor.SetBxTag(false, {tag: "surrogate_dd", params: {origParams: params, origId: id}});
+
+			if (!params)
+				params = {};
 
 			this.editor.SetBxTag({id: id}, {
 				tag: tag,
@@ -1612,90 +1665,6 @@
 		IsSurrogate: function(node)
 		{
 			return node && BX.hasClass(node, this.surrClass);
-		},
-
-		IsComponent: function(code)
-		{
-			code = this.TrimPhpBrackets(code);
-			code = this.CleanCode(code);
-
-			var oFunction = this.ParseFunction(code);
-			if (oFunction && oFunction.name.toUpperCase() == '$APPLICATION->INCLUDECOMPONENT')
-			{
-				var arParams = this.ParseParameters(oFunction.params);
-				return {
-					name: arParams[0],
-					template: arParams[1] || "",
-					params: arParams[2] || {},
-					parentComponent: (arParams[3] && arParams[3] != '={false}') ? arParams[3] : false,
-					exParams: arParams[4] || false
-				};
-
-//				for (key in params)
-//					if (typeof params[key] == 'object')
-//						params[key] = _BXArr2Str(params[key]);
-//
-//				//try{
-//				var
-//					comProps = window.as_arComp2Elements[name],
-//					icon = (comProps.icon) ? comProps.icon : '/bitrix/images/fileman/htmledit2/component.gif',
-//					tagname = (comProps.tagname) ? comProps.tagname : 'component2',
-//					allParams = copyObj(comProps.params);
-//
-//				allParams.name = name;
-//				allParams.template = template;
-//				allParams.parentComponent = parentComponent;
-//				allParams.exParams = exParams;
-//
-//				//Handling SEF_URL_TEMPLATES
-//				if (params["SEF_URL_TEMPLATES"])
-//				{
-//					var _str = params["SEF_URL_TEMPLATES"];
-//					var arSUT = oBXEditorUtils.PHPParser.getArray((_str.substr(0,8).toLowerCase() == "={array(") ? _str.substr(2,_str.length-3) : _str);
-//
-//					for (var _key in arSUT)
-//						params["SEF_URL_TEMPLATES_"+_key] = arSUT[_key];
-//
-//					delete params["SEF_URL_TEMPLATES"];
-//				}
-//
-//				if (params["VARIABLE_ALIASES"])
-//				{
-//					if (params["SEF_MODE"] == "N")
-//					{
-//						var _str = params["VARIABLE_ALIASES"];
-//						var _arVA = oBXEditorUtils.PHPParser.getArray((_str.substr(0,8).toLowerCase() == "={array(") ? _str.substr(2,_str.length-3) : _str);
-//
-//						for (var _key in _arVA)
-//							params["VARIABLE_ALIASES_"+_key] = _arVA[_key];
-//					}
-//					delete params["VARIABLE_ALIASES"];
-//				}
-//
-//				allParams.paramvals = params;
-//				var bTagParams = {};
-//				if (pMainObj.bRenderComponents)
-//				{
-//					bTagParams._src = icon;
-//					icon = c2wait_path;
-//				}
-//
-//				var id = pMainObj.SetBxTag(false, {tag: tagname, params: bTagParams});
-//				allParams.__bx_id = push2Component2(id, allParams.name); // Used to cache component-params for each component
-//
-//				if (!pMainObj.arComponents)
-//					pMainObj.arComponents = {};
-//				pMainObj.arComponents[id] = allParams;
-//
-//				return '<img style="cursor: default;" id="' + id + '" src="' + icon + '" />';
-				//}catch(e) {}
-			}
-			return false;
-		},
-
-		AdvancedPhpParse: function(content)
-		{
-			return content;
 		},
 
 		TrimPhpBrackets: function(str)
@@ -2005,6 +1974,7 @@
 			return content;
 		},
 
+		// Describe all available surrogates here
 		GetBxNodeList: function()
 		{
 			var _this = this;
@@ -2252,8 +2222,6 @@
 			{
 				var origTag = this.editor.GetBxTag(bxTag.params.origId);
 				this.editor.On("OnSurrogateClick", [bxTag, origTag, target, e]);
-				// Show dialog
-				//this.ShowPropertiesDialog(bxTag.params.component, bxTag);
 			}
 		},
 
@@ -2301,6 +2269,7 @@
 		{
 			var
 				sur,
+				codes = this.editor.KEY_CODES,
 				range = this.editor.selection.GetRange(),
 				invisText,
 				bxTag, surNode,
@@ -2308,7 +2277,7 @@
 
 			if (!range.collapsed)
 			{
-				if (keyCode === this.editor.KEY_CODES['backspace'] || keyCode === this.editor.KEY_CODES['delete'])
+				if (keyCode === codes['backspace'] || keyCode === codes['delete'])
 				{
 					var
 						i,
@@ -2329,7 +2298,7 @@
 				}
 			}
 
-			if (keyCode === this.editor.KEY_CODES['delete'])
+			if (keyCode === codes['delete'])
 			{
 				if (range.collapsed)
 				{
@@ -2371,12 +2340,12 @@
 				if (surNode)
 				{
 					bxTag = this.editor.GetBxTag(surNode.id);
-					if (keyCode === this.editor.KEY_CODES['backspace'] || keyCode === this.editor.KEY_CODES['delete'])
+					if (keyCode === codes['backspace'] || keyCode === codes['delete'])
 					{
 						this.RemoveSurrogate(surNode, bxTag);
 						BX.PreventDefault(e);
 					}
-					else if (keyCode === this.editor.KEY_CODES['left'] || keyCode === this.editor.KEY_CODES['up'])
+					else if (keyCode === codes['left'] || keyCode === codes['up'])
 					{
 						var prevToSur = surNode.previousSibling;
 						if (prevToSur && prevToSur.nodeType == 3 && this.editor.util.IsEmptyNode(prevToSur))
@@ -2386,7 +2355,7 @@
 
 						return BX.PreventDefault(e);
 					}
-					else if (keyCode === this.editor.KEY_CODES['right'] || keyCode === this.editor.KEY_CODES['down'])
+					else if (keyCode === codes['right'] || keyCode === codes['down'])
 					{
 						var nextToSur = surNode.nextSibling;
 						if (nextToSur && nextToSur.nodeType == 3 && this.editor.util.IsEmptyNode(nextToSur))
@@ -2396,9 +2365,13 @@
 
 						return BX.PreventDefault(e);
 					}
+					else if (keyCode === codes.shift || keyCode === codes.ctrl || keyCode === codes.alt || keyCode === codes.cmd || keyCode === codes.cmdRight)
+					{
+						return BX.PreventDefault(e);
+					}
 					else
 					{
-						this.editor.selection.SelectNode(surNode);
+						this.editor.selection.SetAfter(surNode);
 					}
 				}
 			}
@@ -2425,8 +2398,9 @@
 			this.hiddenDd = [];
 		},
 
-		GetAllSurrogates: function()
+		GetAllSurrogates: function(bGetAll)
 		{
+			bGetAll = bGetAll === true;
 			var
 				doc = this.editor.GetIframeDoc(),
 				res = [], i, surr, bxTag,
@@ -2436,7 +2410,7 @@
 			{
 				surr = surrs[i];
 				bxTag = this.editor.GetBxTag(surr.id);
-				if (bxTag.tag)
+				if (bxTag.tag || bGetAll)
 				{
 					res.push({
 						node : surr,
@@ -2451,13 +2425,28 @@
 		RenewSurrogates: function()
 		{
 			var
-				i,
-				surrs = this.GetAllSurrogates();
+				bCheck = true,
+				i, idInd = {}, id,
+				surrs = this.GetAllSurrogates(true);
 
 			for (i = 0; i < surrs.length; i++)
 			{
-				surrs[i].node.innerHTML = this.GetSurrogateInner(surrs[i].bxTag.surrogateId, surrs[i].bxTag.title, surrs[i].bxTag.name);
+				if (!surrs[i].bxTag.tag)
+				{
+					BX.remove(surrs[i].node);
+					continue;
+				}
 
+				id = surrs[i].bxTag.surrogateId;
+				if (!idInd[id] || !bCheck)
+				{
+					idInd[id] = id;
+					surrs[i].node.innerHTML = this.GetSurrogateInner(surrs[i].bxTag.surrogateId, surrs[i].bxTag.title, surrs[i].bxTag.name);
+				}
+				else
+				{
+					BX.remove(surrs[i].node);
+				}
 			}
 		},
 
@@ -2487,6 +2476,823 @@
 		IsAllowed: function(id)
 		{
 			return this.allowed[id];
+		},
+
+
+		AdvancedPhpParse: function(content)
+		{
+			if (this.bUseAPP)
+			{
+				this.arAPPFragments = [];
+				//content = this.AdvancedPhpParseBetweenTableTags(content);
+				content = this.AdvancedPhpParseInAttributes(content);
+			}
+			return content;
+		},
+
+		AdvancedPhpParseBetweenTableTags: function(str)
+		{
+			var _this = this;
+			function replacePHP_before(str, b1, b2, b3, b4)
+			{
+				_this.arAPPFragments.push(JS_addslashes(b1));
+				return b2 + b3 + ' data-bx-php-before=\"#BXAPP' + (_this.arAPPFragments.length - 1) + '#\" ' + b4;
+			};
+
+			function replacePHP_after(str, b1, b2, b3, b4)
+			{
+				_this.arAPPFragments.push(JS_addslashes(b4));
+				return b1+'>'+b3+'<'+b2+' style="display:none;" data-bx-php-after=\"#BXAPP'+(_this.arAPPFragments.length-1)+'#\"></'+b2+'>';
+			};
+
+			var
+				arTags_before = _this.APPConfig.arTags_before,
+				arTags_after = _this.APPConfig.arTags_after,
+				tagName,
+				i,
+				re;
+
+			// PHP fragments before tags
+			for (i = 0; i < arTags_before.length; i++)
+			{
+				tagName = arTags_before[i];
+				if (_this.limit_php_access)
+					re = new RegExp('#(PHP(?:\\d{4}))#(\\s*)(<'+tagName+'[^>]*?)(>)',"ig");
+				else
+					re = new RegExp('<\\?(.*?)\\?>(\\s*)(<'+tagName+'[^>]*?)(>)',"ig");
+				str = str.replace(re, replacePHP_before);
+			}
+			// PHP fragments after tags
+			for (i = 0,l = arTags_after.length; i<l; i++)
+			{
+				tagName = arTags_after[i];
+				if (_this.limit_php_access)
+					re = new RegExp('(</('+tagName+')[^>]*?)>(\\s*)#(PHP(?:\\d{4}))#',"ig");
+				else
+					re = new RegExp('(</('+tagName+')[^>]*?)>(\\s*)<\\?(.*?)\\?>',"ig");
+				str = str.replace(re, replacePHP_after);
+			}
+			return str;
+		},
+
+		AdvancedPhpParseInAttributes: function(str)
+		{
+			var
+				_this = this,
+				arTags = this.APPConfig.arTags,
+				tagName, atrName, i, re;
+
+			function replacePhpInAttributes(str, b1, b2, b3, b4, b5, b6)
+			{
+				if (b4.indexOf('#BXPHP_') === -1)
+				{
+					return str;
+				}
+
+				_this.arAPPFragments.push(b4);
+				var appInd = _this.arAPPFragments.length - 1;
+				var atrValue = _this.AdvancedPhpGetFragmentByIndex(appInd, true);
+
+				return b1 + b2 + '="' + atrValue + '"' + ' data-bx-app-ex-' + b2 + '=\"#BXAPP' + appInd + '#\"' + b5;
+			}
+
+			for (tagName in arTags)
+			{
+				if (arTags.hasOwnProperty(tagName))
+				{
+					for (i = 0; i < arTags[tagName].length; i++)
+					{
+						atrName = arTags[tagName][i];
+						re = new RegExp('(<' + tagName + '(?:[^>](?:\\?>)*?)*?)(' + atrName + ')\\s*=\\s*((?:"|\')?)([\\s\\S]*?)\\3((?:[^>](?:\\?>)*?)*?>)', "ig");
+						str = str.replace(re, replacePhpInAttributes);
+					}
+				}
+			}
+
+			return str;
+		},
+
+		AdvancedPhpUnParse: function(content)
+		{
+			return content;
+		},
+
+		AdvancedPhpGetFragmentByCode: function(code, handleSiteTemplate)
+		{
+			var appInd = code.substr(6); // #BXAPP***#
+			appInd = parseInt(appInd.substr(0, appInd.length - 1), 10);
+			return this.AdvancedPhpGetFragmentByIndex(appInd, handleSiteTemplate);
+		},
+
+		AdvancedPhpGetFragmentByIndex: function(appInd, handleSiteTemplate)
+		{
+			var
+				_this = this,
+				appStr = this.arAPPFragments[appInd];
+
+			appStr = appStr.replace(/#BXPHP_(\d+)#/g, function(str, ind)
+			{
+				var res = _this.arScripts[parseInt(ind, 10)];
+
+				if (handleSiteTemplate)
+				{
+					var stp = _this.GetSiteTemplatePath();
+					if(stp)
+					{
+						res = res.replace(/<\?=\s*SITE_TEMPLATE_PATH;?\s*\?>/i, stp);
+						res = res.replace(/<\?\s*echo\s*SITE_TEMPLATE_PATH;?\s*\?>/i, stp);
+					}
+				}
+				return res;
+			});
+
+			return appStr;
+		},
+
+		ParseBreak: function(content)
+		{
+			var _this = this;
+			content = content.replace(/<break\s*\/*>/gi, function(s)
+				{
+					return _this.GetSurrogateHTML("pagebreak", BX.message('BXEdPageBreakSur'), BX.message('BXEdPageBreakSurTitle'));
+				}
+			);
+			return content;
+		},
+
+		GetSiteTemplatePath: function()
+		{
+			return this.editor.GetTemplateParams().SITE_TEMPLATE_PATH;
+		},
+
+		CustomContentParse: function(content)
+		{
+			for (var i = 0; i < this.customParsers; i++)
+			{
+				if (typeof this.customParsers[i] == 'function')
+				{
+					content = this.customParsers[i](content);
+				}
+			}
+
+			return content;
+		},
+
+		AddCustomParser: function(parser)
+		{
+			this.customParsers.push(parser);
+		}
+	};
+
+	function BXEditorBbCodeParser(editor)
+	{
+		this.editor = editor;
+		this.parseAlign = true;
+	}
+
+	BXEditorBbCodeParser.prototype = {
+		Unparse: function(content)  // HTML - > Bbcode
+		{
+			var el = this.editor.parser.GetAsDomElement(content, this.editor.GetIframeDoc());
+			el.setAttribute('data-bx-parent-node', 'Y');
+
+			content = this.GetNodeHtml(el, true);
+			content = content.replace(/#BR#/ig, "\n");
+			content = content.replace(/&nbsp;/ig, " ");
+			content = content.replace(/\uFEFF/ig, '');
+			return content;
+		},
+
+		Parse: function(content) // // BBCode -> HTML
+		{
+			var _this = this, i, l;
+
+			content = content.replace(/</ig, "&lt;");
+			content = content.replace(/>/ig, "&gt;");
+
+			// [CODE] == > #BX_CODE1#
+			var arCodes = [];
+			content = content.replace(/\[code\]((?:\s|\S)*?)\[\/code\]/ig, function(str, code)
+			{
+				arCodes.push('<pre class="bxhtmled-code">' + code + '</pre>');
+				return '#BX_CODE' + (arCodes.length - 1) + '#';
+			});
+
+			var parserName, specialParser;
+			for (parserName in this.editor.parser.specialParsers)
+			{
+				if (this.editor.parser.specialParsers.hasOwnProperty(parserName))
+				{
+					specialParser = this.editor.parser.specialParsers[parserName];
+					if (specialParser && specialParser.Parse)
+					{
+						content = specialParser.Parse(parserName, content, this.editor);
+					}
+				}
+			}
+
+			// * * * Handle Smiles  * * *
+			if (this.editor.sortedSmiles)
+			{
+				var
+					arUrls = [],
+					arTags = [],
+					smile;
+
+				content = content.replace(/\[(?:\s|\S)*?\]/ig, function(str)
+				{
+					arTags.push(str);
+					return '#BX_TMP_TAG' + (arTags.length - 1) + '#';
+				});
+
+				content = content.replace(/(?:https?|ftp):\/\//gi, function(str)
+				{
+					arUrls.push(str);
+					return '#BX_TMP_URL' + (arUrls.length - 1) + '#';
+				});
+
+
+				l = this.editor.sortedSmiles.length;
+				for (i = 0; i < l; i++)
+				{
+					smile = this.editor.sortedSmiles[i];
+					if (smile.path && smile.code)
+					{
+						content = content.replace(
+							new RegExp(BX.util.preg_quote(smile.code), 'ig'),
+							'<img id="' + _this.editor.SetBxTag(false, {tag: "smile", params: smile}) + '" src="' + smile.path + '" title="' + (smile.name || smile.code) + '"/>'
+						);
+					}
+				}
+
+				// Set urls back
+				if (arUrls.length > 0)
+				{
+					content = content.replace(/#BX_TMP_URL(\d+)#/ig, function(s, num){return arUrls[num] || s;});
+				}
+
+				// Set tags back
+				if (arTags.length > 0)
+				{
+					content = content.replace(/#BX_TMP_TAG(\d+)#/ig, function(s, num){return arTags[num] || s;});
+				}
+			}
+
+			// * * * Handle Smiles  END * * *
+
+			// Quote
+			content = content.replace(/\n?\[quote\]/ig, '<blockquote class="bxhtmled-quote">');
+			content = content.replace(/\[\/quote\]\n?/ig, '</blockquote>');
+
+			// Table
+			content = content.replace(/[\r\n\s\t]?\[table\][\r\n\s\t]*?\[tr\]/ig, '<table border="1">[TR]');
+			content = content.replace(/\[tr\][\r\n\s\t]*?\[td\]/ig, '[TR][TD]');
+			content = content.replace(/\[tr\][\r\n\s\t]*?\[th\]/ig, '[TR][TH]');
+			content = content.replace(/\[\/td\][\r\n\s\t]*?\[td\]/ig, '[/TD][TD]');
+			content = content.replace(/\[\/tr\][\r\n\s\t]*?\[tr\]/ig, '[/TR][TR]');
+			content = content.replace(/\[\/td\][\r\n\s\t]*?\[\/tr\]/ig, '[/TD][/TR]');
+			content = content.replace(/\[\/th\][\r\n\s\t]*?\[\/tr\]/ig, '[/TH][/TR]');
+			content = content.replace(/\[\/tr\][\r\n\s\t]*?\[\/table\][\r\n\s\t]?/ig, '[/TR][/TABLE]');
+
+			// List
+			content = content.replace(/[\r\n\s\t]*?\[\/list\]/ig, '[/LIST]');
+			content = content.replace(/[\r\n\s\t]*?\[\*\]?/ig, '[*]');
+
+			var
+				arSimpleTags = [
+					'b','u', 'i', ['s', 'del'], // B, U, I, S
+					'table', 'tr', 'td', 'th'//, // Table
+				],
+				bbTag, tag;
+
+			l = arSimpleTags.length;
+
+			for (i = 0; i < l; i++)
+			{
+				if (typeof arSimpleTags[i] == 'object')
+				{
+					bbTag = arSimpleTags[i][0];
+					tag = arSimpleTags[i][1];
+				}
+				else
+				{
+					bbTag = tag = arSimpleTags[i];
+				}
+
+				content = content.replace(new RegExp('\\[(\\/?)' + bbTag + '\\]', 'ig'), "<$1" + tag + ">");
+			}
+
+			// Link
+			content = content.replace(/\[url\]((?:\s|\S)*?)\[\/url\]/ig, "<a href=\"$1\">$1</a>");
+			content = content.replace(/\[url\s*=\s*((?:\s|\S)*?)\]((?:\s|\S)*?)\[\/url\]/ig, "<a href=\"$1\">$2</a>");
+
+			// Img
+			content = content.replace(/\[img((?:\s|\S)*?)\]((?:\s|\S)*?)\[\/img\]/ig,
+				function(str, params, src)
+				{
+					params = _this.FetchImageParams(params);
+					var size = "";
+					if (params.width)
+						size += 'width:' + params.width + 'px;';
+					if (params.height)
+						size += 'height:' + params.height + 'px;';
+					if (size !== '')
+						size = 'style="' + size + '"';
+					return '<img  src="' + src + '"' + size + '/>';
+				}
+			);
+
+			// Font color
+			i = 0;
+			while (content.toLowerCase().indexOf('[color=') != -1 && content.toLowerCase().indexOf('[/color]') != -1 && i++ < 20)
+			{
+				content = content.replace(/\[color=((?:\s|\S)*?)\]((?:\s|\S)*?)\[\/color\]/ig, "<span style=\"color:$1\">$2</span>");
+			}
+
+			// List
+			i = 0;
+			while (content.toLowerCase().indexOf('[list=') != -1 && content.toLowerCase().indexOf('[/list]') != -1 && i++ < 20)
+			{
+				content = content.replace(/\[list=1\]((?:\s|\S)*?)\[\/list\]/ig, "<ol>$1</ol>");
+			}
+
+			i = 0;
+			while (content.toLowerCase().indexOf('[list') != -1 && content.toLowerCase().indexOf('[/list]') != -1 && i++ < 20)
+			{
+				content = content.replace(/\[list\]((?:\s|\S)*?)\[\/list\]/ig, "<ul>$1</ul>");
+			}
+			content = content.replace(/\[\*\]/ig, "<li>");
+
+			// Font
+			i = 0;
+			while (content.toLowerCase().indexOf('[font=') != -1 && content.toLowerCase().indexOf('[/font]') != -1 && i++ < 20)
+			{
+				content = content.replace(/\[font=((?:\s|\S)*?)\]((?:\s|\S)*?)\[\/font\]/ig, "<span style=\"font-family: $1\">$2</span>");
+			}
+
+			// Font size
+			i = 0;
+			while (content.toLowerCase().indexOf('[size=') != -1 && content.toLowerCase().indexOf('[/size]') != -1 && i++ < 20)
+			{
+				content = content.replace(/\[size=((?:\s|\S)*?)\]((?:\s|\S)*?)\[\/size\]/ig, "<span style=\"font-size: $1\">$2</span>");
+			}
+
+			if (this.parseAlign)
+			{
+				content = content.replace(/\[(center|left|right|justify)\]/ig, "<div style=\"text-align: $1;\" align=\"$1;\">");
+				content = content.replace(/\[\/(center|left|right|justify)\]/ig, "</div>");
+			}
+
+			// VIDEO
+			if (content.toLowerCase().indexOf('[/video]') != -1)
+			{
+				content = content.replace(/\[video((?:\s|\S)*?)\]((?:\s|\S)*?)\[\/video\]/ig, function(s, params, src)
+				{
+					return _this.GetVideoSourse(src, _this.FetchVideoParams(params.trim(params)), s);
+				});
+			}
+
+			// Replace \n => <br/>
+			content = content.replace(/\n/ig, "<br />");
+
+			// Replace encoded "[", "]" by [ and ]
+			content = content.replace(/&#91;/ig, "[");
+			content = content.replace(/&#93;/ig, "]");
+
+			// Replace back CODE content without modifications
+			// #BX_CODE1# ==> <pre>...</pre>
+			if (arCodes.length > 0)
+			{
+				content = content.replace(/#BX_CODE(\d+)#/ig, function(s, num){return arCodes[num] || s;});
+			}
+
+			return content;
+		},
+
+		GetNodeHtml: function(node, onlyChild)
+		{
+			var
+				oNode = {
+					node: node
+				},
+				res = '';
+
+			if (!onlyChild)
+			{
+				if(node.nodeType == 3)
+				{
+					var text = BX.util.htmlspecialchars(node.nodeValue);
+					if (!text.match(/[^\n]+/ig) && node.previousSibling && node.nextSibling
+						&& this.editor.util.IsBlockNode(node.previousSibling)
+						&& this.editor.util.IsBlockNode(node.nextSibling))
+					{
+						return "\n";
+					}
+
+					if (node.parentNode && !node.parentNode.getAttribute('data-bx-parent-node') &&
+						(node.parentNode.nodeName == 'P' || node.parentNode.nodeName == 'DIV'))
+					{
+						text = text.replace(/\n/ig, " ");
+					}
+
+					text = text.replace(/\[/ig, "&#91;");
+					text = text.replace(/\]/ig, "&#93;");
+					return text;
+				}
+
+				if (node.nodeType == 1 && node.nodeName == 'P')
+				{
+					var html = BX.util.trim(node.innerHTML);
+					html = html.replace(/[\n\r\s]/ig, "").toLowerCase();
+					if(html == '<br>')
+					{
+						node.innerHTML = '';
+					}
+				}
+
+				var bbRes = this.UnParseNodeBB(oNode);
+
+				if (bbRes !== false)
+				{
+					return bbRes;
+				}
+
+				if (oNode.bbOnlyChild)
+					onlyChild = true;
+
+				// Left part
+				if (!onlyChild)
+				{
+					if (oNode.breakLineBefore)
+					{
+						res += "\n";
+					}
+					if(node.nodeType == 1 && !oNode.hide)
+					{
+						res += "[" + oNode.bbTag;
+						if (oNode.bbValue)
+						{
+							res += '=' + oNode.bbValue;
+						}
+						res += "]";
+					}
+				}
+			}
+
+			if (oNode.checkNodeAgain)
+			{
+				res += this.GetNodeHtml(node);
+			}
+			else
+			{
+				var
+					i, child,
+					innerContent = '';
+
+				// Handle childs
+				for (i = 0; i < node.childNodes.length; i++)
+				{
+					child = node.childNodes[i];
+					innerContent += this.GetNodeHtml(child);
+				}
+				res += innerContent;
+			}
+
+			// Right part
+			if (!onlyChild)
+			{
+				if (oNode.breakLineAfter)
+					res += "\n";
+
+				if (innerContent == '' && this.IsPairNode(oNode.bbTag)
+					&& node.nodeName !== 'P'
+					&& node.nodeName !== 'TD'
+					&& node.nodeName !== 'TR'
+					&& node.nodeName !== 'TH')
+				{
+					return '';
+				}
+
+				if(node.nodeType == 1 && (node.childNodes.length > 0 || this.IsPairNode(oNode.bbTag)) && !oNode.hide && !oNode.hideRight)
+				{
+					res += "[/" + oNode.bbTag + "]";
+				}
+
+				// mantis: #54244
+				if (oNode.breakLineAfterEnd || node.nodeType == 1 && this.editor.util.IsBlockNode(node) && this.editor.util.IsBlockNode(node.nextSibling))
+				{
+					res += "\n";
+				}
+			}
+
+			return res;
+		},
+
+		UnParseNodeBB: function (oNode) // WYSIWYG -> BBCode
+		{
+			var
+				bxTag,
+				tableTags = ['TABLE', 'TD', 'TR', 'TH', 'TBODY', 'TFOOT', 'THEAD', 'CAPTION', 'COL', 'COLGROUP'],
+				isTableTag = false,
+				isAlign = false,
+				nodeName = oNode.node.nodeName.toUpperCase();
+
+			oNode.checkNodeAgain = false;
+			if (nodeName == "BR")
+			{
+				return "#BR#";
+			}
+
+			if (oNode.node && oNode.node.id)
+			{
+				bxTag = this.editor.GetBxTag(oNode.node.id);
+
+				if (bxTag.tag)
+				{
+					var parser = this.editor.parser.specialParsers[bxTag.tag];
+					if (parser && parser.UnParse)
+					{
+						return parser.UnParse(bxTag, oNode, this.editor);
+					}
+					else if (bxTag.tag == 'video')
+					{
+						return bxTag.params.value;
+					}
+					else if (bxTag.tag == 'smile')
+					{
+						return bxTag.params.code;
+					}
+					else
+					{
+						return '';
+					}
+				}
+			}
+
+			if (nodeName == "IFRAME" && oNode.node.src)
+			{
+				var
+					src = oNode.node.src.replace(/https?:\/\//ig, '//'),
+					video = this.editor.phpParser.CheckForVideo('src="' + src + '"');
+				if (video)
+				{
+					var
+						width = parseInt(oNode.node.width),
+						height = parseInt(oNode.node.height);
+
+					return '[VIDEO TYPE=' + video.provider.toUpperCase() +
+						' WIDTH=' + width +
+						' HEIGHT=' + height + ']' +
+						src +
+						'[/VIDEO]';
+				}
+			}
+
+			//[CODE] Handle code tag
+			if (nodeName == "PRE" && BX.hasClass(oNode.node, 'bxhtmled-code'))
+			{
+				return "[CODE]" + this.GetCodeContent(oNode.node) + "[/CODE]";
+			}
+
+			// Image
+			if (nodeName == "IMG")
+			{
+				var size = '';
+
+				if (oNode.node.style.width)
+					size += ' WIDTH=' + parseInt(oNode.node.style.width);
+				else if (oNode.node.width)
+					size += ' WIDTH=' + parseInt(oNode.node.width);
+
+				if (oNode.node.style.height)
+					size += ' HEIGHT=' + parseInt(oNode.node.style.height);
+				else if (oNode.node.height)
+					size += ' HEIGHT=' + parseInt(oNode.node.height);
+
+				return "[IMG" + size + "]" + oNode.node.src + "[/IMG]";
+			}
+
+			oNode.hide = false;
+			oNode.bbTag = nodeName;
+			isTableTag = BX.util.in_array(nodeName, tableTags);
+			isAlign = this.parseAlign && (oNode.node.style.textAlign || oNode.node.align) && !isTableTag;
+
+			if(nodeName == 'STRONG' || nodeName == 'B')
+			{
+				oNode.bbTag = 'B';
+			}
+			else if(nodeName == 'EM' || nodeName == 'I')
+			{
+				oNode.bbTag = 'I';
+			}
+			else if(nodeName == 'DEL' || nodeName == 'S')
+			{
+				oNode.bbTag = 'S';
+			}
+			// List
+			else if((nodeName == 'OL' || nodeName == 'UL'))
+			{
+				oNode.bbTag = 'LIST';
+				oNode.breakLineAfter = true;
+				oNode.bbValue = nodeName == 'OL' ? '1' : '';
+			}
+			else if(nodeName == 'LI')
+			{
+				oNode.bbTag = '*';
+				oNode.breakLineBefore = true;
+				oNode.hideRight = true;
+			}
+			else if(nodeName == 'A')
+			{
+				oNode.bbTag = 'URL';
+				oNode.bbValue = oNode.node.href;
+				oNode.bbValue = oNode.bbValue.replace(/\[/ig, "&#91;").replace(/\]/ig, "&#93;");
+				if (oNode.bbValue === '')
+				{
+					oNode.bbOnlyChild = true;
+				}
+			}
+			// Color
+			else if(oNode.node.style.color && !isTableTag)
+			{
+				oNode.bbTag = 'COLOR';
+				oNode.bbValue = this.editor.util.RgbToHex(oNode.node.style.color);
+				oNode.node.style.color = '';
+				if (oNode.node.style.cssText != '')
+				{
+					oNode.checkNodeAgain = true;
+				}
+			}
+			// Font family
+			else if(oNode.node.style.fontFamily && !isTableTag)
+			{
+				oNode.bbTag = 'FONT';
+				oNode.bbValue = oNode.node.style.fontFamily;
+				oNode.node.style.fontFamily = '';
+				if (oNode.node.style.cssText != '')
+				{
+					oNode.checkNodeAgain = true;
+				}
+			}
+			// Font size
+			else if(oNode.node.style.fontSize && !isTableTag)
+			{
+				oNode.bbTag = 'SIZE';
+				oNode.bbValue = oNode.node.style.fontSize;
+				oNode.node.style.fontSize = '';
+				if (oNode.node.style.cssText != '')
+				{
+					oNode.checkNodeAgain = true;
+				}
+			}
+			else if(nodeName == 'BLOCKQUOTE' && oNode.node.className == 'bxhtmled-quote' && !oNode.node.getAttribute('data-bx-skip-check'))
+			{
+				oNode.bbTag = 'QUOTE';
+				oNode.breakLineBefore = true;
+				oNode.breakLineAfterEnd = true;
+
+				if (isAlign)
+				{
+					oNode.checkNodeAgain = true;
+					oNode.node.setAttribute('data-bx-skip-check', 'Y');
+				}
+			}
+			else if(isAlign)
+			{
+				var align = oNode.node.style.textAlign || oNode.node.align;
+				if (BX.util.in_array(align, ['left', 'right', 'center', 'justify']))
+				{
+					oNode.hide = false;
+					oNode.bbTag = align.toUpperCase();
+				}
+				else
+				{
+					oNode.hide = !BX.util.in_array(nodeName, this.editor.BBCODE_TAGS);
+				}
+			}
+
+
+			else if(!BX.util.in_array(nodeName, this.editor.BBCODE_TAGS)) //'p', 'u', 'div', 'table', 'tr', 'img', 'td', 'a'
+			{
+				oNode.hide = true;
+			}
+
+			return false;
+		},
+
+		IsPairNode: function(text)
+		{
+			text = text.toUpperCase();
+			return !(text.substr(0, 1) == 'H' || text == 'BR' || text == 'IMG' || text == 'INPUT');
+		},
+
+		GetCodeContent: function(node) // WYSIWYG -> BBCode
+		{
+			if (!node || this.editor.util.IsEmptyNode(node))
+				return '';
+
+			var
+				i,
+				res = '';
+
+			for (i = 0; i < node.childNodes.length; i++)
+			{
+				if (node.childNodes[i].nodeType == 3)
+					res += node.childNodes[i].data;
+				else if (node.childNodes[i].nodeType == 1 && node.childNodes[i].nodeName == "BR")
+					res += "#BR#";
+				else
+					res += this.GetCodeContent(node.childNodes[i]);
+			}
+
+			if (BX.browser.IsIE())
+				res = res.replace(/\r/ig, "#BR#");
+			else
+				res = res.replace(/\n/ig, "#BR#");
+
+			res = res.replace(/\[/ig, "&#91;");
+			res = res.replace(/\]/ig, "&#93;");
+
+			return res;
+		},
+
+		GetVideoSourse: function(src, params, source)
+		{
+			return this.editor.phpParser.GetVideoHTML({
+				params: {
+					width: params.width,
+					height: params.height,
+					title: BX.message.BXEdVideoTitle,
+					origTitle: '',
+					provider: params.type
+				},
+				html: source
+			});
+		},
+
+		FetchVideoParams: function(str)
+		{
+			str = BX.util.trim(str);
+			var
+				atr = str.split(' '),
+				i, name, val, atr_,
+				res = {
+					width: 180,
+					height: 100,
+					type: false
+				};
+
+			for (i = 0; i < atr.length; i++)
+			{
+				atr_ = atr[i].split('=');
+				name = atr_[0].toLowerCase();
+				val = atr_[1];
+				if (name == 'width' || name == 'height')
+				{
+					val = parseInt(val, 10);
+					if (val && !isNaN(val))
+					{
+						res[name] = Math.max(val, 100);
+					}
+				}
+				else if (name == 'type')
+				{
+					val = val.toUpperCase();
+					if (val == 'YOUTUBE' || val == 'RUTUBE' || val == 'VIMEO')
+					{
+						res[name] = val;
+					}
+				}
+			}
+
+			return res;
+		},
+
+
+		FetchImageParams: function(str)
+		{
+			str = BX.util.trim(str);
+			var
+				atr = str.split(' '),
+				i, name, val, atr_,
+				res = {};
+
+			for (i = 0; i < atr.length; i++)
+			{
+				atr_ = atr[i].split('=');
+				name = atr_[0].toLowerCase();
+				val = atr_[1];
+				if (name == 'width' || name == 'height')
+				{
+					val = parseInt(val, 10);
+					if (val && !isNaN(val))
+					{
+						res[name] = val;
+					}
+				}
+			}
+
+			return res;
 		}
 	};
 
@@ -2632,6 +3438,7 @@
 				{
 					t[1] = t[1].toLowerCase();
 					result = this.PutTag(this.CleanTag(tag), result);
+					//end = String(code.substr(i + 1)).indexOf('</' + t[1]);
 					end = String(code.substr(i + 1)).toLowerCase().indexOf('</' + t[1]);
 
 					if (end)
@@ -2681,9 +3488,9 @@
 			while (m = partRe.exec(tag))
 			{
 				if (m[2])
-					result += m[1].toLowerCase() + '=' + m[2];
+					result += m[1] + '=' + m[2];
 				else if (m[1])
-					result += m[1].toLowerCase();
+					result += m[1];
 				result += ' ';
 
 				tag = tag.substr(m[0].length);
@@ -2733,6 +3540,7 @@
 		window.BXHtmlEditor.BXCodeFormatter = BXCodeFormatter;
 		window.BXHtmlEditor.BXEditorParser = BXEditorParser;
 		window.BXHtmlEditor.BXEditorPhpParser = BXEditorPhpParser;
+		window.BXHtmlEditor.BXEditorBbCodeParser = BXEditorBbCodeParser;
 	}
 
 	if (window.BXHtmlEditor)

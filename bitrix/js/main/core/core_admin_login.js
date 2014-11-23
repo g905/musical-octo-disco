@@ -413,17 +413,25 @@ BX.authFormAuthorize.prototype.onshow = function()
 
 BX.authFormAuthorize.prototype.onerror = function(error)
 {
-	BX.addClass(this.container, 'login-popup-error-shake');
+	if(error.MESSAGE === false)
+	{
+		BX.adminLogin._lastError = error;
+		BX.adminLogin.toggleAuthForm('otp');
+	}
+	else
+	{
+		BX.addClass(this.container, 'login-popup-error-shake');
 
-	setTimeout(BX.delegate(function(){
-		BX.removeClass(this.container, 'login-loading-active');
-		BX.removeClass(this.container, 'login-popup-error-shake');
+		setTimeout(BX.delegate(function(){
+			BX.removeClass(this.container, 'login-loading-active');
+			BX.removeClass(this.container, 'login-popup-error-shake');
 
-		error.TITLE = BX.message('admin_authorize_error');
-		BX.adminLogin.showError('USER_PASSWORD', error)
+			error.TITLE = BX.message('admin_authorize_error');
+			BX.adminLogin.showError('USER_PASSWORD', error)
 
-		this._showCaptcha(error);
-	}, this), 400);
+			this._showCaptcha(error);
+		}, this), 400);
+	}
 }
 
 BX.authFormAuthorize.prototype._showCaptcha = function(error)
@@ -442,6 +450,76 @@ BX.authFormAuthorize.prototype._showCaptcha = function(error)
 	}
 }
 
+BX.authFormOtp = function(container, params)
+{
+	this.name = 'otp';
+	BX.authFormOtp.superclass.constructor.apply(this, arguments);
+}
+BX.extend(BX.authFormOtp, BX.IAdminAuthForm);
+
+BX.authFormOtp.prototype.onshow = function()
+{
+	BX.authFormOtp.superclass.onshow.apply(this, arguments);
+
+	if(!!BX.adminLogin._lastError)
+	{
+		this._showCaptcha(BX.adminLogin._lastError);
+		BX.adminLogin._lastError = null;
+	}
+
+	BX.defer(BX.focus)(this.form.USER_OTP);
+}
+
+BX.authFormOtp.prototype.validate = function(e)
+{
+	if(BX.util.trim(this.form.USER_OTP.value == ''))
+	{
+		BX.defer(BX.focus)(this.form.USER_OTP);
+		return BX.PreventDefault(e);
+	}
+
+	if(BX.hasClass(this.container, 'login-captcha-popup-wrap')
+		&& BX.util.trim(this.form.captcha_word.value == '')
+	)
+	{
+		BX.defer(BX.focus)(this.form.captcha_word);
+		return BX.PreventDefault(e);
+	}
+
+	BX.addClass(this.container, 'login-loading-active');
+
+	return true;
+}
+
+BX.authFormOtp.prototype.onerror = function(error)
+{
+	BX.addClass(this.container, 'login-popup-error-shake');
+
+	setTimeout(BX.delegate(function(){
+		BX.removeClass(this.container, 'login-loading-active');
+		BX.removeClass(this.container, 'login-popup-error-shake');
+
+		error.TITLE = BX.message('admin_authorize_error');
+		BX.adminLogin.showError('USER_OTP', error)
+
+		this._showCaptcha(error);
+	}, this), 400);
+}
+
+BX.authFormOtp.prototype._showCaptcha = function(error)
+{
+	if (!!error.CAPTCHA)
+	{
+		this.fix();
+
+		this.form.captcha_sid.value = error.CAPTCHA_CODE;
+		this.form.captcha_word.disabled = false;
+		BX('captcha_image').innerHTML = '<img src="/bitrix/tools/captcha.php?captcha_sid='+error.CAPTCHA_CODE+'" width="180" height="40" alt="CAPTCHA" />';
+
+		BX.addClass(this.container, 'login-captcha-popup-wrap');
+	}
+}
+
 BX.authFormForgotPassword = function(container, params)
 {
 	this.name = 'forgot_password';
@@ -449,7 +527,6 @@ BX.authFormForgotPassword = function(container, params)
 	BX.authFormForgotPassword.superclass.constructor.apply(this, arguments);
 }
 BX.extend(BX.authFormForgotPassword, BX.IAdminAuthForm);
-
 
 BX.authFormForgotPassword.prototype.validate = function(e)
 {

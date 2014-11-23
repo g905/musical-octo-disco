@@ -831,7 +831,9 @@ BXSticker.prototype = {
 		// Create if it's necessary and move to the current sticker window
 		// (We have one editor and simply append it to different sticker windows)
 		if (!this.pEditorCont)
+		{
 			this.pEditorCont = (bPreload ? document.body : oSt.pBody).appendChild(BX.create("DIV", {props: {className: 'bxst-lhe-cont'}}));
+		}
 
 		this.pEditorCont.style.visibility = 'hidden';
 

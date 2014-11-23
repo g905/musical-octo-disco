@@ -2913,31 +2913,33 @@ rangy.createCoreModule("WrappedSelection", ["DomRange", "WrappedRange"], functio
                 var textNode = testEl.appendChild( document.createTextNode("\u00a0\u00a0\u00a0") );
 
                 // Test whether the native selection will allow a collapsed selection within a non-editable element
-                var r1 = document.createRange();
+				if (navigator.userAgent.toLowerCase().indexOf('chrome') != -1)
+				{
+					collapsedNonEditableSelectionsSupported = false;
+					selectionSupportsMultipleRanges = false;
+				}
+				else
+				{
+					var r1 = document.createRange();
+					r1.setStart(textNode, 1);
+					r1.collapse(true);
+					sel.addRange(r1);
+					collapsedNonEditableSelectionsSupported = (sel.rangeCount == 1);
+					sel.removeAllRanges();
 
-                r1.setStart(textNode, 1);
-                r1.collapse(true);
-                sel.addRange(r1);
-                collapsedNonEditableSelectionsSupported = (sel.rangeCount == 1);
-                sel.removeAllRanges();
-
-                // Test whether the native selection is capable of supporting multiple ranges
-                if (!selectionHasMultipleRanges) {
-                    var r2 = r1.cloneRange();
-                    r1.setStart(textNode, 0);
-                    r2.setEnd(textNode, 3);
-                    r2.setStart(textNode, 2);
-                    sel.addRange(r1);
-                    sel.addRange(r2);
-
-                    selectionSupportsMultipleRanges = (sel.rangeCount == 2);
-                    r2.detach();
-                }
+					// Test whether the native selection is capable of supporting multiple ranges
+					var r2 = r1.cloneRange();
+					r1.setStart(textNode, 0);
+					r2.setEnd(textNode, 3);
+					r2.setStart(textNode, 2);
+					sel.addRange(r1);
+					sel.addRange(r2);
+					selectionSupportsMultipleRanges = (sel.rangeCount == 2);
+				}
 
                 // Clean up
                 body.removeChild(testEl);
                 sel.removeAllRanges();
-                r1.detach();
 
                 for (i = 0; i < originalSelectionRangeCount; ++i) {
                     if (i == 0 && originalSelectionBackward) {

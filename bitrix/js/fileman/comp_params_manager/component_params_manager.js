@@ -183,6 +183,8 @@
 			BX.cleanNode(container);
 			BX.addClass(container, 'bxcompprop-wrap');
 
+			var scrollPos = BX.GetWindowScrollPos();
+
 			this.pContainer = container;
 			// Build groups
 			this.pLeftSide = container.appendChild(BX.create("DIV", {props: {className: 'bxcompprop-left'}}));
@@ -217,7 +219,7 @@
 				frag;
 
 			// Add template group to the beginning
-			if (!this.groupIndex["COMPONENT_TEMPLATE"])
+			if (!this.groupIndex["COMPONENT_TEMPLATE"] && data.templates.length > 0)
 			{
 				data.groups = [{ID: "COMPONENT_TEMPLATE", NAME: BX.message('TemplateGroup'), SORT: 0}].concat(data.groups);
 			}
@@ -252,7 +254,10 @@
 			}
 
 			// Display template
-			this.DisplayTemplateSelector(data.templates, params.template);
+			if (data.templates.length > 0)
+			{
+				this.DisplayTemplateSelector(data.templates, params.template);
+			}
 
 			var k, str, arSut, arVa;
 			//Handling SEF_URL_TEMPLATES
@@ -342,10 +347,12 @@
 
 			this.lastCell = BX.adjust(this.pParamsTable.appendChild(BX.create("TR")).insertCell(-1), {props: {className: 'bxcompprop-last-empty-cell'}, attrs: {colSpan: 2}});
 
+			window.scrollTo(scrollPos.scrollLeft, scrollPos.scrollTop);
 			// Restore scroll top
 			setTimeout(
 				function()
 				{
+					window.scrollTo(scrollPos.scrollLeft, scrollPos.scrollTop);
 					if (_this.savedScrollTop)
 					{
 						_this.pParamsWrap.scrollTop = _this.savedScrollTop;
@@ -372,8 +379,11 @@
 				groupId = (target && target.getAttribute) ? target.getAttribute('data-bx-comp-group-id') : null;
 			}
 
-			this.pParamsWrap.scrollTop = this.groupIndex[groupId].titleCell.offsetTop;
-			this.CheckActiveGroup(groupId);
+			if (groupId)
+			{
+				this.pParamsWrap.scrollTop = this.groupIndex[groupId].titleCell.offsetTop;
+				this.CheckActiveGroup(groupId);
+			}
 		},
 
 		CheckActiveGroup: function(groupId)
@@ -532,7 +542,8 @@
 			param._propId = BX.util.htmlspecialchars(param.ID || Math.round(Math.random() * 10000)) + '_' + this.id;
 
 			var
-				tr = BX.adjust(frag.appendChild(BX.create("TR")), {props: {className: 'bxcompprop-prop-tr'}}), 				pLabelTd = BX.adjust(tr.insertCell(-1), {props: {className: 'bxcompprop-cont-table-l'}, html: '<label class="bxcompprop-label" for="' + param._propId + '">' + (param.NAME || '') + ':</label>'}),
+				tr = BX.adjust(frag.appendChild(BX.create("TR")), {props: {className: 'bxcompprop-prop-tr'}}),
+				pLabelTd = BX.adjust(tr.insertCell(-1), {props: {className: 'bxcompprop-cont-table-l'}, html: '<label class="bxcompprop-label" for="' + param._propId + '">' + BX.util.htmlspecialchars(param.NAME || '') + ':</label>'}),
 				paramContainer = BX.adjust(tr.insertCell(-1), {props: {className: 'bxcompprop-cont-table-r'}});
 
 			switch(param.TYPE)
@@ -589,6 +600,11 @@
 			param.COLS = parseInt(param.COLS, 10) || 20;
 			param.CNT = Math.max(parseInt(param.CNT), 1) || 1;
 
+			if (value == undefined)
+			{
+				value = param.DEFAULT;
+			}
+
 			if(!param.VALUES)
 			{
 				param.VALUES = [];
@@ -617,7 +633,20 @@
 					opt = new Option(val, key, false, false);
 					pSelect.options.add(opt);
 
-					if (typeof value == 'object' && BX.util.in_array(key, value))
+					// Only for template selectors
+					if (param.ID == 'COMPONENT_TEMPLATE' &&
+						(
+							key == value ||
+							key == '.default' && value == '' ||
+							key == '' && value == '.default'
+							)
+						)
+					{
+						this.SetOptionSelected(opt, true);
+						arUsedValues[key] = true;
+						bFound = true;
+					}
+					else if (typeof value == 'object' && BX.util.in_array(key, value))
 					{
 						this.SetOptionSelected(opt, true);
 						arUsedValues[key] = true;
@@ -1125,7 +1154,9 @@
 		GetTemplateValue: function()
 		{
 			var templateInput = BX('TEMPLATE_' + this.id);
-			return templateInput.value == '.default' ? '' : templateInput.value;
+			if (templateInput)
+				return templateInput.value == '.default' ? '' : templateInput.value;
+			return '';
 		},
 
 		DoRefreshParams: function()

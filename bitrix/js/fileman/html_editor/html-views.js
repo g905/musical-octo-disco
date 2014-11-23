@@ -15,6 +15,7 @@ function BXEditorView(editor, element, container)
 	this.container = container;
 	this.config = editor.config || {};
 	this.isShown = null;
+	this.bbCode = editor.bbCode;
 	BX.addCustomEvent(this.editor, "OnClickBefore", BX.proxy(this.OnClick, this));
 }
 
@@ -67,6 +68,9 @@ function BXEditorTextareaView(parent, textareaElement, container)
 	BXEditorIframeView.superclass.constructor.apply(this, arguments);
 	this.name = "textarea";
 	this.InitEventHandlers();
+
+	if (!this.element.value && this.editor.config.content)
+		this.SetValue(this.editor.config.content, false);
 }
 
 BX.extend(BXEditorTextareaView, BXEditorView);
@@ -94,13 +98,17 @@ BXEditorTextareaView.prototype.SetValue = function(html, bParse, bFormat)
 	{
 		html = this.editor.Parse(html, true, bFormat);
 	}
+
 	this.editor.dom.pValueInput.value = this.element.value = html;
 };
 
 
 BXEditorTextareaView.prototype.SaveValue = function()
 {
-	this.editor.dom.pValueInput.value = this.element.value;
+	if (this.editor.inited)
+	{
+		this.editor.dom.pValueInput.value = this.element.value;
+	}
 };
 
 BXEditorTextareaView.prototype.HasPlaceholderSet = function()
@@ -135,32 +143,14 @@ BXEditorTextareaView.prototype.InitEventHandlers = function()
 		_this.isFocused = false;
 	});
 
-	return;
-
-	var
-		element = this.element,
-		parent = this.parent,
-		eventMapping = {
-			focusin: "focus",
-			focusout: "blur"
-		},
-		/**
-		 * Calling focus() or blur() on an element doesn't synchronously trigger the attached focus/blur events
-		 * This is the case for focusin and focusout, so let's use them whenever possible, kkthxbai
-		 */
-			events = supportsEvent("focusin") ? ["focusin", "focusout", "change"] : ["focus", "blur", "change"];
-
-	parent.observe("beforeload", function()
+	BX.bind(this.element, "keydown", function(e)
 	{
-		observe(element, events, function(event) {
-			var eventName = eventMapping[event.type] || event.type;
-			parent.fire(eventName).fire(eventName + ":textarea");
-		});
-
-		observe(element, ["paste", "drop"], function()
+		// Handle Ctrl+Enter
+		if ((e.ctrlKey || e.metaKey) && !e.altKey && e.keyCode === _this.editor.KEY_CODES["enter"])
 		{
-			setTimeout(function() { parent.fire("paste").fire("paste:textarea"); }, 0);
-		});
+			_this.editor.On('OnCtrlEnter', [e, _this.editor.GetViewMode()]);
+			return BX.PreventDefault(e);
+		}
 	});
 };
 
@@ -212,6 +202,120 @@ BXEditorTextareaView.prototype.SelectText = function(searchText)
 	}
 };
 
+BXEditorTextareaView.prototype.GetTextSelection = function()
+{
+	var res = false;
+	if (this.element.selectionStart != undefined)
+	{
+		res = this.element.value.substr(this.element.selectionStart, this.element.selectionEnd - this.element.selectionStart);
+	}
+	else if (document.selection && document.selection.createRange)
+	{
+		res = document.selection.createRange().text;
+	}
+	else if (window.getSelection)
+	{
+		res = window.getSelection();
+		res = res.toString();
+	}
+
+	return res;
+};
+
+BXEditorTextareaView.prototype.WrapWith = function (tagBegin, tagEnd, postText)
+{
+	if (!tagBegin)
+		tagBegin = "";
+	if (!tagEnd)
+		tagEnd = "";
+	if (!postText)
+		postText = "";
+
+	if (tagBegin.length <= 0 && tagEnd.length <= 0 && postText.length <= 0)
+		return true;
+
+	var
+		bReplaceText = !!postText,
+		selectedText = this.GetTextSelection(),
+		mode = (selectedText ? 'select' : (bReplaceText ? 'after' : 'in'));
+
+	//if (!this.bTextareaFocus)
+	//	this.pTextarea.focus(); // BUG IN IE
+
+	if (bReplaceText)
+	{
+		postText = tagBegin + postText + tagEnd;
+	}
+	else if (selectedText)
+	{
+		postText = tagBegin + selectedText + tagEnd;
+	}
+	else
+	{
+		postText = tagBegin + tagEnd;
+	}
+
+	if (this.element.selectionStart != undefined)
+	{
+		var
+			currentScroll = this.element.scrollTop,
+			start = this.element.selectionStart,
+			end = this.element.selectionEnd;
+
+		this.element.value = this.element.value.substr(0, start) + postText + this.element.value.substr(end);
+
+		if (mode == 'select')
+		{
+			this.element.selectionStart = start;
+			this.element.selectionEnd = start + postText.length;
+		}
+		else if (mode == 'in')
+		{
+			this.element.selectionStart = this.element.selectionEnd = start + tagBegin.length;
+		}
+		else
+		{
+			this.element.selectionStart = this.element.selectionEnd = start + postText.length;
+		}
+		this.element.scrollTop = currentScroll;
+	}
+	else if (document.selection && document.selection.createRange)
+	{
+		var sel = document.selection.createRange();
+		var selection_copy = sel.duplicate();
+		postText = postText.replace(/\r?\n/g, '\n');
+		sel.text = postText;
+		sel.setEndPoint('StartToStart', selection_copy);
+		sel.setEndPoint('EndToEnd', selection_copy);
+
+		if (mode == 'select')
+		{
+			sel.collapse(true);
+			postText = postText.replace(/\r\n/g, '1');
+			sel.moveEnd('character', postText.length);
+		}
+		else if (mode == 'in')
+		{
+			sel.collapse(false);
+			sel.moveEnd('character', tagBegin.length);
+			sel.collapse(false);
+		}
+		else
+		{
+			sel.collapse(false);
+			sel.moveEnd('character', postText.length);
+			sel.collapse(false);
+		}
+		sel.select();
+	}
+	else
+	{
+		// failed - just stuff it at the end of the message
+		this.element.value += postText;
+	}
+	return true;
+};
+
 
 function BXEditorIframeView(editor, textarea, container)
 {
@@ -227,6 +331,7 @@ BXEditorIframeView.prototype.OnCreateIframe = function()
 {
 	this.document = this.editor.sandbox.GetDocument();
 	this.element = this.document.body;
+	this.editor.document = this.document;
 	this.textarea = this.editor.dom.textarea;
 	this.isFocused = false;
 	this.InitEventHandlers();
@@ -243,12 +348,12 @@ BXEditorIframeView.prototype.Clear = function()
 	this.element.innerHTML = this.caretNode;
 };
 
-BXEditorIframeView.prototype.GetValue = function(bParse)
+BXEditorIframeView.prototype.GetValue = function(bParse, bFormat)
 {
 	var value = this.IsEmpty() ? "" : this.editor.GetInnerHtml(this.element);
 	if (bParse)
 	{
-		value = this.editor.Parse(value);
+		value = this.editor.Parse(value, false, bFormat);
 	}
 	return value;
 };
@@ -259,9 +364,11 @@ BXEditorIframeView.prototype.SetValue = function(html, bParse)
 	{
 		html = this.editor.Parse(html);
 	}
+
 	this.element.innerHTML = html;
 	// Check last child - if it's block node in the end - add <br> tag there
 	this.CheckContentLastChild(this.element);
+	this.editor.On('OnIframeSetValue', [html]);
 };
 
 BXEditorIframeView.prototype.Show = function()
@@ -276,7 +383,7 @@ BXEditorIframeView.prototype.ReInit = function()
 	// Firefox needs this, otherwise contentEditable becomes uneditable
 	this.Disable();
 	this.Enable();
-	this.document = this.editor.sandbox.GetDocument();
+
 	this.editor.On('OnIframeReInit');
 };
 
@@ -303,9 +410,9 @@ BXEditorIframeView.prototype.Focus = function(setToEnd)
 		this.Clear();
 	}
 
-	if (this.element.ownerDocument.querySelector(":focus") !== this.element)
+	if (this.element.ownerDocument.querySelector(":focus") !== this.element || !this.IsFocused())
 	{
-		try{this.element.focus();} catch(e){}
+		BX.focus(this.element);
 	}
 
 	if (setToEnd && this.element.lastChild)
@@ -319,6 +426,11 @@ BXEditorIframeView.prototype.Focus = function(setToEnd)
 			this.editor.selection.SetAfter(this.element.lastChild);
 		}
 	}
+};
+
+BXEditorIframeView.prototype.SetFocusedFlag = function(isFocused)
+{
+	this.isFocused = isFocused;
 };
 
 BXEditorIframeView.prototype.IsFocused = function()
@@ -450,6 +562,11 @@ var focusWithoutScrolling = function(element)
 			element = this.element,
 			_element = !BX.browser.IsOpera() ? element : this.editor.sandbox.GetWindow();
 
+		if (this._eventsInitedObject && this._eventsInitedObject === _element)
+			return;
+
+		this._eventsInitedObject = _element;
+
 		BX.bind(_element, "focus", function()
 		{
 			_this.editor.On("OnIframeFocus");
@@ -469,9 +586,7 @@ var focusWithoutScrolling = function(element)
 		{
 			if(e && !e.ctrlKey && !e.shiftKey && (BX.getEventButton(e) & BX.MSRIGHT))
 			{
-				var target = e.target || e.srcElement;
-				_this.editor.On("OnIframeContextMenu", [e, target]);
-				return BX.PreventDefault(e);
+				_this.editor.On("OnIframeContextMenu", [e, e.target || e.srcElement]);
 			}
 		});
 
@@ -510,6 +625,11 @@ var focusWithoutScrolling = function(element)
 
 			editor.selection.SaveRange();
 			_this.editor.On("OnIframeMouseDown", [e, target, bxTag]);
+		});
+
+		BX.bind(_element, "touchstart", function(e)
+		{
+			_this.Focus();
 		});
 
 		BX.bind(_element, "click", function(e)
@@ -562,35 +682,40 @@ var focusWithoutScrolling = function(element)
 
 		// resizestart
 		// resizeend
-
-		// TODO: check it on ios
 		if (BX.browser.IsIOS() && false)
 		{
 			// When on iPad/iPhone/IPod after clicking outside of editor, the editor loses focus
 			// but the UI still acts as if the editor has focus (blinking caret and onscreen keyboard visible)
 			// We prevent _this by focusing a temporary input element which immediately loses focus
-			dom.observe(element, "blur", function()
+
+			BX.bind(element, "blur", function()
 			{
-				var input = element.ownerDocument.createElement("input"),
+				var
+					input = BX.create('INPUT', {props: {type: 'text', value: ''}}, element.ownerDocument),
 					originalScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
 					originalScrollLeft = document.documentElement.scrollLeft || document.body.scrollLeft;
-				try {
-					_this.selection.insertNode(input);
-				} catch(e) {
+
+				try
+				{
+					_this.editor.selection.InsertNode(input);
+				}
+				catch(e)
+				{
 					element.appendChild(input);
 				}
-				input.focus();
-				input.parentNode.removeChild(input);
 
+				BX.focus(input);
+				BX.remove(input);
 				window.scrollTo(originalScrollLeft, originalScrollTop);
 			});
 		}
 
-		// --------- Drag & Drop logic ---------
-		BX.bind(element, "dragenter", function ()
-		{
-			//_this.parent.fire("unset_placeholder");
-		});
+		// --------- Drag & Drop events  ---------
+		BX.bind(element, "dragover", function(){_this.editor.On("OnIframeDragOver");});
+		BX.bind(element, "dragenter", function(){_this.editor.On("OnIframeDragEnter");});
+		BX.bind(element, "dragleave", function(){_this.editor.On("OnIframeDragLeave");});
+		BX.bind(element, "dragexit", function(){_this.editor.On("OnIframeDragExit");});
+		BX.bind(element, "drop", function(){_this.editor.On("OnIframeDrop");});
 
 		// Chrome & Safari & Firefox only fire the ondrop/ondragend/... events when the ondragover event is cancelled
 		//if (BX.browser.IsChrome() || BX.browser.IsFirefox())
@@ -609,40 +734,45 @@ var focusWithoutScrolling = function(element)
 
 		BX.bind(element, "drop", BX.delegate(this.OnPasteHandler, this));
 		BX.bind(element, "paste", BX.delegate(this.OnPasteHandler, this));
+
 		BX.bind(element, "keyup", function(e)
 		{
 			var
 				keyCode = e.keyCode,
 				target = editor.selection.GetSelectedNode(true);
 
+			_this.SetFocusedFlag(true);
 			if (keyCode === editor.KEY_CODES['space'] || keyCode === editor.KEY_CODES['enter'])
 			{
 				editor.On("OnIframeNewWord");
 			}
-			else if (keyCode === editor.KEY_CODES['right'] || keyCode === editor.KEY_CODES['down'])
+			else
 			{
-				editor.selection.SetCursorAfterNode(e);
-			}
-			else if (keyCode === editor.KEY_CODES['left'] || keyCode === editor.KEY_CODES['up'])
-			{
-				editor.selection.SetCursorBeforeNode(e);
+				_this.OnKeyUpArrowsHandler(e, keyCode);
 			}
 
 			editor.selection.SaveRange();
 			editor.On('OnIframeKeyup', [e, keyCode, target]);
 		});
 
-		if (!editor.util.CheckImageSelectSupport())
+		BX.bind(element, "mousedown", function(e)
 		{
-			BX.bind(element, "mousedown", function(e)
+			var target = e.target || e.srcElement;
+			if (!editor.util.CheckImageSelectSupport() && target.nodeName === 'IMG')
 			{
-				var target = e.target || e.srcElement;
-				if (target.nodeName === "IMG")
+				editor.selection.SelectNode(target);
+			}
+
+			// Handle mousedown for "code" element in IE
+			if (!editor.util.CheckPreCursorSupport() && target.nodeName === 'PRE')
+			{
+				var selectedNode = editor.selection.GetSelectedNode(true);
+				if (selectedNode && selectedNode != target)
 				{
-					editor.selection.SelectNode(target);
+					_this.FocusPreElement(target, true);
 				}
-			});
-		}
+			}
+		});
 
 		BX.bind(element, "keydown", BX.proxy(this.KeyDown, this));
 
@@ -672,6 +802,9 @@ var focusWithoutScrolling = function(element)
 
 	BXEditorIframeView.prototype.KeyDown = function(e)
 	{
+		this.SetFocusedFlag(true);
+		this.editor.iframeKeyDownPreventDefault = false;
+
 		var
 			_this = this,
 			keyCode = e.keyCode,
@@ -698,6 +831,13 @@ var focusWithoutScrolling = function(element)
 			}
 		}
 
+		// Last symbol in iframe and new paragraph in IE
+		if ((BX.browser.IsIE() || BX.browser.IsIE10() || BX.browser.IsIE11()) &&
+			keyCode == KEY_CODES['backspace'])
+		{
+			BX.addCustomEvent(this.editor, "OnIframeKeyup", BX.proxy(this._IEBodyClearHandlerEx, this));
+		}
+
 		this.isUserTyping = true;
 		if (this.typingTimeout)
 		{
@@ -711,6 +851,9 @@ var focusWithoutScrolling = function(element)
 		this.editor.synchro.StartSync(200);
 
 		this.editor.On('OnIframeKeydown', [e, keyCode, command, selectedNode]);
+
+		if (this.editor.iframeKeyDownPreventDefault)
+			return BX.PreventDefault(e);
 
 		// Handle  Shortcuts
 		if ((e.ctrlKey || e.metaKey) && !e.altKey && command)
@@ -734,6 +877,21 @@ var focusWithoutScrolling = function(element)
 
 			setTimeout(function(){_this.editor.util.Refresh(_this.element);}, 0);
 			BX.PreventDefault(e);
+		}
+
+		if (range.collapsed && this.OnKeyDownArrowsHandler(e, keyCode, range) === false)
+		{
+			return false;
+		}
+
+		// Handle Ctrl+Enter
+		if ((e.ctrlKey || e.metaKey) && !e.altKey && keyCode === KEY_CODES["enter"])
+		{
+			if (_this.IsFocused())
+				_this.editor.On("OnIframeBlur");
+
+			_this.editor.On('OnCtrlEnter', [e, _this.editor.GetViewMode()]);
+			return BX.PreventDefault(e);
 		}
 
 		// Handle "Enter"
@@ -764,6 +922,20 @@ var focusWithoutScrolling = function(element)
 			_this.editor.util.ReplaceWithOwnChildren(p);
 		}
 		BX.removeCustomEvent(this.editor, "OnIframeKeyup", BX.proxy(this._IEBodyClearHandler, this));
+	};
+
+	BXEditorIframeView.prototype._IEBodyClearHandlerEx = function(e)
+	{
+		var p = this.document.body.firstChild;
+
+		if (e.keyCode == this.editor.KEY_CODES['backspace'] &&
+			p && p.nodeName == "P" && p == this.document.body.lastChild &&
+			(this.editor.util.IsEmptyNode(p, true, true) || p.innerHTML && p.innerHTML.toLowerCase() == '<br>'))
+		{
+			this.editor.util.ReplaceWithOwnChildren(p);
+		}
+
+		BX.removeCustomEvent(this.editor, "OnIframeKeyup", BX.proxy(this._IEBodyClearHandlerEx, this));
 	};
 
 	BXEditorIframeView.prototype.OnEnterHandler = function(e, keyCode, selectedNode)
@@ -804,7 +976,8 @@ var focusWithoutScrolling = function(element)
 
 
 		// We trying to exit from list (double enter) (only in Chrome)
-		if (BX.browser.IsChrome() &&
+		if (keyCode === this.editor.KEY_CODES["enter"] &&
+			BX.browser.IsChrome() &&
 			selectedNode.nodeName === "LI" &&
 			selectedNode.childNodes.length == 1 &&
 			selectedNode.firstChild.nodeName === "BR")
@@ -820,20 +993,11 @@ var focusWithoutScrolling = function(element)
 			// Last item - we have to exit from list and insert <br>
 			if (selectedNode === li[li.length - 1])
 			{
-				br = list.ownerDocument.createElement("BR");
-				if (list.nextSibling)
-				{
-					list.parentNode.insertBefore(list.nextSibling, br);
-				}
-				else
-				{
-					list.parentNode.appendChild(br);
-				}
-
-				this.editor.selection.SetAfter(br);
+				br = BX.create("BR", {}, _this.document);
+				this.editor.util.InsertAfter(br, list);
+				this.editor.selection.SetBefore(br);
 				this.editor.Focus();
 				BX.remove(selectedNode);
-
 			}
 			else // We have to split list into 2 lists
 			{
@@ -918,6 +1082,7 @@ var focusWithoutScrolling = function(element)
 						unwrap(_this.editor.selection.GetSelectedNode());
 					}, 0);
 				}
+
 				return true;
 			}
 
@@ -927,6 +1092,11 @@ var focusWithoutScrolling = function(element)
 				{
 					this.editor.action.Exec('insertHTML', '<br>' + this.editor.INVISIBLE_SPACE);
 				}
+				else if(BX.browser.IsChrome())
+				{
+					this.editor.action.Exec('insertLineBreak');
+					this.editor.action.Exec('insertHTML', this.editor.INVISIBLE_SPACE);
+				}
 				else
 				{
 					this.editor.action.Exec('insertLineBreak');
@@ -934,17 +1104,386 @@ var focusWithoutScrolling = function(element)
 				return BX.PreventDefault(e);
 			}
 		}
-	}
+
+		if ((BX.browser.IsChrome() || BX.browser.IsIE10() || BX.browser.IsIE11()) && keyCode == this.editor.KEY_CODES['backspace'])
+		{
+			var checkNode = BX.create('SPAN', false, this.document);
+			this.editor.selection.InsertNode(checkNode);
+			var prev = checkNode.previousSibling;
+			if (prev && prev.nodeType == 3 && this.editor.util.IsEmptyNode(prev, true, true))
+			{
+				BX.remove(prev);
+			}
+			BX.remove(checkNode);
+		}
+	};
+
+	BXEditorIframeView.prototype.OnKeyDownArrowsHandler = function(e, keyCode, range)
+	{
+		var
+			node, parentNode, nextNode, prevNode,
+			KC = this.editor.KEY_CODES;
+
+		this.keyDownRange = range;
+
+		if (keyCode === KC['right'] || keyCode === KC['down'])
+		{
+			node = range.endContainer;
+			nextNode = node ? node.nextSibling : false;
+			parentNode = node ? node.parentNode : false;
+
+			if (
+				node.nodeType == 3 && node.length == range.endOffset
+				&& parentNode && parentNode.nodeName !== 'BODY'
+				&& (this.editor.util.IsBlockElement(parentNode) || this.editor.util.IsBlockNode(parentNode))
+				)
+			{
+				this.editor.selection.SetInvisibleTextAfterNode(parentNode, true);
+				return BX.PreventDefault(e);
+			}
+			else if(
+					node.nodeType == 3 && this.editor.util.IsEmptyNode(node)
+					&& nextNode
+					&& (this.editor.util.IsBlockElement(nextNode) || this.editor.util.IsBlockNode(nextNode))
+				)
+			{
+				BX.remove(node);
+				if (nextNode.firstChild)
+				{
+					this.editor.selection.SetBefore(nextNode.firstChild);
+				}
+				else
+				{
+					this.editor.selection.SetAfter(nextNode);
+				}
+				return BX.PreventDefault(e);
+			}
+		}
+		else if (keyCode === KC['left'] || keyCode === KC['up'])
+		{
+			node = range.startContainer;
+			parentNode = node ? node.parentNode : false;
+			prevNode = node ? node.previousSibling : false;
+
+			if (
+				node.nodeType == 3 && range.endOffset === 0
+					&& parentNode && parentNode.nodeName !== 'BODY'
+					&& (this.editor.util.IsBlockElement(parentNode) || this.editor.util.IsBlockNode(parentNode))
+				)
+			{
+				this.editor.selection.SetInvisibleTextBeforeNode(parentNode);
+				return BX.PreventDefault(e);
+			}
+			else if(
+				node.nodeType == 3 && this.editor.util.IsEmptyNode(node)
+					&& prevNode
+					&& (this.editor.util.IsBlockElement(prevNode) || this.editor.util.IsBlockNode(prevNode))
+				)
+			{
+				BX.remove(node);
+				if (prevNode.lastChild)
+				{
+					this.editor.selection.SetAfter(prevNode.lastChild);
+				}
+				else
+				{
+					this.editor.selection.SetBefore(prevNode);
+				}
+				return BX.PreventDefault(e);
+			}
+		}
+
+		return true;
+	};
+
+	BXEditorIframeView.prototype.OnKeyUpArrowsHandler = function(e, keyCode)
+	{
+		var
+			_this = this,
+			pre, prevToSur, nextToSur,
+			keyDownNode, keyDownPre,
+			range = this.editor.selection.GetRange(),
+			node, parentNode, nextNode, prevNode, isEmpty, isSur, sameLastRange,
+			startCont, endCont, startIsSur, endIsSur,
+			KC = this.editor.KEY_CODES;
+
+		// Arrows right or down
+		if (keyCode === KC['right'] || keyCode === KC['down'])
+		{
+			this.editor.selection.GetStructuralTags();
+			// Moving cursor by arrows (right & down)
+			if (range.collapsed)
+			{
+				node = range.endContainer;
+
+				isEmpty = this.editor.util.IsEmptyNode(node);
+				// We check if last range was the same - it means that cursor doesn't
+				// moved when user tried to move it
+				sameLastRange = this.editor.selection.CheckLastRange(range);
+				nextNode = node.nextSibling;
+
+				if (!this.editor.util.CheckPreCursorSupport())
+				{
+					if (node.nodeName === 'PRE')
+					{
+						pre = node;
+					}
+					else if (node.nodeType == 3)
+					{
+						pre = BX.findParent(node, {tag: 'PRE'}, this.element);
+					}
+
+					if(pre)
+					{
+						if (this.keyDownRange)
+						{
+							keyDownNode = this.keyDownRange.endContainer;
+							keyDownPre = keyDownNode == pre ? pre : BX.findParent(keyDownNode, function(n){return n == pre;}, this.element);
+						}
+
+						_this.FocusPreElement(pre, false, keyDownPre ? null : 'start');
+					}
+				}
+
+				// If cursor in the invisible node - we take next node
+				if (node.nodeType == 3 && isEmpty && nextNode)
+				{
+					node = nextNode;
+					isEmpty = this.editor.util.IsEmptyNode(node);
+				}
+
+				isSur = this.editor.util.CheckSurrogateNode(node);
+
+				// It's surrogate
+				if (isSur)
+				{
+					nextToSur = node.nextSibling;
+					if (nextToSur && nextToSur.nodeType == 3 && this.editor.util.IsEmptyNode(nextToSur))
+						this.editor.selection._MoveCursorAfterNode(nextToSur);
+					else
+						this.editor.selection._MoveCursorAfterNode(node);
+
+					BX.PreventDefault(e);
+				}
+				// If it's element
+				else if (node.nodeType == 1 && node.nodeName != "BODY" && !isEmpty)
+				{
+					if (sameLastRange)
+					{
+						this.editor.selection._MoveCursorAfterNode(node);
+						BX.PreventDefault(e);
+					}
+				}
+				else if (sameLastRange && node.nodeType == 3 && /*node.length == range.endOffset &&*/ !isEmpty)
+				{
+					parentNode = node.parentNode;
+					if (parentNode && node === parentNode.lastChild && parentNode.nodeName != "BODY")
+					{
+						this.editor.selection._MoveCursorAfterNode(parentNode);
+					}
+				}
+				else if (node.nodeType == 3 && node.parentNode)
+				{
+					parentNode = node.parentNode;
+					prevNode = parentNode.previousSibling;
+
+					// It's empty invisible node before block element which was put there by us.
+					// So we should remove it.
+					if (
+						(this.editor.util.IsBlockElement(parentNode) || this.editor.util.IsBlockNode(parentNode))
+						&& prevNode && prevNode.nodeType == 3 && this.editor.util.IsEmptyNode(prevNode)
+						)
+					{
+						BX.remove(prevNode);
+					}
+				}
+			}
+			else // Selection Shift + Right & Shift + down
+			{
+				startCont = range.startContainer;
+				endCont = range.endContainer;
+				startIsSur = this.editor.util.CheckSurrogateNode(startCont);
+				endIsSur = this.editor.util.CheckSurrogateNode(endCont);
+
+				if (startIsSur)
+				{
+					prevToSur = startCont.previousSibling;
+					if (prevToSur && prevToSur.nodeType == 3 && this.editor.util.IsEmptyNode(prevToSur))
+						range.setStartBefore(prevToSur);
+					else
+						range.setStartBefore(startCont);
+
+					this.editor.selection.SetSelection(range);
+				}
+
+				if (endIsSur)
+				{
+					nextToSur = endCont.nextSibling;
+					if (nextToSur && nextToSur.nodeType == 3 && this.editor.util.IsEmptyNode(nextToSur))
+						range.setEndAfter(nextToSur);
+					else
+						range.setEndAfter(endCont);
+
+					this.editor.selection.SetSelection(range);
+				}
+			}
+		}
+		// Arrows left or up
+		else if (keyCode === KC['left'] || keyCode === KC['up'])
+		{
+			this.editor.selection.GetStructuralTags();
+
+			// Moving cursor by arrows (left & up)
+			if (range.collapsed)
+			{
+				node = range.startContainer;
+				isEmpty = this.editor.util.IsEmptyNode(node);
+				// We check if last range was the same - it means that cursor doesn't
+				// moved when user tried to move it
+				sameLastRange = this.editor.selection.CheckLastRange(range);
+
+				// If cursor in the invisible node - we take next node
+				if (node.nodeType == 3 && isEmpty && node.previousSibling)
+				{
+					node = node.previousSibling;
+					isEmpty = this.editor.util.IsEmptyNode(node);
+				}
+
+				if (!this.editor.util.CheckPreCursorSupport())
+				{
+					if (node.nodeName === 'PRE')
+					{
+						pre = node;
+					}
+					else if (node.nodeType == 3)
+					{
+						pre = BX.findParent(node, {tag: 'PRE'}, this.element);
+					}
+
+					if(pre)
+					{
+						if (this.keyDownRange)
+						{
+							keyDownNode = this.keyDownRange.startContainer;
+							keyDownPre = keyDownNode == pre ? pre : BX.findParent(keyDownNode, function(n){return n == pre;}, this.element);
+						}
+						_this.FocusPreElement(pre, false, keyDownPre ? null : 'end');
+					}
+				}
+
+				isSur = this.editor.util.CheckSurrogateNode(node);
+				// It's surrogate
+				if (isSur)
+				{
+					prevToSur = node.previousSibling;
+					if (prevToSur && prevToSur.nodeType == 3 && this.editor.util.IsEmptyNode(prevToSur))
+						this.editor.selection._MoveCursorBeforeNode(prevToSur);
+					else
+						this.editor.selection._MoveCursorBeforeNode(node);
+
+					BX.PreventDefault(e);
+				}
+				// If it's element
+				else if (node.nodeType == 1 && node.nodeName != "BODY" && !isEmpty)
+				{
+					if (sameLastRange)
+					{
+						this.editor.selection._MoveCursorBeforeNode(node);
+						BX.PreventDefault(e);
+					}
+				}
+				//else if (sameLastRange && node.nodeType == 3 && range.startOffset == 0 && !isEmpty)
+				else if (sameLastRange && node.nodeType == 3 && !isEmpty)
+				{
+					parentNode = node.parentNode;
+					if (parentNode && node === parentNode.firstChild && parentNode.nodeName != "BODY")
+					{
+						this.editor.selection._MoveCursorBeforeNode(parentNode);
+					}
+				}
+				else if (node.nodeType == 3 && node.parentNode)
+				{
+					parentNode = node.parentNode;
+					prevNode = parentNode.nextSibling;
+
+					// It's empty invisible node after block element which was put there by us.
+					// So we should remove it.
+					if (
+						(this.editor.util.IsBlockElement(parentNode) || this.editor.util.IsBlockNode(parentNode))
+							&& prevNode && prevNode.nodeType == 3 && this.editor.util.IsEmptyNode(prevNode)
+						)
+					{
+						BX.remove(prevNode);
+					}
+				}
+
+			}
+			else // Selection Shift + left & Shift + up
+			{
+				startCont = range.startContainer;
+				endCont = range.endContainer;
+				startIsSur = this.editor.util.CheckSurrogateNode(startCont);
+				endIsSur = this.editor.util.CheckSurrogateNode(endCont);
+
+				if (startIsSur)
+				{
+					prevToSur = startCont.previousSibling;
+					if (prevToSur && prevToSur.nodeType == 3 && this.editor.util.IsEmptyNode(prevToSur))
+						range.setStartBefore(prevToSur);
+					else
+						range.setStartBefore(startCont);
+					this.editor.selection.SetSelection(range);
+				}
+
+				if (endIsSur)
+				{
+					nextToSur = endCont.nextSibling;
+					if (nextToSur && nextToSur.nodeType == 3 && this.editor.util.IsEmptyNode(nextToSur))
+						range.setEndAfter(nextToSur);
+					else
+						range.setEndAfter(endCont);
+					this.SetSelection(range);
+				}
+			}
+		}
+
+		this.keyDownRange = null;
+	};
+
+	BXEditorIframeView.prototype.FocusPreElement = function(preNode, timeout, mode)
+	{
+		var _this = this;
+
+		if (this._focusPreElementTimeout)
+			this._focusPreElementTimeout = clearTimeout(this._focusPreElementTimeout);
+
+		if (timeout)
+		{
+			this._focusPreElementTimeout = setTimeout(function(){
+				_this.FocusPreElement(preNode, false, mode);
+			}, 100);
+			return;
+		}
+		BX.focus(preNode);
+		if (mode == 'end' && preNode.lastChild)
+		{
+			this.editor.selection.SetAfter(preNode.lastChild);
+		}
+		else if (mode == 'start' && preNode.firstChild)
+		{
+			this.editor.selection.SetBefore(preNode.firstChild);
+		}
+	};
 
 	BXEditorIframeView.prototype.OnPasteHandler = function(e)
 	{
-		if (this.editor.skipPasteHandler !== false)
+		if (!this.editor.skipPasteHandler)
 		{
+			this.editor.skipPasteHandler = true;
 			var
 				_this = this,
 				arNodes = [],
-				curNode, i, node, qnodes,
-				range = this.editor.selection.GetRange();
+				curNode, i, node, qnodes;
 
 			function markGoodNode(n)
 			{
@@ -962,36 +1501,24 @@ var focusWithoutScrolling = function(element)
 				});
 			}
 
-			if (range)
+			curNode = this.document.body;
+			if (curNode)
 			{
-				if (range.collapsed)
+				qnodes = curNode.querySelectorAll("*");
+				for (i = 0; i < qnodes.length; i++)
 				{
-					curNode = getElementParent(this.editor.selection.GetSelectedNode());
-				}
-				else
-				{
-					curNode = this.document.body;
-				}
-
-				if (curNode)
-				{
-					qnodes = curNode.querySelectorAll("*");
-					for (i = 0; i < qnodes.length; i++)
+					if (qnodes[i].nodeType == 1 && qnodes[i].nodeName != 'BODY' && qnodes[i].nodeName != 'HEAD')
 					{
-						if (qnodes[i].nodeType == 1)
-							arNodes.push(qnodes[i]);
+						arNodes.push(qnodes[i]);
 					}
+				}
 
-					if (curNode.nodeName != 'BODY')
+				for (i = 0; i < curNode.parentNode.childNodes.length; i++)
+				{
+					node = curNode.parentNode.childNodes[i];
+					if (node.nodeType == 1 && node.nodeName != 'BODY' && node.nodeName != 'HEAD')
 					{
-						for (i = 0; i < curNode.parentNode.childNodes.length; i++)
-						{
-							node = curNode.parentNode.childNodes[i];
-							if (node.nodeType == 1)
-							{
-								arNodes.push(node);
-							}
-						}
+						arNodes.push(node);
 					}
 				}
 			}
@@ -1003,11 +1530,25 @@ var focusWithoutScrolling = function(element)
 
 			setTimeout(function()
 			{
+				_this.editor.SetCursorNode();
+
 				_this.editor.pasteHandleMode = true;
-				_this.editor.synchro.FullSyncFromIframe();
+				_this.editor.bbParseContentMode = true;
+
+				_this.editor.synchro.lastIframeValue = false;
+				_this.editor.synchro.FromIframeToTextarea(true, true);
+
 				_this.editor.pasteHandleMode = false;
+				_this.editor.bbParseContentMode = false;
+
+				_this.editor.synchro.lastTextareaValue = false;
+				_this.editor.synchro.FromTextareaToIframe(true);
+
+				_this.editor.RestoreCursor();
+
 				_this.editor.On("OnIframePaste");
 				_this.editor.On("OnIframeNewWord");
+				_this.editor.skipPasteHandler = false;
 			}, 10);
 		}
 	};
@@ -1030,7 +1571,7 @@ var focusWithoutScrolling = function(element)
 		var
 			ignorableParents = {"CODE" : 1, "PRE" : 1, "A" : 1, "SCRIPT" : 1, "HEAD" : 1, "TITLE" : 1, "STYLE" : 1},
 			urlRegExp = /(((?:https?|ftp):\/\/|www\.)[^\s<]{3,})/gi,
-			emailRegExp = /.+@.+\..+/gi,
+			emailRegExp = /[\.a-z0-9_\-]+@[\.a-z0-9_\-]+\.[\.a-z0-9_\-]+/gi,
 			MAX_LENGTH = 100,
 			BRACKETS = {
 				")": "(",
@@ -1064,10 +1605,10 @@ var focusWithoutScrolling = function(element)
 			return str.replace(urlRegExp, function(match, url)
 			{
 				var
-					punctuation = (url.match(/([^\w\/\-](,?))$/i) || [])[1] || "",
+					punctuation = (url.match(/([^\w\u0430-\u0456\u0451\/\-](,?))$/i) || [])[1] || "",
 					opening = BRACKETS[punctuation];
 
-				url = url.replace(/([^\w\/\-](,?))$/i, "");
+				url = url.replace(/([^\w\u0430-\u0456\u0451\/\-](,?))$/i, "");
 
 				if (url.split(opening).length > url.split(punctuation).length)
 				{
@@ -1093,7 +1634,6 @@ var focusWithoutScrolling = function(element)
 		{
 			return str.replace(emailRegExp, function(email)
 			{
-
 				var
 					punctuation = (email.match(/([^\w\/\-](,?))$/i) || [])[1] || "",
 					opening = BRACKETS[punctuation];
@@ -1182,6 +1722,15 @@ var focusWithoutScrolling = function(element)
 				}
 				catch(e){}
 			});
+
+			BX.addCustomEvent(editor, "OnSubmit", function()
+			{
+				try
+				{
+					autoLink(editor.GetIframeDoc().body);
+				}
+				catch(e){}
+			});
 		}
 
 		var
@@ -1261,12 +1810,29 @@ var focusWithoutScrolling = function(element)
 	{
 		FromIframeToTextarea: function(bParseHtml, bFormat)
 		{
-			var value = this.iframeView.GetValue();
-			if (value !== this.lastIframeValue)
+			var value;
+			if (this.editor.bbCode)
 			{
+				value = this.iframeView.GetValue(this.editor.bbParseContentMode, false);
 				value = BX.util.trim(value);
-				this.textareaView.SetValue(value, true, bFormat);
-				this.lastIframeValue = value;
+				if (value !== this.lastIframeValue)
+				{
+					var bbCodes = this.editor.bbParser.Unparse(value);
+					this.textareaView.SetValue(bbCodes, false, bFormat || this.editor.bbParseContentMode);
+					this.editor.On("OnContentChanged", [bbCodes || '', value || '']);
+					this.lastIframeValue = value;
+				}
+			}
+			else
+			{
+				value = this.iframeView.GetValue();
+				value = BX.util.trim(value);
+				if (value !== this.lastIframeValue)
+				{
+					this.textareaView.SetValue(value, true, bFormat);
+					this.editor.On("OnContentChanged", [this.textareaView.GetValue() || '', value || '']);
+					this.lastIframeValue = value;
+				}
 			}
 		},
 
@@ -1282,20 +1848,35 @@ var focusWithoutScrolling = function(element)
 			{
 				if (value)
 				{
-					this.iframeView.SetValue(value, bParseHtml);
+					if (this.editor.bbCode)
+					{
+						var htmlFromBbCode = this.editor.bbParser.Parse(value);
+						// INVISIBLE_CURSOR
+						htmlFromBbCode = htmlFromBbCode.replace(/\u2060/ig, '<span id="bx-cursor-node"> </span>');
+
+						this.iframeView.SetValue(htmlFromBbCode, bParseHtml);
+					}
+					else
+					{
+						// INVISIBLE_CURSOR
+						value = value.replace(/\u2060/ig, '<span id="bx-cursor-node"> </span>');
+
+						this.iframeView.SetValue(value, bParseHtml);
+					}
 				}
 				else
 				{
 					this.iframeView.Clear();
 				}
 				this.lastTextareaValue = value;
+				this.editor.On("OnContentChanged", [value || '', this.iframeView.GetValue() || '']);
 			}
 		},
 
 		FullSyncFromIframe: function()
 		{
 			this.lastIframeValue = false;
-			this.FromIframeToTextarea(true);
+			this.FromIframeToTextarea(true, true);
 			this.lastTextareaValue = false;
 			this.FromTextareaToIframe(true);
 		},
@@ -1410,6 +1991,12 @@ var focusWithoutScrolling = function(element)
 //			setTimeout(function(){
 //				_this.textareaView.SelectText('data-svd="svd"');
 //			}, 1000);
+		},
+
+		IsFocusedOnTextarea: function()
+		{
+			var view = this.editor.currentViewName;
+			return view === "code" || view === "split" && this.GetSplitMode() === "code";
 		}
 	}
 

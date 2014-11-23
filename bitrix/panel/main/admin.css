@@ -3184,6 +3184,7 @@ it's made to prevent appearing of artefacts from old admin button icons.
 
 .seo_menu_icon {background-position: center -2037px;}
 .scale_menu_icon {background-position: center -2099px;}
+.mobile_menu_icon { background: url("images/ic-mob.png") no-repeat center 1px; }
 
 /*======================================================END MENU ICONS=========================================*/
 

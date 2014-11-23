@@ -14,6 +14,7 @@
 		this.listLoaded = false;
 		this.components = this.editor.config.components;
 		this.compNameIndex = {};
+		this.componentIncludeMethod = '$APPLICATION->IncludeComponent';
 
 		this.requestUrl = '/bitrix/admin/fileman_component_params.php';
 		this.HandleList();
@@ -47,7 +48,7 @@
 			code = this.phpParser.CleanCode(code);
 
 			var oFunction = this.phpParser.ParseFunction(code);
-			if (oFunction && oFunction.name.toUpperCase() == '$APPLICATION->INCLUDECOMPONENT')
+			if (oFunction && oFunction.name.toUpperCase() == this.componentIncludeMethod.toUpperCase())
 			{
 				var arParams = this.phpParser.ParseParameters(oFunction.params);
 				return {
@@ -74,7 +75,7 @@
 			}
 
 			var
-				res = "<?$APPLICATION->IncludeComponent(\n" +
+				res = "<?" + this.componentIncludeMethod + "(\n" +
 					"\t\"" + params.name+"\",\n" +
 					"\t\"" + (params.template || "") + "\",\n";
 
@@ -447,6 +448,11 @@
 					_this.editor.componentsTaskbar.BuildTree(_this.components.groups, _this.components.items);
 				}
 			});
+		},
+
+		SetComponentIcludeMethod: function(method)
+		{
+			this.componentIncludeMethod = method;
 		}
 	};
 
@@ -489,9 +495,9 @@
 		window.BXHtmlEditor.dialogs.componentProperties = PropertiesDialog;
 	}
 
-	if (window.BXHtmlEditor)
+	if (window.BXHtmlEditor && window.BXHtmlEditor.dialogs)
 		__runcomp();
 	else
-		BX.addCustomEvent(window, "OnBXHtmlEditorInit", __runcomp);
+		BX.addCustomEvent(window, "OnEditorBaseControlsDefined", __runcomp);
 
 })();

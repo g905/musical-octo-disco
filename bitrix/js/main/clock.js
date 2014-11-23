@@ -69,7 +69,7 @@ CreateControls: function()
 {
 	this.ControlsCont = BX.create('DIV', {props: {className: 'bxc-controls-cont'}});
 	var
-		i, opt, k,
+		i,
 		arHours = [],
 		arMinutes = [],
 		_this = this;
@@ -97,19 +97,19 @@ CreateControls: function()
 		if (!this.value || isNaN(this.value))
 			this.value = 0;
 		_this.SetTime(this.value, _this.curMin, true);
-	}
+	};
 	this.minSelect.onchange = function(){
 		if (!this.value || isNaN(this.value))
 			this.value = 0;
 		_this.SetTime(_this.curHour, this.value, true);
-	}
+	};
 	this.minSelect.onfocus = function(){_this.lastArrow = 'min';};
 	this.hourSelect.onfocus = function(){_this.lastArrow = 'hour';};
 
 	if (!this.bInline)
 	{
 		var insBut = BX.create('INPUT', {props: {type: 'button', value: this.MESS.Insert}});
-		insBut.onclick = function(){_this.Submit();}
+		insBut.onclick = function(){_this.Submit();};
 
 		// Close button
 		var closeImg = BX.create('IMG', {props: {src: '/bitrix/images/1.gif', className: 'bxc-close bxc-iconkit-c', title: this.MESS.Close}});
@@ -317,8 +317,7 @@ Close: function()
 Submit: function()
 {
 	var mt = this.config.AmPmMode ? this.config.AmPm : '';
-	var value = this.Hour2Str(this.curHour, this.config.AmPmMode) + ':' + this.Int2Str(this.curMin) + mt;
-	this.pInput.value = value;
+	this.pInput.value = this.Hour2Str(this.curHour, this.config.AmPmMode) + ':' + this.Int2Str(this.curMin) + mt;
 	if (this.pInput.onchange && typeof this.pInput.onchange == 'function')
 		this.pInput.onchange.apply(this.pInput, []);
 
@@ -421,14 +420,16 @@ SetTimeAnM: function(h, m)
 		if (this.curMin > 30 && this.curMin < 59)
 		{
 			this.bJumpByMinArrow30 = false;
-			return this.SetTime(++h, m);
+			this.SetTime(++h, m);
+			return;
 		}
 		if (this.curMin > 0 && this.curMin < 30)
 		{
 			this.bJumpByMinArrow30 = false;
 			if (h == 0)
 				h = 24;
-			return this.SetTime(--h, m);
+			this.SetTime(--h, m);
+			return;
 		}
 	}
 	this.SetTime(h, m);
@@ -463,11 +464,14 @@ CreateSelect: function(arValues, step, title)
 		select._bxmousedown = false;
 		if (window.bxinterval)
 			clearTimeout(window.bxinterval);
-	}
+	};
 	var spinChange = function(d)
 	{
 		if (!select._bxmousedown)
-			return spinStop();
+		{
+			spinStop();
+			return;
+		}
 
 		var k = parseInt(select.value, 10);
 
@@ -485,7 +489,8 @@ CreateSelect: function(arValues, step, title)
 		{
 			k -= d; // return old value
 			select.value = k - (d > 0 ? 1 : -1); // one step in reverse direction
-			return spinChange(d); // try again
+			spinChange(d); // try again
+			return;
 		}
 		else
 		{
@@ -506,7 +511,7 @@ CreateSelect: function(arValues, step, title)
 		if (window.bxinterval)
 			clearTimeout(window.bxinterval);
 		window.bxinterval = setTimeout(function(){spinChange(d);}, 100);
-	}
+	};
 	var spinStart = function(d)
 	{
 		if (window.bxinterval)
@@ -522,7 +527,7 @@ CreateSelect: function(arValues, step, title)
 	};
 	select.onkeydown = function(e)
 	{
-		if(!e) e = window.event
+		if(!e) e = window.event;
 		if(!e) return;
 		if(e.keyCode == 38) // Up
 		{
@@ -602,7 +607,6 @@ MACMouseDown: function(e)
 	var
 		_this = this,
 		ar,
-		mode = false,
 		windowSize = BX.GetWindowSize(),
 		mouseX = e.clientX + windowSize.scrollLeft,
 		mouseY = e.clientY + windowSize.scrollTop;
@@ -629,7 +633,7 @@ MACMouseDown: function(e)
 
 	if (this.ddMode === false)
 	{
-		var
+		var i,
 			dist,
 			min = 1000,
 			min_ind = 0;
@@ -671,10 +675,13 @@ MACMouseDown: function(e)
 MACMouseMove: function(e)
 {
 	if (!this.ddMode)
-		return this.StopDD();
+	{
+		this.StopDD();
+		return;
+	}
 
 	if(!e) e = window.event;
-	var
+	var i,
 		dist,
 		min = 1000,
 		min_ind = 0,
@@ -769,7 +776,7 @@ CheckClick: function(e)
 
 OnKeyDown: function(e)
 {
-	if(!e) e = window.event
+	if(!e) e = window.event;
 	if(!e) return;
 	if(e.keyCode == 27)
 		this.Close();

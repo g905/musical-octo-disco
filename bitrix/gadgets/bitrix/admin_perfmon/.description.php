@@ -15,6 +15,7 @@ $arDescription = array(
 		"PERFMON_ONLY" => true,
 		"COLOURFUL" => true,
 		"CAN_BE_FIXED" => $bFixed,
-		"TOTALLY_FIXED" => $bFixed
+		"TOTALLY_FIXED" => $bFixed,
+		"UNIQUE" => true,
 	);
 ?>

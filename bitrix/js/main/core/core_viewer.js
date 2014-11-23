@@ -106,6 +106,7 @@ function _viewerElementBind(div, isTarget, groupBy, obElementViewer)
 						isFromUserLib: !!elementNodeList[i].getAttribute('data-bx-isFromUserLib'),
 						externalId: elementNodeList[i].getAttribute('data-bx-externalId'),
 						relativePath: elementNodeList[i].getAttribute('data-bx-relativePath'),
+						editUrl: elementNodeList[i].getAttribute('data-bx-edit'),
 						owner: elementNodeList[i].getAttribute('data-bx-owner'),
 						size: elementNodeList[i].getAttribute('data-bx-size'),
 						dateModify: elementNodeList[i].getAttribute('data-bx-dateModify'),
@@ -113,7 +114,7 @@ function _viewerElementBind(div, isTarget, groupBy, obElementViewer)
 						buttons: []
 					});
 					unknowElement.buttons.push(unknowElement.getLocalEditButton(obElementViewer, {
-						enableEdit: !!unknowElement.isFromUserLib
+						enableEdit: !!unknowElement.isFromUserLib || !!unknowElement.editUrl
 					}));
 
 					unknowElement.buttons.push(unknowElement.getComplexSaveButton(obElementViewer, {
@@ -184,6 +185,7 @@ BX.CViewCoreElement = function(params)
 	this.isFromUserLib = params.isFromUserLib || false;
 	this.externalId = params.externalId || false;
 	this.relativePath = params.relativePath || false;
+	this.editUrl = params.editUrl || false;
 }
 
 BX.CViewCoreElement.prototype.getDataForCommit = function()
@@ -228,11 +230,15 @@ BX.CViewCoreElement.prototype.localEditProcess = function(obElementViewer)
 	{
 		if(!this.isFromUserLib && editUrl)
 		{
-			editUrl = this.addToLinkParam(editUrl, 'editIn', 'local');
-			editUrl = this.addToLinkParam(editUrl, 'action', 'start');
-			location.href = 'bx://editFile/url/' + encodeURIComponent(editUrl);
+			if (editUrl.indexOf(window.location.hostname) === -1) {
+				window.location.origin = window.location.origin || (window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port: ''));
+				editUrl = window.location.origin + editUrl;
+			}
+			//editUrl = this.addToLinkParam(editUrl, 'action', 'start');
+			editUrl = CViewerUrlHelper.getUrlEditFile(editUrl, 'l');
+			location.href = 'bx://editFile/url/' + encodeURIComponent(editUrl) + '/name/' + encodeURIComponent(this.title);
 		}
-		else if(this.relativePath)
+		else if(this.relativePath && this.externalId)
 		{
 			location.href = 'bx://openFile/externalId/' + encodeURIComponent(this.externalId);
 		}
@@ -270,7 +276,7 @@ BX.CViewCoreElement.prototype.getComplexEditButton = function(selfViewer, params
 				props: {
 					id: 'bx-viewer-edit-service-txt'
 				},
-				text: BX.CViewer.isLocalEditService(initEditService) && !this.isFromUserLib? selfViewer.getNameEditService('google') : selfViewer.getNameEditService()
+				text: !BX.CViewer.isLocalEditService(initEditService) /*&& !this.isFromUserLib*/? selfViewer.getNameEditService(initEditService) : selfViewer.getNameEditService()
 			})
 		]
 	});
@@ -325,7 +331,7 @@ BX.CViewCoreElement.prototype.getComplexEditButton = function(selfViewer, params
 								return BX.PreventDefault(e);
 							}, this)}
 						];
-						if(this.getCurrent().isFromUserLib && this.getCurrent().relativePath)
+						if(/*this.getCurrent().isFromUserLib &&*/ this.getCurrent().editUrl)
 						{
 							buttonsForEdit.push(
 								{text: BX.message('JS_CORE_VIEWER_EDIT_IN_LOCAL_SERVICE').replace('#SERVICE#', this.getNameEditService('local')), className: "bx-viewer-popup-item item-local", href: "#", onclick: BX.delegate(function (e) {
@@ -417,7 +423,7 @@ BX.CViewCoreElement.prototype.getComplexEditButton = function(selfViewer, params
 BX.CViewCoreElement.prototype.getLocalEditButton = function(selfViewer, params)
 {
 	var enableEdit = params.enableEdit || false;
-	if(!this.isFromUserLib || !this.relativePath || !BX.CViewer.isEnableLocalEditInDesktop())
+	if(/*!this.isFromUserLib || */!this.editUrl || !BX.CViewer.isEnableLocalEditInDesktop())
 	{
 		return [];
 	}
@@ -489,6 +495,9 @@ BX.CViewCoreElement.prototype.getComplexSaveButton = function(selfViewer, params
 							var link = this.addToLinkParam(this.src, 'saveToDisk', 1);
 							link = this.addToLinkParam(link, 'toWDController', 1);
 							link = BX.util.remove_url_param(link, 'showInViewer');
+							link = BX.util.remove_url_param(link, 'document_action');
+							link = BX.util.remove_url_param(link, 'primaryAction');
+							link = CViewerUrlHelper.getUrlCopyToMe(link);
 							selfViewer.closeMenu();
 
 							BX.CViewer.getWindowCopyToDisk({link: link, selfViewer: selfViewer, title: this.title, showEdit: params.showEdit});
@@ -846,7 +855,7 @@ BX.CViewEditableElement.prototype.runAction = function(action, params){
 //			}, this), 100));
 			break;
 		case 'localedit':
-			this.localFile(params);
+			this.localEditProcess(params.obElementViewer);
 			break;
 		case 'commit':
 			this.commitFile(params);
@@ -899,18 +908,28 @@ BX.CViewEditableElement.prototype.pasteInForm = function(params)
 	return;
 }
 
-BX.CViewEditableElement.prototype.discardFile = function(params)
+BX.CViewEditableElement.prototype.discardFile = function(parameters)
 {
-	var uriToDoc = params.uriToDoc;
-	var idDoc = params.idDoc;
+	var uriToDoc = parameters.uriToDoc || CViewerUrlHelper.getUrlDiscardFile(this.src);
+	var idDoc = parameters.idDoc || parameters.id;
 	if(!uriToDoc || !idDoc)
 	{
 		return false;
 	}
-	BX.ajax.loadJSON(uriToDoc, {discard: 1, id: idDoc, sessid: BX.bitrix_sessid()}, function(){
 
+	BX.ajax({
+		method: 'POST',
+		dataType: 'json',
+		url: uriToDoc,
+		data:  {
+			discard: 1,
+			editSessionId: parameters.editSessionId,
+			id: idDoc,
+			sessid: BX.bitrix_sessid()
+		},
+		onsuccess: function(){}
 	});
-}
+};
 
 BX.CViewEditableElement.prototype.getTextForSave = function(){
 	return BX.message('JS_CORE_VIEWER_IFRAME_PROCESS_SAVE_DOC');
@@ -949,7 +968,7 @@ BX.CViewEditableElement.prototype.getExtensionAfterConvert = function()
 
 BX.CViewEditableElement.prototype.editFile = function(obElementViewer)
 {
-	if((!this.isFromUserLib || !BX.CViewer.isLocalEditService(obElementViewer.initEditService())) && this.askConvert)
+	if((/*!this.isFromUserLib || */!BX.CViewer.isLocalEditService(obElementViewer.initEditService())) && this.askConvert)
 	{
 		var convertDialog = BX.create('div', {
 			props: {
@@ -1119,11 +1138,11 @@ BX.CViewEditableElement.prototype.openEditConfirm = function(obElementViewer)
 		new BX.PopupWindowButton({
 			text : BX.message('JS_CORE_VIEWER_IFRAME_CANCEL'),
 			events : { click : BX.delegate(function() {
+					this.runActionByCurrentElement('discard', this.getCurrent().getDataForCommit());
 					this.closeConfirm();
 					try{
 						this.getCurrent().getCurrentModalWindow().close();
 					}catch(e){}
-					this.runActionByCurrentElement('discard', this.getCurrent().getDataForCommit());
 				}, obElementViewer
 			)}
 		})
@@ -1135,15 +1154,16 @@ BX.CViewEditableElement.prototype.editFileProcess = function(obElementViewer)
 	if(BX.CViewer.temporaryServiceEditDoc)
 	{
 		editUrl = this.addToLinkParam(this.editUrl, 'editIn', BX.CViewer.temporaryServiceEditDoc);
-		if(this.isFromUserLib && BX.CViewer.isLocalEditService(BX.CViewer.temporaryServiceEditDoc))
+		if(/*this.isFromUserLib && */BX.CViewer.isLocalEditService(BX.CViewer.temporaryServiceEditDoc))
 		{
 			this.localEditProcess(obElementViewer);
 			BX.CViewer.temporaryServiceEditDoc = '';
 			return false;
 		}
+		editUrl = CViewerUrlHelper.getUrlEditFile(editUrl, BX.CViewer.temporaryServiceEditDoc);
 		BX.CViewer.temporaryServiceEditDoc = '';
 	}
-	else if(this.isFromUserLib && BX.CViewer.isLocalEditService(obElementViewer.initEditService()))
+	else if(/*this.isFromUserLib && */BX.CViewer.isLocalEditService(obElementViewer.initEditService()))
 	{
 		this.localEditProcess(obElementViewer);
 		return false;
@@ -1174,6 +1194,10 @@ BX.CViewEditableElement.prototype.setDataForCommit = function(data)
 		//IE and garbage collector delete all objects (from modal window). This is half-hack.
 		for(var key in arguments)
 		{
+			if(!arguments.hasOwnProperty(key))
+			{
+				continue;
+			}
 			switch(key)
 			{
 				case 0:
@@ -1184,9 +1208,17 @@ BX.CViewEditableElement.prototype.setDataForCommit = function(data)
 				case '1':
 					this.dataForCommit['uriToDoc'] = arguments[key];
 					break;
-				case 2:
-				case '2':
-					this.dataForCommit['idDoc'] = arguments[key];
+				case 3:
+				case '3':
+					this.dataForCommit['editSessionId'] = arguments[key];
+					break;
+				case 4:
+				case '4':
+					this.dataForCommit['id'] = arguments[key];
+					break;
+				case 5:
+				case '5':
+					this.dataForCommit['link'] = arguments[key];
 					break;
 			}
 		}
@@ -1209,14 +1241,24 @@ BX.CViewEditableElement.prototype.commitFile = function(parameters)
 		return false;
 	}
 
-	var uriToDoc = parameters.uriToDoc;
-	var idDoc = parameters.idDoc;
+	var uriToDoc = parameters.uriToDoc || CViewerUrlHelper.getUrlCommitFile(this.src);
+	var idDoc = parameters.idDoc || parameters.id;
 	if(!uriToDoc || !idDoc)
 	{
 		return false;
 	}
 
-	BX.ajax.loadJSON(uriToDoc, {commit: 1, id: idDoc, sessid: BX.bitrix_sessid()}, BX.delegate(function(result){
+	BX.ajax({
+	method: 'POST',
+	dataType: 'json',
+	url: uriToDoc,
+	data:  {
+		commit: 1,
+		editSessionId: parameters.editSessionId,
+		id: idDoc,
+		sessid: BX.bitrix_sessid()
+	},
+	onsuccess: BX.delegate(function(result){
 		var newName = result.newName;
 		var oldName = result.oldName;
 		if(newName)
@@ -1235,7 +1277,7 @@ BX.CViewEditableElement.prototype.commitFile = function(parameters)
 		{
 			parameters.success(this, result);
 		}
-	}, this));
+	}, this)});
 
 	return false;
 }
@@ -1244,9 +1286,13 @@ BX.CViewBlankElement = function(params)
 {
 	BX.CViewBlankElement.superclass.constructor.apply(this, arguments);
 	this.id = 'blank_file';
+	this.editUrl = params.editUrl;
+	this.renameUrl = params.renameUrl;
 	this.docType = params.docType;
 	this.elementId = false;
 	this.sectionId = false;
+	this.objectId = false;
+	this.targetFolderId = params.targetFolderId || false;
 	this.idDoc = '';
 	this.uriToDoc = '';
 	this.oldName = '';
@@ -1257,22 +1303,37 @@ BX.CViewBlankElement = function(params)
 
 BX.extend(BX.CViewBlankElement, BX.CViewEditableElement);
 
-BX.CViewBlankElement.prototype.discardFile = function(params)
+BX.CViewBlankElement.prototype.discardFile = function(parameters)
 {
-	var uriToDoc = params.uriToDoc;
-	var idDoc = params.idDoc;
+	var uriToDoc = parameters.editUrl ;
+	if(this.editUrl)
+	{
+		uriToDoc = CViewerUrlHelper.getUrlDiscardFile(this.editUrl);
+	}
+	else
+	{
+		uriToDoc = parameters.uriToDoc;
+		uriToDoc = this.addToLinkParam(uriToDoc, 'createDoc', 1);
+		uriToDoc = this.addToLinkParam(uriToDoc, 'discard', 1);
+	}
+
+	var idDoc = parameters.idDoc || parameters.id;
 	if(!uriToDoc || !idDoc)
 	{
 		return false;
 	}
-	BX.ajax.loadJSON(uriToDoc, {
-		discard: 1,
-		createDoc: 1,
-		id: idDoc,
 
-		sessid: BX.bitrix_sessid()
-	}, function(){
-
+	BX.ajax({
+		method: 'POST',
+		dataType: 'json',
+		url: uriToDoc,
+		data:  {
+			discard: 1,
+			editSessionId: parameters.editSessionId,
+			id: idDoc,
+			sessid: BX.bitrix_sessid()
+		},
+		onsuccess: function(){}
 	});
 }
 
@@ -1288,13 +1349,64 @@ BX.CViewBlankElement.prototype.submitAction = function(params)
 BX.CViewBlankElement.prototype.createFile = function(obElementViewer)
 {
 	var editUrl;
-	editUrl = this.addToLinkParam('/company/personal/user/' + BX.message('USER_ID') + '/files/lib/', 'createIn', obElementViewer.initEditService());
-	editUrl = this.addToLinkParam(editUrl, 'toWDController', 1);
-	editUrl = this.addToLinkParam(editUrl, 'type', this.docType);
-	editUrl = this.addToLinkParam(editUrl, 'createDoc', '1');
-	editUrl = this.addToLinkSessid(editUrl);
-
 	this.docService = obElementViewer.initEditService();
+	if(this.editUrl)
+	{
+		editUrl = CViewerUrlHelper.getUrlStartPublishBlank(this.editUrl, this.docService, this.docType);
+
+		if(BX.CViewer.isLocalEditService(this.docService))
+		{
+			BX.ajax({
+				method: 'POST',
+				dataType: 'json',
+				url: editUrl,
+				data: {
+					targetFolderId: this.targetFolderId || '',
+					sessid: BX.bitrix_sessid()
+				},
+				onsuccess: BX.delegate(function (response)
+				{
+					if (!response) {
+						return;
+					}
+					try
+					{
+						var formattedResponse = {
+							status: 'success',
+							objectId: response.object.id,
+							name: response.object.name,
+							folderName: response.folderName,
+							size: response.object.size,
+							sizeInt: response.object.sizeInt,
+							extension: response.object.extension,
+							ext: response.object.extension,
+							link: response.link
+						};
+						//obElementViewer.runActionByCurrentElement('pasteInForm', {response: formattedResponse});
+					}
+					catch (e)
+					{}
+
+					this.title = response.object.name;
+					this.editUrl = response.link;
+					obElementViewer.runActionByCurrentElement('localedit', {obElementViewer: obElementViewer});
+					this.afterSuccessCreate(formattedResponse);
+
+				}, this)
+			});
+			return;
+		}
+
+	}
+	else
+	{
+		editUrl = this.addToLinkParam('/company/personal/user/' + BX.message('USER_ID') + '/files/lib/', 'createIn', obElementViewer.initEditService());
+		editUrl = this.addToLinkParam(editUrl, 'toWDController', 1);
+		editUrl = this.addToLinkParam(editUrl, 'type', this.docType);
+		editUrl = this.addToLinkParam(editUrl, 'createDoc', '1');
+		editUrl = this.addToLinkSessid(editUrl);
+	}
+
 
 	var modalWindow = obElementViewer.openModal(
 		editUrl,
@@ -1358,7 +1470,7 @@ BX.CViewBlankElement.prototype.createFile = function(obElementViewer)
 					}
 					else
 					{
-						this.getCurrent().idDoc = dataForCommit.idDoc;
+						this.getCurrent().idDoc = dataForCommit.idDoc || dataForCommit.id;
 						dataForCommit.obElementViewer = this;
 						dataForCommit.success = BX.delegate(function(element, response){
 							this.closeConfirm();
@@ -1376,12 +1488,12 @@ BX.CViewBlankElement.prototype.createFile = function(obElementViewer)
 		new BX.PopupWindowButton({
 			text : BX.message('JS_CORE_VIEWER_IFRAME_CANCEL'),
 			events : { click : BX.delegate(function() {
+					this.runActionByCurrentElement('discard', this.getCurrent().getDataForCommit());
 					this.closeConfirm();
                     BX.CViewer.unlockScroll();
 					try{
 						modalWindow.close();
 					}catch(e){}
-					this.runActionByCurrentElement('discard', this.getCurrent().getDataForCommit());
 				}, obElementViewer
 			)}
 		})
@@ -1398,116 +1510,140 @@ BX.CViewBlankElement.prototype.saveFile = function(parameters)
 		return false;
 	}
 
-	var uriToDoc = parameters.uriToDoc;
-	uriToDoc = BX.util.remove_url_param(parameters.uriToDoc, 'editIn');
-	var idDoc = parameters.idDoc;
-	if(!uriToDoc || !idDoc)
+	var uriToDoc;
+	var idDoc = parameters.idDoc || parameters.id;
+	if(this.editUrl)
 	{
-		return false;
+		uriToDoc = CViewerUrlHelper.getUrlCommitBlank(this.editUrl, this.docType, this.targetFolderId);
 	}
-	uriToDoc = this.addToLinkParam(uriToDoc, 'proccess', '1');
+	else
+	{
+		uriToDoc = BX.util.remove_url_param(parameters.uriToDoc, 'editIn');
+		if (!uriToDoc || !idDoc)
+		{
+			return false;
+		}
+		uriToDoc = this.addToLinkParam(uriToDoc, 'proccess', '1');
+		uriToDoc = this.addToLinkParam(uriToDoc, 'toWDController', '1');
+		uriToDoc = this.addToLinkParam(uriToDoc, 'type', this.docType);
+		uriToDoc = this.addToLinkParam(uriToDoc, 'createIn', parameters.obElementViewer.initEditService());
+		uriToDoc = this.addToLinkParam(uriToDoc, 'createDoc', '1');
+		uriToDoc = this.addToLinkParam(uriToDoc, 'commit', '1');
+		uriToDoc = this.addToLinkParam(uriToDoc, 'id', idDoc);
+		uriToDoc = this.addToLinkParam(uriToDoc, 'sessid', BX.bitrix_sessid());
+	}
 
-	BX.ajax.loadJSON(uriToDoc, {
-		toWDController: 1,
-		type: this.docType,
-		createDoc: 1,
-		createIn: parameters.obElementViewer.initEditService(),
-		commit: 1,
-		id: idDoc,
-		sessid: BX.bitrix_sessid()
-	}, BX.delegate(function(response){
-		this.oldName = response.name;
-		this.sectionId = response.sectionId;
-		this.elementId = response.elementId;
-		this.uriToDoc = uriToDoc;
-		var saveDialog = BX.create('div', {
-			props: {
-				className: 'bx-viewer-confirm'
-			},
-			children: [
-				BX.create('div', {
-					props: {
-						className: 'bx-viewer-confirm-title'
-					},
-					text: BX.message('JS_CORE_VIEWER_NOW_CREATING_IN_SERVICE').replace('#SERVICE#', parameters.obElementViewer.getNameEditService()),
-					children: []
+	BX.ajax({
+		method: 'POST',
+		dataType: 'json',
+		url: uriToDoc,
+		data: {
+			editSessionId: parameters.editSessionId,
+			id: idDoc,
+			sessid: BX.bitrix_sessid()
+		},
+		onsuccess: BX.delegate(function (response) {
+			this.oldName = response.name;
+			this.sectionId = response.sectionId;
+			this.elementId = response.elementId;
+			this.elementId = response.elementId;
+			this.objectId = response.objectId;
+			var saveDialog = BX.create('div', {
+				props: {
+					className: 'bx-viewer-confirm'
+				},
+				children: [
+					BX.create('div', {
+						props: {
+							className: 'bx-viewer-confirm-title'
+						},
+						text: BX.message('JS_CORE_VIEWER_NOW_CREATING_IN_SERVICE').replace('#SERVICE#', parameters.obElementViewer.getNameEditService()),
+						children: []
+					}),
+					BX.create('div', {
+						props: {
+							className: 'bx-viewer-confirm-text-wrap bx-viewer-confirm-center'
+						},
+						children: [
+							BX.create('input', {
+								props: {
+									id: 'wd-new-create-filename',
+									className: 'bx-viewer-inp',
+									type: 'text',
+									value: response.nameWithoutExtension
+								}
+							}),
+							BX.create('span', {
+								props: {
+									className: 'bx-viewer-confirm-extension'
+								},
+								text: this.docType
+							})
+						]
+					})
+				]
+			});
+
+			BX.CViewer.lockScroll();
+			parameters.obElementViewer.params.keyMap = {
+				13: 'submitCurrentElement', // enter
+				27: 'close' // esc
+			};
+
+			parameters.obElementViewer._bindEvents();
+			parameters.obElementViewer.openConfirm(saveDialog, [
+				new BX.PopupWindowButton({
+					id: 'wd-btn-save-blank-with-new-name',
+					text: BX.message('JS_CORE_VIEWER_SAVE'),
+					className: "popup-window-button-accept",
+					events: {
+						click: BX.delegate(function () {
+								var newName = BX('wd-new-create-filename').value;
+								if (!newName) {
+									BX.focus(BX('wd-new-create-filename'));
+									return;
+								}
+								BX.CViewer.showLoading(BX.findChild(saveDialog, {className: 'bx-viewer-confirm-text-wrap'}, true), {
+									className: 'bx-viewer-wrap-loading-modal',
+									notAddClassLoadingToObj: true
+								});
+
+								this.runActionByCurrentElement('rename', {
+									newName: newName,
+									data: response,
+									success: BX.delegate(function (data, response) {
+										this.runActionByCurrentElement('pasteInForm', {response: data});
+										BX.CViewer.unlockScroll();
+										parameters.obElementViewer._unbindEvents();
+										this.closeConfirm();
+									}, this)
+								});
+
+								try {
+									modalWindow.close();
+								} catch (e) {
+								}
+							}, parameters.obElementViewer
+						)
+					}
 				}),
-				BX.create('div', {
-					props: {
-						className: 'bx-viewer-confirm-text-wrap bx-viewer-confirm-center'
-					},
-					children: [
-						BX.create('input', {
-							props: {
-								id: 'wd-new-create-filename',
-								className: 'bx-viewer-inp',
-								type: 'text',
-								value: response.nameWithoutExtension
-							}
-						}),
-						BX.create('span', {
-							props: {
-								className: 'bx-viewer-confirm-extension'
-							},
-							text: this.docType
-						})
-					]
-				})
-			]
-		});
-
-		BX.CViewer.lockScroll();
-		parameters.obElementViewer.params.keyMap = {
-			13: 'submitCurrentElement', // enter
-			27: 'close' // esc
-		};
-
-		parameters.obElementViewer._bindEvents();
-		parameters.obElementViewer.openConfirm(saveDialog, [
-			new BX.PopupWindowButton({
-				id: 'wd-btn-save-blank-with-new-name',
-				text : BX.message('JS_CORE_VIEWER_SAVE'),
-				className : "popup-window-button-accept",
-				events : { click : BX.delegate(function() {
-						var newName = BX('wd-new-create-filename').value;
-						if(!newName)
-						{
-							BX.focus(BX('wd-new-create-filename'));
-							return;
-						}
-						BX.CViewer.showLoading(BX.findChild(saveDialog, {className: 'bx-viewer-confirm-text-wrap'}, true), {className: 'bx-viewer-wrap-loading-modal', notAddClassLoadingToObj: true});
-
-						this.runActionByCurrentElement('rename', {
-							newName: newName,
-							data: response,
-							success: BX.delegate(function(data, response){
-								this.runActionByCurrentElement('pasteInForm', {response: data});
+				new BX.PopupWindowButton({
+					text: BX.message('JS_CORE_VIEWER_IFRAME_CANCEL'),
+					events: {
+						click: BX.delegate(function () {
+								this.runActionByCurrentElement('discard', this.getCurrent().getDataForCommit());
 								BX.CViewer.unlockScroll();
 								parameters.obElementViewer._unbindEvents();
 								this.closeConfirm();
-							}, this)
-						});
-
-						try{
-							modalWindow.close();
-						}catch(e){}
-					}, parameters.obElementViewer
-				)}
-			}),
-			new BX.PopupWindowButton({
-				text : BX.message('JS_CORE_VIEWER_IFRAME_CANCEL'),
-				events : { click : BX.delegate(function() {
-						BX.CViewer.unlockScroll();
-						parameters.obElementViewer._unbindEvents();
-						this.closeConfirm();
-						this.runActionByCurrentElement('discard', this.getCurrent().getDataForCommit());
-					}, parameters.obElementViewer
-				)}
-			})
-		], true);
+							}, parameters.obElementViewer
+						)
+					}
+				})
+			], true);
 
 
-	}, this));
+		}, this)
+	});
 
 	return false;
 }
@@ -1528,26 +1664,42 @@ BX.CViewBlankElement.prototype.renameFile = function(params)
 		return true;
 	}
 
-	params.url = this.addToLinkParam(this.uriToDoc, 'action', 'rename');
-	params.url = this.addToLinkParam(params.url, 'createDoc', '1');
-	params.url = this.addToLinkParam(params.url, 'createIn', this.docService);
+	var uri;
+	if(this.renameUrl)
+	{
+		uri = CViewerUrlHelper.getUrlRenameFile(this.renameUrl)
+	}
+	else
+	{
+		uri = this.addToLinkParam(this.uriToDoc, 'action', 'rename');
+		uri = this.addToLinkParam(uri, 'createDoc', '1');
+		uri = this.addToLinkParam(uri, 'createIn', this.docService);
+		uri = this.addToLinkParam(uri, 'elementId', this.elementId);
+		uri = this.addToLinkParam(uri, 'sectionId', this.sectionId);
+		uri = this.addToLinkParam(uri, 'rename', 1);
+		uri = this.addToLinkParam(uri, 'toWDController', 1);
+		uri = this.addToLinkParam(uri, 'newName', params.newName + '.' + this.docType);
+		uri = this.addToLinkParam(uri, 'sessid', BX.bitrix_sessid());
+	}
 
-	BX.ajax.loadJSON(params.url, {
-		toWDController: 1,
-		rename: 1,
-		elementId: this.elementId,
-		sectionId: this.sectionId,
-		newName: params.newName + '.' + this.docType,
-		sessid: BX.bitrix_sessid()
-	}, BX.delegate(function(response){
-		if(BX.type.isFunction(params.success))
-		{
-			params.success(params.data, response);
-		}
-	}, this));
+	BX.ajax({
+		method: 'POST',
+		dataType: 'json',
+		url: uri,
+		data: {
+			objectId: this.objectId,
+			newName: params.newName + '.' + this.docType,
+			sessid: BX.bitrix_sessid()
+		},
+		onsuccess: BX.delegate(function (response) {
+			if (BX.type.isFunction(params.success)) {
+				params.success(params.data, response);
+			}
+		}, this)
+	});
 
 	return true;
-}
+};
 
 BX.CViewBlankElement.prototype.pasteInForm = function(params)
 {
@@ -1594,42 +1746,48 @@ BX.CViewIframeElement.prototype.load = function(successLoadCallback, errorLoadCa
 					}
 					return;
 				}
-				var checkIframeError = BX.delegate(function(){
-					if(BX.localStorage.get('iframe_options_error'))
-					{
-						BX.onCustomEvent(this, 'onIframeDocError', [this]);
-						return;
-					}
-					if(BX.localStorage.get('iframe_options_error') !== null)
-					{
-						return;
-					}
-					BX.ajax({
-						'method': 'POST',
-						'dataType': 'json',
-						'url': this.src,
-						'data':  {
-							extLink: data.file,
-							sessid: BX.bitrix_sessid(),
-							checkViewByGoogle: 1
-						},
-						'onsuccess': BX.delegate(function(data){
-							if(!data || !data.viewByGoogle)
-							{
-								BX.onCustomEvent(this, 'onIframeDocError', [this]);
-							}
-							else
-							{
-								BX.onCustomEvent(this, 'onIframeDocSuccess', [this]);
-							}
-						}, this)
-					});
-				}, this);
+
+				var checkIframeError = function(){};
+				if(data.neededCheckView !== undefined && data.neededCheckView)
+				{
+					checkIframeError = BX.delegate(function(){
+						if(BX.localStorage.get('iframe_options_error'))
+						{
+							BX.onCustomEvent(this, 'onIframeDocError', [this]);
+							return;
+						}
+						if(BX.localStorage.get('iframe_options_error') !== null)
+						{
+							return;
+						}
+						BX.ajax({
+							'method': 'POST',
+							'dataType': 'json',
+							'url': CViewerUrlHelper.getUrlCheckView(this.src),
+							'data':  {
+								extLink: data.file,
+								sessid: BX.bitrix_sessid(),
+								checkViewByGoogle: 1,
+								id: data.id
+							},
+							'onsuccess': BX.delegate(function(data){
+								if(!data || (data.viewed === undefined && !data.viewByGoogle || data.viewByGoogle === undefined && !data.viewed) )
+								{
+									BX.onCustomEvent(this, 'onIframeDocError', [this]);
+								}
+								else
+								{
+									BX.onCustomEvent(this, 'onIframeDocSuccess', [this]);
+								}
+							}, this)
+						});
+					}, this);
+				}
 
 				this.domElement = BX.create('iframe', {
 					props: {
 						className: 'bx-viewer-image',
-						src: data.viewerUrl
+						src: data.viewUrl || data.viewerUrl
 					},
 					events: {
 						load: !BX.CViewer.browserWithDeferredCheckIframeError()? BX.proxy(function(){
@@ -1643,7 +1801,7 @@ BX.CViewIframeElement.prototype.load = function(successLoadCallback, errorLoadCa
 				});
 				this.contentWrap.appendChild(this.domElement);
 
-				this.viewerUrl = data.viewerUrl;
+				this.viewUrl = data.viewUrl || data.viewerUrl;
 				if(BX.localStorage.get('iframe_options_error'))
 				{
 					BX.onCustomEvent(this, 'onIframeDocError', [this]);
@@ -3223,6 +3381,11 @@ BX.CViewer.prototype._hide = function()
 	}
 	this.bVisible = false;
 
+	if(!this.DIV)
+	{
+		return;
+	}
+
 	this.DIV.style.display = 'none';
 	this.OVERLAY.style.display = 'none';
 
@@ -3707,15 +3870,12 @@ BX.CViewer.prototype.initEditService = function()
 BX.CViewer.prototype.getNameEditService = function(service)
 {
 	service = service || this.initEditService();
-	service = service.toLowerCase();
+	service = CViewerUrlHelper.normalizeServiceName(service);
 	switch(service)
 	{
-		case 'g':
-		case 'google':
+		case 'gdrive':
 			return BX.message('JS_CORE_VIEWER_SERVICE_GOOGLE_DRIVE');
-		case 's':
-		case 'skydrive':
-		case 'sky-drive':
+		case 'onedrive':
 			return BX.message('JS_CORE_VIEWER_SERVICE_SKYDRIVE');
 		case 'l':
 		case 'local':
@@ -3726,27 +3886,7 @@ BX.CViewer.prototype.getNameEditService = function(service)
 
 BX.CViewer.prototype.setEditService = function(service)
 {
-	service = service.toLowerCase();
-	switch(service)
-	{
-		case 'g':
-		case 'google':
-			service = 'g';
-			break;
-
-		case 's':
-		case 'skydrive':
-		case 'sky-drive':
-			service = 's';
-			break;
-		case 'l':
-		case 'local':
-			service = 'l';
-			break;
-		default:
-			service = '';
-			break;
-	}
+	service = CViewerUrlHelper.normalizeServiceName(service);
 	if(service)
 	{
 		if(BX.CViewer.isLocalEditService(service) && !BX.CViewer.isEnableLocalEditInDesktop())
@@ -3754,6 +3894,7 @@ BX.CViewer.prototype.setEditService = function(service)
 			service = 'g';
 		}
 		BX.userOptions.save('webdav', 'user_settings', 'service_edit_doc_default', service);
+		BX.userOptions.save('disk', 'doc_service', 'default', CViewerUrlHelper.normalizeServiceName(service));
 		BX.localStorage.set('wd_service_edit_doc_default', service, 60*2);
 		BX.CViewer.localChangeServiceEdit = true;
 
@@ -3809,7 +3950,7 @@ BX.CViewer.prototype.createErrorIframeElementFromEditable = function(editableEle
 		dateModify: editableElement.dateModify,
 		tooBigSizeMsg: editableElement.tooBigSizeMsg,
 
-		buttonUrl: editableElement.viewerUrl,
+		buttonUrl: editableElement.viewerUrl || editableElement.viewUrl,
 
 		isFromUserLib: editableElement.isFromUserLib,
 		relativePath: editableElement.relativePath,
@@ -3837,9 +3978,8 @@ BX.CViewer.prototype.createErrorIframeElementFromEditable = function(editableEle
 
 BX.CViewer.prototype.createBlankElementByParams = function(params)
 {
-	return new BX.CViewBlankElement({
-		docType: params.docType || 'docx'
-	});
+	params.docType = params.docType || 'docx';
+	return new BX.CViewBlankElement(params);
 }
 
 BX.CViewer.prototype.createWithoutPreviewEditableElement = function(element, params)
@@ -3925,6 +4065,125 @@ BX.CViewer.prototype.createIframeElement = function(element, params)
 	}));
 
 	return iframeElement;
-}
+};
+
+var CViewerUrlHelper = {
+	lastService: null,
+	ajaxDocUrl: '/bitrix/tools/disk/document.php',
+	ajaxUfDocUrl: '/bitrix/tools/disk/uf.php',
+
+	normalizeServiceName: function(service)
+	{
+		switch(service.toLowerCase())
+		{
+			case 'g':
+			case 'google':
+			case 'gdrive':
+				service = 'gdrive';
+				break;
+			case 's':
+			case 'skydrive':
+			case 'sky-drive':
+			case 'onedrive':
+				service = 'onedrive';
+				break;
+			case 'l':
+			case 'local':
+				service = 'l';
+				break;
+			default:
+				service = 'gdrive';
+				break;
+		}
+		return service;
+	},
+
+	getUrlViewFile: function(url)
+	{
+		url = this.addToLinkParam(url, 'service', 'gvdrive');
+		url = this.addToLinkParam(url, 'document_action', 'show');
+		return url;
+	},
+
+	getUrlCheckView: function(url)
+	{
+		url = this.addToLinkParam(url, 'service', 'gvdrive');
+		url = this.addToLinkParam(url, 'document_action', 'checkView');
+		return url;
+	},
+
+	getUrlStartPublishBlank: function(url, service, type)
+	{
+		service = this.normalizeServiceName(service);
+		this.lastService = service;
+
+		url = this.addToLinkParam(url, 'service', service);
+		url = this.addToLinkParam(url, 'type', type);
+		return url;
+	},
+
+
+	getUrlCommitBlank: function(url, type, targetFolderId)
+	{
+		url = this.addToLinkParam(url, 'service', this.lastService);
+		url = this.addToLinkParam(url, 'document_action', 'saveBlank');
+		url = this.addToLinkParam(url, 'type', type);
+		if(targetFolderId)
+		{
+			url = this.addToLinkParam(url, 'targetFolderId', targetFolderId);
+		}
+		return url;
+	},
+
+	getUrlRenameFile: function(url)
+	{
+		url = this.addToLinkParam(url, 'service', this.lastService);
+		url = this.addToLinkParam(url, 'document_action', 'rename');
+		return url;
+	},
+
+	getUrlCopyToMe: function(url)
+	{
+		url = this.addToLinkParam(url, 'action', 'copyToMe');
+		return url;
+	},
+
+	getUrlEditFile: function(url, service)
+	{
+		service = this.normalizeServiceName(service);
+		this.lastService = service;
+		url = this.addToLinkParam(url, 'service', service);
+		return url;
+	},
+
+	getUrlCommitFile: function(url)
+	{
+		url = this.addToLinkParam(url, 'service', this.lastService);
+		url = this.addToLinkParam(url, 'document_action', 'commit');
+		return url;
+	},
+
+	getUrlDiscardFile: function(url)
+	{
+		url = this.addToLinkParam(url, 'service', this.lastService);
+		url = this.addToLinkParam(url, 'document_action', 'discard');
+		return url;
+	},
+
+	addToLinkParam: function(link, name, value)
+	{
+		if(!link.length)
+		{
+			return '?' + name + '=' + value;
+		}
+		link = BX.util.remove_url_param(link, name);
+		if(link.indexOf('?') != -1)
+		{
+			return link + '&' + name + '=' + value;
+		}
+		return link + '?' + name + '=' + value;
+	}
+
+};
 
 })(window);

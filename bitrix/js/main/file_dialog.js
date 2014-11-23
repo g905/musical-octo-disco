@@ -1,17 +1,19 @@
-// ################################      BXFileDialog  javascript class    ###############################//
 var BXFileDialog = function()
 {
 	this.name = 'BXFileDialog';
 	this.height = 476;
 	this.width = 750;
-}
+};
 
 BXFileDialog.prototype =
 {
 	Open: function(oConfig, UserConfig, dublReq)
 	{
 		if (!oConfig || !UserConfig)
-			return alert('Error: Wrong params!');
+		{
+			alert('Error: Wrong params!');
+			return;
+		}
 
 		if (window.oBXFileDialog && oBXFileDialog.bOpened)
 			return;
@@ -27,7 +29,7 @@ BXFileDialog.prototype =
 			view : this.UserConfig.view,
 			sort : this.UserConfig.sort,
 			sort_order : this.UserConfig.sort_order
-		}
+		};
 
 		this.sessid = oConfig.sessid;
 		this.bSelectFiles = oConfig.select.indexOf('F') !== -1;
@@ -78,17 +80,24 @@ BXFileDialog.prototype =
 			if (innerHTML)
 			{
 				if (innerHTML.indexOf('BX_FD_LOAD_OK') == -1)
-					return alert(mess_ACCESS_DENIED);
+				{
+					alert(mess_ACCESS_DENIED);
+					return;
+				}
 
 				var new_sess = oBXFileDialog.CheckReqLostSessid(innerHTML);
 				if (new_sess !== true)
 				{
 					if (dublReq)
-						return alert(mess_SESS_EXPIRED);
+					{
+						alert(mess_SESS_EXPIRED);
+						return;
+					}
 					document.body.removeChild(div);
 					oBXFileDialog.sessid = new_sess;
 					oBXFileDialog.RequestUrl = oBXFileDialog.GetRequestUrl();
-					return oBXFileDialog.Open(oConfig, UserConfig, true);
+					oBXFileDialog.Open(oConfig, UserConfig, true);
+					return;
 				}
 				oBXFileDialog.content.innerHTML = innerHTML;
 			}
@@ -112,7 +121,8 @@ BXFileDialog.prototype =
 		if (bCached)
 		{
 			this.reConfigDialog();
-			return ShowDialog();
+			ShowDialog();
+			return;
 		}
 
 		BX.ajax.get(this.RequestUrl + '&action=start&path=' + this.oConfig.path + '&add_to_menu=' + (this.oConfig.showAddToMenuTab ? '1' : ''), ShowDialog);
@@ -225,9 +235,13 @@ BXFileDialog.prototype =
 		if(!e || e.shiftKey || e.ctrlKey || e.altKey)
 			return;
 		if (this.dialogFocus == 'tree')
-			return oBXDialogTree.OnKeyDown(e);
+		{
+			oBXDialogTree.OnKeyDown(e);
+		}
 		else if (this.dialogFocus == 'window')
-			return oBXDialogWindow.OnKeyDown(e);
+		{
+			oBXDialogWindow.OnKeyDown(e);
+		}
 		else
 		{
 			if (e.keyCode == 27)
@@ -244,4 +258,4 @@ BXFileDialog.prototype =
 			}
 		}
 	}
-}
+};

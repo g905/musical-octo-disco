@@ -7,8 +7,6 @@
 if (!!window.BX && !!window.BX.extend)
 	return;
 
-window.BXDEBUG = false;
-
 var _bxtmp;
 if (!!window.BX)
 {
@@ -140,7 +138,8 @@ bIE = document.attachEvent && !bOpera,
 
 /* regexps */
 r = {
-	script: /<script([^>]*)>/i,
+	script: /<script([^>]*)>/ig,
+	script_end: /<\/script>/ig,
 	script_src: /src=["\']([^"\']+)["\']/i,
 	space: /\s+/,
 	ltrim: /^[\s\r\n]+/g,
@@ -163,7 +162,11 @@ eventTypes = {
 
 lastWait = [],
 
-CHECK_FORM_ELEMENTS = {tagName: /^INPUT|SELECT|TEXTAREA|BUTTON$/i};
+CHECK_FORM_ELEMENTS = {tagName: /^INPUT|SELECT|TEXTAREA|BUTTON$/i},
+
+PRELOADING = 1, PRELOADED = 2, LOADING = 3, LOADED = 4,
+assets = {},
+isAsync = null;
 
 BX.MSLEFT = 1;
 BX.MSMIDDLE = 2;
@@ -385,7 +388,7 @@ BX.cleanNode = function(node, bSuicide)
 BX.addClass = function(ob, value)
 {
 	var classNames;
-	ob = BX(ob)
+	ob = BX(ob);
 
 	value = BX.util.trim(value);
 	if (value == '')
@@ -456,6 +459,8 @@ BX.removeClass = function(ob, value)
 BX.toggleClass = function(ob, value)
 {
 	var className;
+	ob = BX(ob);
+
 	if (BX.type.isArray(value))
 	{
 		className = ' ' + ob.className + ' ';
@@ -505,6 +510,7 @@ BX.toggleClass = function(ob, value)
 
 BX.hasClass = function(el, className)
 {
+	el = BX(el);
 	if (!el || !BX.type.isDomNode(el))
 	{
 		BX.debug(el);
@@ -728,7 +734,7 @@ BX.findChild = function(obj, params, recursive, get_all)
 		if (_checkNode(child, params))
 		{
 			if (get_all)
-				result.push(child)
+				result.push(child);
 			else
 				return child;
 		}
@@ -1033,9 +1039,10 @@ var captured_events = null, _bind = null;
 BX.CaptureEvents = function(el_c, evname_c)
 {
 	if (_bind)
-		return false;
+		return;
 
-	_bind = BX.bind; captured_events = [];
+	_bind = BX.bind;
+	captured_events = [];
 
 	BX.bind = function(el, evname, func)
 	{
@@ -1054,9 +1061,11 @@ BX.CaptureEventsGet = function()
 
 		var captured = captured_events;
 
-		_bind = null; captured_events = null;
+		_bind = null;
+		captured_events = null;
 		return captured;
 	}
+	return null;
 };
 
 // Don't even try to use it for submit event!
@@ -1139,6 +1148,7 @@ BX.delegateLater = function (func_name, thisObject, contextObject)
 			BX.proxy_context = cur;
 			return res;
 		}
+		return null;
 	}
 };
 
@@ -1156,7 +1166,7 @@ BX.proxy = function(func, thisObject)
 	if (!func || !thisObject)
 		return func;
 
-	BX._initObjectProxy(thisObject)
+	BX._initObjectProxy(thisObject);
 
 	if (typeof func['__proxy_id_' + proxySalt] == 'undefined')
 		func['__proxy_id_' + proxySalt] = proxyId++;
@@ -1183,7 +1193,7 @@ BX.defer_proxy = function(func, thisObject)
 	if (!func || !thisObject)
 		return func;
 
-	var f = BX.proxy(func, thisObject);
+	BX.proxy(func, thisObject);
 
 	this._initObjectProxy(thisObject);
 
@@ -1223,6 +1233,7 @@ BX.delegateEvent = function(isTarget, handler)
 			else
 				break;
 		}
+		return null;
 	}
 };
 
@@ -1593,10 +1604,7 @@ BX.browser = {
 		if (pDoc.compatMode)
 			return (pDoc.compatMode == "CSS1Compat");
 
-		if (pDoc.documentElement && pDoc.documentElement.clientHeight)
-			return true;
-
-		return false;
+		return (pDoc.documentElement && pDoc.documentElement.clientHeight);
 	},
 
 	SupportLocalStorage: function()
@@ -1753,7 +1761,7 @@ BX.toggle = function(ob, values)
 		{
 			if (ob == values[i])
 			{
-				ob = values[i==len-1 ? 0 : i+1]
+				ob = values[i==len-1 ? 0 : i+1];
 				break;
 			}
 		}
@@ -2100,11 +2108,56 @@ BX.util = {
 		if (BX.type.isArray(param))
 		{
 			for (var i=0; i<param.length; i++)
-				url = BX.util.remove_url_param(url, param[i])
+			{
+				url = BX.util.remove_url_param(url, param[i]);
+			}
 		}
 		else
 		{
-			url = url.replace(new RegExp('([?&])'+param+'=[^&]*[&]*', 'i'), '$1');
+			var pos, params;
+			if((pos = url.indexOf('?')) >= 0 && pos != url.length-1)
+			{
+				params = url.substr(pos + 1);
+				url = url.substr(0, pos + 1);
+
+				params = params.replace(new RegExp('(^|&)'+param+'=[^&#]*', 'i'), '');
+				params = params.replace(/^&/, '');
+				url = url + params;
+			}
+		}
+
+		return url;
+	},
+
+	/*
+	{'param1': 'value1', 'param2': 'value2'}
+	 */
+	add_url_param: function(url, params)
+	{
+		var param;
+		var additional = '';
+		var hash = '';
+		var pos;
+
+		for(param in params)
+		{
+			url = this.remove_url_param(url, param);
+			additional += (additional != ''? '&':'') + param + '=' + params[param];
+		}
+
+		if((pos = url.indexOf('#')) >= 0)
+		{
+			hash = url.substr(pos);
+			url = url.substr(0, pos);
+		}
+
+		if((pos = url.indexOf('?')) >= 0)
+		{
+			url = url + (pos != url.length-1? '&' : '') + additional + hash;
+		}
+		else
+		{
+			url = url + '?' + additional + hash;
 		}
 
 		return url;
@@ -2112,7 +2165,7 @@ BX.util = {
 
 	even: function(digit)
 	{
-		return (parseInt(digit) % 2 == 0)? true: false;
+		return (parseInt(digit) % 2 == 0);
 	},
 
 	hashCode: function(str)
@@ -2176,6 +2229,13 @@ BX.util = {
 		kd = (decimals ? dec_point + Math.abs(number - i).toFixed(decimals).replace(/-/, '0').slice(2) : '');
 
 		return sign + km + kw + kd;
+	},
+
+	getExtension: function (url)
+	{
+		url = url || "";
+		var items = url.split("?")[0].split(".");
+		return items[items.length-1].toLowerCase();
 	}
 };
 
@@ -2293,41 +2353,59 @@ BX.evalGlobal = function(data)
 	}
 };
 
-BX.processHTML = function(HTML, scriptsRunFirst)
+BX.processHTML = function(data, scriptsRunFirst)
 {
-	var matchScript, matchStyle, matchSrc, matchHref, scripts = [], styles = [], data = HTML;
+	var matchScript, matchStyle, matchSrc, matchHref, scripts = [], styles = [];
+	var textIndexes = [];
+	var lastIndex = r.script.lastIndex = r.script_end.lastIndex = 0;
 
-	while ((matchScript = data.match(r.script)) !== null)
+	while ((matchScript = r.script.exec(data)) !== null)
 	{
-		var end = data.search(/<\/script>/i);
-		if (end == -1)
+		r.script_end.lastIndex = r.script.lastIndex;
+		var matchScriptEnd = r.script_end.exec(data);
+		if (matchScriptEnd === null)
+		{
 			break;
+		}
+
+		textIndexes.push([lastIndex, matchScript.index - lastIndex]);
 
 		var bRunFirst = scriptsRunFirst || (matchScript[1].indexOf('bxrunfirst') != '-1');
 
 		if ((matchSrc = matchScript[1].match(r.script_src)) !== null)
+		{
 			scripts.push({"bRunFirst": bRunFirst, "isInternal": false, "JS": matchSrc[1]});
+		}
 		else
 		{
 			var start = matchScript.index + matchScript[0].length;
-			var js = data.substr(start, end-start);
+			var js = data.substr(start, matchScriptEnd.index-start);
 
 			scripts.push({"bRunFirst": bRunFirst, "isInternal": true, "JS": js});
 		}
 
-		data = data.substr(0, matchScript.index) + data.substr(end+9);
+		lastIndex = matchScriptEnd.index + 9;
+		r.script.lastIndex = lastIndex;
 	}
 
-	while ((matchStyle = data.match(r.style)) !== null)
+	textIndexes.push([lastIndex, lastIndex === 0 ? data.length : data.length - lastIndex]);
+	var pureData = "";
+	for (var i = 0, length = textIndexes.length; i < length; i++)
+	{
+		pureData += data.substr(textIndexes[i][0], textIndexes[i][1]);
+	}
+
+	while ((matchStyle = pureData.match(r.style)) !== null)
 	{
 		if ((matchHref = matchStyle[0].match(r.style_href)) !== null && matchStyle[0].indexOf('media="') < 0)
 		{
 			styles.push(matchHref[1]);
 		}
-		data = data.replace(matchStyle[0], '');
+
+		pureData = pureData.replace(matchStyle[0], '');
 	}
 
-	return {'HTML': data, 'SCRIPT': scripts, 'STYLE': styles};
+	return {'HTML': pureData, 'SCRIPT': scripts, 'STYLE': styles};
 };
 
 BX.garbage = function(call, thisObject)
@@ -2663,6 +2741,12 @@ BX.setJSList = function(scripts)
 	}
 };
 
+BX.getJSList = function()
+{
+	initJsList();
+	return jsList;
+};
+
 BX.setCSSList = function(scripts)
 {
 	if (BX.type.isArray(scripts))
@@ -2671,14 +2755,20 @@ BX.setCSSList = function(scripts)
 	}
 };
 
+BX.getCSSList = function()
+{
+	initCssList();
+	return cssList;
+};
+
 BX.getJSPath = function(js)
 {
-	return js.replace(/\.js(\?\d*)/, '.js').replace(/^(http[s]*:)*\/\/[^\/]+/i, '');
+	return js.replace(/^(http[s]*:)*\/\/[^\/]+/i, '');
 };
 
 BX.getCSSPath = function(css)
 {
-	return css.replace(/\.css(\?\d*)/, '.css').replace(/^(http[s]*:)*\/\/[^\/]+/i, '');
+	return css.replace(/^(http[s]*:)*\/\/[^\/]+/i, '');
 };
 
 BX.getCDNPath = function(path)
@@ -2704,7 +2794,7 @@ BX.loadScript = function(script, callback, doc)
 	var _callback = function()
 	{
 		return (callback && BX.type.isFunction(callback)) ? callback() : null
-	}
+	};
 	var load_js = function(ind)
 	{
 		if(ind >= script.length)
@@ -2713,7 +2803,7 @@ BX.loadScript = function(script, callback, doc)
 		if(!!script[ind])
 		{
 			var fileSrc = BX.getJSPath(script[ind]);
-			if(_isScriptLoaded(fileSrc))
+			if(isScriptLoaded(fileSrc))
 			{
 				load_js(++ind);
 			}
@@ -2737,7 +2827,7 @@ BX.loadScript = function(script, callback, doc)
 							oHead.removeChild(oScript);
 						}
 					}
-				}
+				};
 
 				jsList.push(fileSrc);
 				return oHead.insertBefore(oScript, oHead.firstChild);
@@ -2747,7 +2837,8 @@ BX.loadScript = function(script, callback, doc)
 		{
 			load_js(++ind);
 		}
-	}
+		return null;
+	};
 
 	load_js(0);
 };
@@ -2770,7 +2861,7 @@ BX.loadCSS = function(arCSS, doc, win)
 		arCSS = [arCSS];
 	}
 
-	var i = 0,
+	var i,
 		l = arCSS.length,
 		lnk = null,
 		pLnk = [];
@@ -2795,7 +2886,7 @@ BX.loadCSS = function(arCSS, doc, win)
 	for (i = 0; i < l; i++)
 	{
 		var _check = BX.getCSSPath(arCSS[i]);
-		if (_isCssLoaded(_check))
+		if (isCssLoaded(_check))
 		{
 			continue;
 		}
@@ -2805,7 +2896,7 @@ BX.loadCSS = function(arCSS, doc, win)
 		lnk.rel = 'stylesheet';
 		lnk.type = 'text/css';
 
-		var templateLink = _getTemplateLink(win.bxhead);
+		var templateLink = getTemplateLink(win.bxhead);
 		if (templateLink !== null)
 		{
 			templateLink.parentNode.insertBefore(lnk, templateLink);
@@ -2824,6 +2915,367 @@ BX.loadCSS = function(arCSS, doc, win)
 
 	return pLnk;
 };
+
+BX.load = function(items, callback, doc)
+{
+	if (!BX.isReady)
+	{
+		var _args = arguments;
+		BX.ready(function() {
+			BX.load.apply(this, _args);
+		});
+		return null;
+	}
+
+	doc = doc || document;
+	if (isAsync === null)
+	{
+		isAsync = "async" in doc.createElement("script") || "MozAppearance" in doc.documentElement.style || window.opera;
+	}
+
+	return isAsync ? loadAsync(items, callback, doc) : loadAsyncEmulation(items, callback, doc);
+};
+
+function loadAsync(items, callback, doc)
+{
+	if (!BX.type.isArray(items))
+	{
+		return;
+	}
+
+	function allLoaded(items)
+	{
+		items = items || assets;
+		for (var name in items)
+		{
+			if (items.hasOwnProperty(name) && items[name].state !== LOADED)
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	function one(callback)
+	{
+		callback = callback || BX.DoNothing;
+
+		if (callback._done)
+		{
+			return;
+		}
+
+		callback();
+		callback._done = 1;
+	}
+
+	if (!BX.type.isFunction(callback))
+	{
+		callback = null;
+	}
+
+	var itemSet = {}, item, i;
+	for (i = 0; i < items.length; i++)
+	{
+		item = items[i];
+		item = getAsset(item);
+		itemSet[item.name] = item;
+	}
+
+	for (i = 0; i < items.length; i++)
+	{
+		item = items[i];
+		item = getAsset(item);
+		load(item, function () {
+			if (allLoaded(itemSet))
+			{
+				one(callback);
+			}
+		}, doc);
+	}
+}
+
+function loadAsyncEmulation(items, callback, doc)
+{
+	function onPreload(asset)
+	{
+		asset.state = PRELOADED;
+		if (BX.type.isArray(asset.onpreload) && asset.onpreload)
+		{
+			for (var i = 0; i < asset.onpreload.length; i++)
+			{
+				asset.onpreload[i].call();
+			}
+		}
+	}
+
+	function preLoad(asset)
+	{
+		if (asset.state === undefined)
+		{
+			asset.state = PRELOADING;
+			asset.onpreload = [];
+
+			loadAsset(
+				{ url: asset.url, type: "cache", ext: asset.ext},
+				function () { onPreload(asset); },
+				doc
+			);
+		}
+	}
+
+	if (!BX.type.isArray(items))
+	{
+		return;
+	}
+
+	if (!BX.type.isFunction(callback))
+	{
+		callback = null;
+	}
+
+	var rest = [].slice.call(items, 1);
+	for (var i = 0; i < rest.length; i++)
+	{
+		preLoad(getAsset(rest[i]));
+	}
+
+	load(getAsset(items[0]), items.length === 1 ? callback : function () {
+		loadAsyncEmulation.apply(null, [rest, callback]);
+	}, doc);
+}
+
+function load(asset, callback, doc)
+{
+	callback = callback || BX.DoNothing;
+
+	if (asset.state === LOADED)
+	{
+		callback();
+		return;
+	}
+
+	if (asset.state === PRELOADING)
+	{
+		asset.onpreload.push(function () {
+			load(asset, callback, doc);
+		});
+		return;
+	}
+
+	asset.state = LOADING;
+
+	loadAsset(
+		asset,
+		function () {
+			asset.state = LOADED;
+			callback();
+		},
+		doc
+	);
+}
+
+function loadAsset(asset, callback, doc)
+{
+	callback = callback || BX.DoNothing;
+
+	function error(event)
+	{
+		ele.onload = ele.onreadystatechange = ele.onerror = null;
+		callback();
+	}
+
+	function process(event)
+	{
+		event = event || window.event;
+		if (event.type === "load" || (/loaded|complete/.test(ele.readyState) && (!doc.documentMode || doc.documentMode < 9)))
+		{
+			window.clearTimeout(asset.errorTimeout);
+			window.clearTimeout(asset.cssTimeout);
+			ele.onload = ele.onreadystatechange = ele.onerror = null;
+			callback();
+		}
+	}
+
+	function isCssLoaded()
+	{
+		if (asset.state !== LOADED && asset.cssRetries <= 20)
+		{
+			for (var i = 0, l = doc.styleSheets.length; i < l; i++)
+			{
+				if (doc.styleSheets[i].href === ele.href)
+				{
+					process({"type": "load"});
+					return;
+				}
+			}
+
+			asset.cssRetries++;
+			asset.cssTimeout = window.setTimeout(isCssLoaded, 250);
+		}
+	}
+
+	var ele;
+	var ext = BX.type.isNotEmptyString(asset.ext) ? asset.ext : BX.util.getExtension(asset.url);
+
+	if (ext === "css")
+	{
+		ele = doc.createElement("link");
+		ele.type = "text/" + (asset.type || "css");
+		ele.rel = "stylesheet";
+		ele.href = asset.url;
+
+		asset.cssRetries = 0;
+		asset.cssTimeout = window.setTimeout(isCssLoaded, 500);
+	}
+	else
+	{
+		ele = doc.createElement("script");
+		ele.type = "text/" + (asset.type || "javascript");
+		ele.src = asset.url;
+	}
+
+	ele.onload = ele.onreadystatechange = process;
+	ele.onerror = error;
+
+	ele.async = false;
+	ele.defer = false;
+
+	asset.errorTimeout = window.setTimeout(function () {
+		error({type: "timeout"});
+	}, 7000);
+
+	if (ext === "css")
+	{
+		cssList.push(BX.getCSSPath(asset.url));
+	}
+	else
+	{
+		jsList.push(BX.getJSPath(asset.url));
+	}
+
+	var templateLink = null;
+	var head = doc.head || doc.getElementsByTagName("head")[0];
+	if (ext === "css" && (templateLink = getTemplateLink(head)) !== null)
+	{
+		templateLink.parentNode.insertBefore(ele, templateLink);
+	}
+	else
+	{
+		head.insertBefore(ele, head.lastChild);
+	}
+}
+
+function getAsset(item)
+{
+	var asset = {};
+	if (typeof item === "object")
+	{
+		asset = item;
+		asset.name = asset.name ? asset.name : BX.util.hashCode(item.url);
+	}
+	else
+	{
+		asset = { name: BX.util.hashCode(item), url : item };
+	}
+
+	var ext = BX.type.isNotEmptyString(asset.ext) ? asset.ext : BX.util.getExtension(asset.url);
+	if ((ext === "css" && isCssLoaded(asset.url)) || isScriptLoaded(asset.url))
+	{
+		asset.state = LOADED;
+	}
+
+	var existing = assets[asset.name];
+	if (existing && existing.url === asset.url)
+	{
+		return existing;
+	}
+
+	assets[asset.name] = asset;
+	return asset;
+}
+
+function isCssLoaded(fileSrc)
+{
+	initCssList();
+	return (BX.util.in_array(BX.getCSSPath(fileSrc), cssList));
+}
+
+function initCssList()
+{
+	if(!cssInit)
+	{
+		var linksCol = document.getElementsByTagName('LINK'), links = [];
+
+		if(!!linksCol && linksCol.length > 0)
+		{
+			for(var i = 0; i < linksCol.length; i++)
+			{
+				var href = linksCol[i].getAttribute('href');
+				if (BX.type.isNotEmptyString(href))
+				{
+					cssList.push(BX.getCSSPath(href));
+				}
+			}
+		}
+		cssInit = true;
+	}
+}
+
+function getTemplateLink(head)
+{
+	var findLink = function(tag)
+	{
+		var links = head.getElementsByTagName(tag);
+		for (var i = 0, length = links.length; i < length; i++)
+		{
+			var templateStyle = links[i].getAttribute("data-template-style");
+			if (BX.type.isNotEmptyString(templateStyle) && templateStyle == "true")
+			{
+				return links[i];
+			}
+		}
+
+		return null;
+	};
+
+	var link = findLink("link");
+	if (link === null)
+	{
+		link = findLink("style");
+	}
+
+	return link;
+}
+
+function isScriptLoaded(fileSrc)
+{
+	initJsList();
+	return BX.util.in_array(BX.getJSPath(fileSrc), jsList);
+}
+
+function initJsList()
+{
+	if(!jsInit)
+	{
+		var scriptCol = document.getElementsByTagName('script'), script = [];
+
+		if(!!scriptCol && scriptCol.length > 0)
+		{
+			for(var i=0; i<scriptCol.length; i++)
+			{
+				var src = scriptCol[i].getAttribute('src');
+
+				if (BX.type.isNotEmptyString(src))
+				{
+					jsList.push(BX.getJSPath(src));
+				}
+			}
+		}
+		jsInit = true;
+	}
+}
 
 BX.reload = function(back_url, bAddClearCache)
 {
@@ -2850,7 +3302,7 @@ BX.reload = function(back_url, bAddClearCache)
 	{
 		// hack for clearing cache in ajax mode components with history emulation
 		if (bAddClearCache && (hash.substr(0, 5) == 'view/' || hash.substr(0, 6) == '#view/') && hash.indexOf('clear_cache%3DY') < 0)
-			hash += (hash.indexOf('%3F') == -1 ? '%3F' : '%26') + 'clear_cache%3DY'
+			hash += (hash.indexOf('%3F') == -1 ? '%3F' : '%26') + 'clear_cache%3DY';
 
 		new_href = new_href.replace(/(\?|\&)_r=[\d]*/, '');
 		new_href += (new_href.indexOf('?') == -1 ? '?' : '&') + '_r='+Math.round(Math.random()*10000) + hash;
@@ -2874,7 +3326,7 @@ BX.template = function(tpl, callback, bKillTpl)
 
 BX.isAmPmMode = function()
 {
-	return BX.message('FORMAT_DATETIME').match('T') == null ? false : true;
+	return (BX.message('FORMAT_DATETIME').match('T') != null);
 };
 
 BX.formatDate = function(date, format)
@@ -2954,7 +3406,7 @@ BX.parseDate = function(str)
 		}
 
 
-		var m = BX.util.array_search('MMMM', aFormatArgs)
+		var m = BX.util.array_search('MMMM', aFormatArgs);
 		if (m > 0)
 		{
 			aDateArgs[m] = BX.getNumMonth(aDateArgs[m]);
@@ -2962,7 +3414,7 @@ BX.parseDate = function(str)
 		}
 		else
 		{
-			m = BX.util.array_search('M', aFormatArgs)
+			m = BX.util.array_search('M', aFormatArgs);
 			if (m > 0)
 			{
 				aDateArgs[m] = BX.getNumMonth(aDateArgs[m]);
@@ -3040,8 +3492,7 @@ BX.selectUtils =
 				}
 			}
 
-			var newoption = new Option(opt_name, opt_value, false, false);
-			oSelect.options[n]=newoption;
+			oSelect.options[n] = new Option(opt_name, opt_value, false, false);
 		}
 
 		if(do_sort === true)
@@ -3115,7 +3566,7 @@ BX.selectUtils =
 		{
 			var myOptions = [];
 			var n = oSelect.options.length;
-			var i = 0;
+			var i;
 			for (i=0;i<n;i++)
 			{
 				myOptions[i] = {
@@ -3172,7 +3623,7 @@ BX.selectUtils =
 
 	moveOptionsUp: function(oSelect)
 	{
-		oSelect = BX(oSelect)
+		oSelect = BX(oSelect);
 		if(!oSelect)
 			return;
 		var n = oSelect.length;
@@ -3180,11 +3631,10 @@ BX.selectUtils =
 		{
 			if(oSelect[i].selected && i>0 && oSelect[i-1].selected == false)
 			{
-				var option1 = new Option(oSelect[i].text, oSelect[i].value);
-				var option2 = new Option(oSelect[i-1].text, oSelect[i-1].value);
-				oSelect[i] = option2;
+				var option = new Option(oSelect[i].text, oSelect[i].value);
+				oSelect[i] = new Option(oSelect[i-1].text, oSelect[i-1].value);
 				oSelect[i].selected = false;
-				oSelect[i-1] = option1;
+				oSelect[i-1] = option;
 				oSelect[i-1].selected = true;
 			}
 		}
@@ -3200,11 +3650,10 @@ BX.selectUtils =
 		{
 			if(oSelect[i].selected && i<n-1 && oSelect[i+1].selected == false)
 			{
-				var option1 = new Option(oSelect[i].text, oSelect[i].value);
-				var option2 = new Option(oSelect[i+1].text, oSelect[i+1].value);
-				oSelect[i] = option2;
+				var option = new Option(oSelect[i].text, oSelect[i].value);
+				oSelect[i] = new Option(oSelect[i+1].text, oSelect[i+1].value);
 				oSelect[i].selected = false;
-				oSelect[i+1] = option1;
+				oSelect[i+1] = option;
 				oSelect[i+1].selected = true;
 			}
 		}
@@ -3278,7 +3727,7 @@ BX.CHint = function(params)
 	this.HINT = params.hint;
 	this.HINT_TITLE = params.title;
 
-	this.PARAMS = {}
+	this.PARAMS = {};
 	for (var i in this.defaultSettings)
 	{
 		if (null == params[i])
@@ -3327,7 +3776,7 @@ BX.CHint.prototype.CreateParent = function(element, params)
 		BX.unbind(this.PARENT, 'mouseout', BX.proxy(this.Hide, this));
 	}
 
-	if (!params) params = {}
+	if (!params) params = {};
 	var type = 'icon';
 
 	if (params.type && (params.type == "link" || params.type == "icon"))
@@ -3915,80 +4364,6 @@ function _checkNode(obj, params)
 	}
 
 	return true;
-}
-
-function _isCssLoaded(fileSrc)
-{
-	if(!cssInit)
-	{
-		var linksCol = document.getElementsByTagName('LINK'), links = [];
-
-		if(!!linksCol && linksCol.length > 0)
-		{
-			for(var i = 0; i < linksCol.length; i++)
-			{
-				var href = linksCol[i].getAttribute('href');
-				if (BX.type.isNotEmptyString(href))
-				{
-					cssList.push(BX.getCSSPath(href));
-				}
-			}
-		}
-		cssInit = true;
-	}
-
-	return (BX.util.in_array(fileSrc, cssList));
-}
-
-function _getTemplateLink(head)
-{
-	var findLink = function(tag)
-	{
-		var links = head.getElementsByTagName(tag);
-		for (var i = 0, length = links.length; i < length; i++)
-		{
-			var templateStyle = links[i].getAttribute("data-template-style");
-			if (BX.type.isNotEmptyString(templateStyle) && templateStyle == "true")
-			{
-				return links[i];
-			}
-		}
-
-		return null;
-	};
-
-	var link = findLink("link");
-	if (link === null)
-	{
-		link = findLink("style");
-	}
-
-	return link;
-}
-
-/********* Check for currently loaded core scripts ***********/
-function _isScriptLoaded(fileSrc)
-{
-	if(!jsInit)
-	{
-		var scriptCol = document.getElementsByTagName('script'), script = [];
-
-		if(!!scriptCol && scriptCol.length > 0)
-		{
-			for(var i=0; i<scriptCol.length; i++)
-			{
-				var src = scriptCol[i].getAttribute('src');
-
-				if (BX.type.isNotEmptyString(src))
-				{
-					jsList.push(BX.getJSPath(src));
-				}
-			}
-		}
-		jsInit = true;
-	}
-
-	return BX.util.in_array(fileSrc, jsList);
 }
 
 /* garbage collector */

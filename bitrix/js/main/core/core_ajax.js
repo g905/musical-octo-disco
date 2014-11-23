@@ -987,9 +987,14 @@ BX.ajax.submitAjax = function(obForm, config)
 	}
 	else
 	{
-		var appendToForm = function(fd, key, val)
+		var isFile = function(item)
 		{
-			if (!!val && typeof val == "object")
+			var res = Object.prototype.toString.call(item);
+			return (res == '[object File]' || res == '[object Blob]');
+		},
+		appendToForm = function(fd, key, val)
+		{
+			if (!!val && typeof val == "object" && !isFile(val))
 			{
 				for (var ii in val)
 				{
@@ -1016,6 +1021,8 @@ BX.ajax.submitAjax = function(obForm, config)
 							var name = BX.util.urlencode(i);
 							if(typeof arData[i] == 'object' && arData[i]["file"] !== true)
 								data[name] = prepareData(arData[i]);
+							else if (arData[i]["file"] === true)
+								data[name] = arData[i]["value"];
 							else
 								data[name] = BX.util.urlencode(arData[i]);
 						}

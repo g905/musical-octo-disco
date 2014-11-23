@@ -108,7 +108,7 @@
 		if (window.frameRequestFail)
 		{
 			BX.ready(function() {
-				BX.onCustomEvent("onFrameDataRequestFail");
+				BX.onCustomEvent("onFrameDataRequestFail", [window.frameRequestFail]);
 			});
 		}
 
@@ -160,14 +160,112 @@
 
 	BX.frameCache.processData = function(block)
 	{
-		BX.ajax.processRequestData(
-			block,
+		var container;
+		if (!block || !(container = BX(block.ID)))
+		{
+			return;
+		}
+
+		var htmlWasInserted = false;
+		var contentWasProcessed = false;
+		var scriptsLoaded = false;
+		var assets = getAssets();
+		processCSS(insertHTML);
+		processStrings();
+		processExternalJS(processInlineJS);
+
+		function processCSS(callback)
+		{
+			var styles = assets.styles;
+			if (BX.type.isArray(block.PROPS.CSS) && block.PROPS.CSS.length > 0)
 			{
-				scriptsRunFirst: true,
-				dataType: "HTML",
-				emulateOnload: true
+				styles = BX.util.array_merge(block.PROPS.CSS, styles);
 			}
-		);
+
+			styles.length > 0 ? BX.load(styles, callback) : callback();
+		}
+
+		function insertHTML()
+		{
+			if (block.PROPS.USE_ANIMATION)
+			{
+				container.style.opacity = 0;
+				container.innerHTML = block.CONTENT;
+				(new BX.easing({
+					duration : 1500,
+					start : { opacity: 0 },
+					finish : { opacity: 100 },
+					transition : BX.easing.makeEaseOut(BX.easing.transitions.quart),
+					step : function(state){
+						container.style.opacity = state.opacity / 100;
+					},
+					complete : function() {
+						container.style.cssText = '';
+					}
+				})).animate();
+			}
+			else
+			{
+				container.innerHTML = block.CONTENT;
+			}
+
+			htmlWasInserted = true;
+			if (scriptsLoaded)
+			{
+				processInlineJS();
+			}
+		}
+
+		function processStrings()
+		{
+			BX.evalGlobal(assets.inlineJS.join(";"));
+		}
+
+		function getAssets()
+		{
+			var result = { styles: [], inlineJS: [], externalJS: []};
+			if (!BX.type.isArray(block.PROPS.STRINGS) || block.PROPS.STRINGS.length < 1)
+			{
+				return result;
+			}
+
+			var parts = BX.processHTML(block.PROPS.STRINGS.join(""), false);
+			for (var i = 0, l = parts.SCRIPT.length; i < l; i++)
+			{
+				var script = parts.SCRIPT[i];
+				if (script.isInternal)
+				{
+					result.inlineJS.push(script.JS);
+				}
+				else
+				{
+					result.externalJS.push(script.JS);
+				}
+			}
+
+			result.styles = parts.STYLE;
+
+			return result;
+		}
+
+		function processExternalJS(callback)
+		{
+			var scripts = assets.externalJS;
+			if (BX.type.isArray(block.PROPS.JS) && block.PROPS.JS.length > 0)
+			{
+				scripts = BX.util.array_merge(scripts, block.PROPS.JS);
+			}
+			scripts.length > 0 ? BX.load(scripts, callback) : callback();
+		}
+
+		function processInlineJS()
+		{
+			scriptsLoaded = true;
+			if (htmlWasInserted)
+			{
+				BX.ajax.processRequestData(block.CONTENT, {scriptsRunFirst: false, dataType: "HTML"});
+			}
+		}
 	};
 
 	BX.frameCache.update = function(makeRequest)
@@ -218,7 +316,7 @@
 
 		if (json.htmlCacheChanged === true && this.vars.CACHE_MODE === "HTMLCACHE")
 		{
-			document.location.reload();
+			BX.onCustomEvent("onHtmlCacheChanged", [json]);
 		}
 
 		if (BX.type.isArray(json.spread))
@@ -253,11 +351,11 @@
 		{
 			requestURI = requestURI.substring(0, index);
 		}
-		requestURI += (requestURI.indexOf('?') >= 0 ? '&' : '?') + 'bxrand=' + new Date().getTime();
+		requestURI += (requestURI.indexOf("?") >= 0 ? "&" : "?") + "bxrand=" + new Date().getTime();
 
 		BX.ajax({
 			timeout: 60,
-			method: 'GET',
+			method: "GET",
 			url: requestURI,
 			data: {},
 			headers: headers,
@@ -266,7 +364,15 @@
 			onsuccess: BX.proxy(BX.frameCache.onFrameDataReceived, this),
 			onfailure: function()
 			{
-				BX.onCustomEvent("onFrameDataRequestFail");
+				var response = {
+					error: true,
+					reason: "bad_response",
+					url : requestURI,
+					xhr: this.xhr,
+					status: this.xhr ? this.xhr.status : 0
+				};
+
+				BX.onCustomEvent("onFrameDataRequestFail", [response]);
 			}
 		});
 	};
@@ -282,11 +388,17 @@
 		catch (e)
 		{
 			BX.ready(BX.proxy(function() {
-				BX.onCustomEvent("onFrameDataReceivedError", [response]);
+				BX.onCustomEvent("onFrameDataRequestFail", [{
+					error: true,
+					reason: "bad_eval",
+					response: response
+				}]);
 			}, this));
+
 			return;
 		}
 
+		BX.frameCache.checkRedirect(this.frameData);
 		BX.frameCache.setCompositeVars(this.frameData);
 		BX.ready(BX.proxy(function() {
 			this.handleResponse(this.frameData);
@@ -335,45 +447,15 @@
 				}
 			}
 
-			var el = BX(block.ID);
-			if (el && !skip)
+			if (!skip)
 			{
-				if (block.PROPS.USE_ANIMATION)
-				{
-					animate(el, block.CONTENT);
-				}
-				else
-				{
-					el.innerHTML = block.CONTENT;//insert the block
-				}
-
-				this.processData(block.CONTENT);//eval the block
+				this.processData(block)
 			}
-		}
-
-		function animate(element, content)
-		{
-			element.style.opacity = 0;
-			element.innerHTML = content;
-
-			(new BX.easing({
-				duration : 1500,
-				start : { opacity: 0 },
-				finish : { opacity: 100 },
-				transition : BX.easing.makeEaseOut(BX.easing.transitions.quart),
-				step : function(state){
-					element.style.opacity = state.opacity / 100;
-				},
-				complete : function() {
-					element.style.cssText = '';
-				}
-			})).animate();
 		}
 
 		BX.onCustomEvent("onFrameDataProcessed", [blocks]);
 		this.lastReplacedBlocks = blocks;
 	};
-
 
 	BX.frameCache.writeCache = function(blocks)
 	{
@@ -390,7 +472,6 @@
 			}
 		}
 	};
-
 
 	BX.frameCache.openDatabase = function()
 	{
@@ -569,6 +650,14 @@
 		for (var i = 0; i < inputs.length; i++)
 		{
 			inputs[i].value = sessid;
+		}
+	};
+
+	BX.frameCache.checkRedirect = function(response)
+	{
+		if (response && BX.type.isNotEmptyString(response.redirect_url))
+		{
+			window.location = response.redirect_url;
 		}
 	};
 

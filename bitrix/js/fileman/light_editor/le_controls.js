@@ -657,7 +657,7 @@ LHEColorPicker.prototype = {
 		this.pColCont.style.display = 'none';
 		this.pLEditor.oTransOverlay.Hide();
 		BX.unbind(window, "keypress", BX.proxy(this.OnKeyPress, this));
-		BX.unbind(window, 'mousedown', BX.proxy(this.CheckClose, this));
+		BX.unbind(document, 'mousedown', BX.proxy(this.CheckClose, this));
 
 		this.bOpened = false;
 	},

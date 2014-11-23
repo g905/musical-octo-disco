@@ -11,9 +11,8 @@ div.bx-html-editor-absolute{
 	overflow: hidden;
 	position: absolute;
 	z-index: 3000;
+	background-color: #FFF;
 }
-
-.bxhtmled-area-cnt {top:40px; left:0;}
 
 /* Toolbar */
 .bxhtmled-toolbar-cnt{
@@ -38,6 +37,7 @@ div.bx-html-editor-absolute{
 
 .bxhtmled-top-bar-right-wrap {
 	float: right;
+	margin-right: 4px;
 }
 .bxhtmled-top-bar-hidden-wrap{
 	position: absolute;
@@ -71,12 +71,10 @@ div.bx-html-editor-absolute{
 	width: 20px;
 }
 
-/*.bxhtmled-top-bar-btn:active i,*/
 .bxhtmled-top-bar-btn-active i {
 	margin: 1px 0 0 1px;
 }
 
-/*.bxhtmled-top-bar-btn:active,*/
 .bxhtmled-top-bar-btn-active {
 	background-image: -webkit-linear-gradient(top, #afdcef, #c2e3f1) !important;
 	background-image:    -moz-linear-gradient(top, #afdcef, #c2e3f1) !important;
@@ -278,7 +276,11 @@ span.bxhtmled-top-bar-dd-active:before {
 .bxhtmled-style-h4 h4,
 .bxhtmled-style-h5 h5,
 .bxhtmled-style-h6 h6
-{margin: 0;}
+{
+	margin: 0 !important;
+	color: #000 !important;
+	background-color: transparent !important;
+}
 
 
 /* Button icons */
@@ -308,13 +310,21 @@ span.bxhtmled-top-bar-dd-active:before {
 .bxhtmled-button-table i {background-position: center -641px;}
 .bxhtmled-button-undo i {background-position: -4px -1027px;}
 .bxhtmled-button-redo i {background-position: -3px -1058px;}
-.bxhtmled-button-settings i {background-position: center -1918px;}
+.bxhtmled-button-settings i {background-position: center -1916px;}
 .bxhtmled-button-fullscreen i {background-position: center -1803px;}
 .bxhtmled-button-print-break i {background-position: center -1836px;}
 .bxhtmled-button-page-break i {background-position: center -1876px;}
 .bxhtmled-button-hr i {background-position: center -1442px;}
 .bxhtmled-button-more i {background-position: center -2078px;}
 .bxhtmled-button-video i {background-position: center -611px;}
+.bxhtmled-button-spell i {background-position: -3px -2339px;}
+.bxhtmled-button-sup i {background-position: -3px -2374px;}
+.bxhtmled-button-sub i {background-position: -3px -2413px;}
+.bxhtmled-button-bbcode i {background-position: -3px -2574px;}
+
+.bxhtmled-button-smile i {background-position: center -2499px; width: 21px;}
+.bxhtmled-button-quote i {background-position: center -2541px;}
+.bxhtmled-button-code i {background-position: center -2459px;}
 
 /* View mode button - list */
 .bxhtmled-button-viewmode-wysiwyg i{background-position: center -1504px !important;}
@@ -322,34 +332,8 @@ span.bxhtmled-top-bar-dd-active:before {
 .bxhtmled-button-viewmode-split-hor i{background-position: center -1474px !important;}
 .bxhtmled-button-viewmode-split-ver i{background-position: center -1534px !important;}
 
-/*
-.bxhtmled-button-viewmode {width: 35px!important;}
-
-.bxhtmled-button-viewmode:active,
-.bxhtmled-button-viewmode-active {width: 33px!important;}
-
-.bxhtmled-button-viewmode:before {
-	background: url(/bitrix/images/fileman/htmleditor/html-editor-sprite.png) no-repeat center -438px;
-	content: "";
-	right: 4px;
-	top: 11px;
-	height: 3px;
-	position: absolute;
-	width: 5px;
-}
-.bxhtmled-button-viewmode:hover:before,
-.bxhtmled-button-viewmode:active:before,
-.bxhtmled-button-viewmode-active:before {
-	top: 10px;
-	right: 4px;
-}
-
-.bxhtmled-button-viewmode i {background-position: center -400px;margin-left: 1px;};
-.bxhtmled-button-viewmode:hover i {margin-left: 0;}
-*/
-
 /* */
-.bxhtmled-button-fontsize-wrap{margin-left: -4px; display: inline-block; width: 33px; /*overflow: hidden;*/}
+.bxhtmled-button-fontsize-wrap{margin-left: -4px; display: inline-block; width: 33px; /*overflow: hidden;*/ vertical-align: top !important;}
 .bxhtmled-button-fontsize-wrap .bxhtmled-top-bar-select{width: 14px; padding-left: 3px; font-size: 12px; text-align: center;}
 .bxhtmled-button-fontsize{width: 32px;}
 .bxhtmled-button-fontsize-active,
@@ -359,35 +343,6 @@ span.bxhtmled-top-bar-dd-active:before {
 {width: 32px;}
 .bxhtmled-button-fontsize i {width: 22px;}
 .bxhtmled-top-bar-wrap {display: inline-block; margin-left: 6px;}
-
-/*
-.bxhtmled-top-bar-btn:active,
-.bxhtmled-top-bar-btn-active {
-	background-image: -webkit-linear-gradient(top, #afdcef, #c2e3f1) !important;
-	background-image:    -moz-linear-gradient(top, #afdcef, #c2e3f1) !important;
-	background-image:     -ms-linear-gradient(top, #afdcef, #c2e3f1) !important;
-	background-image:      -o-linear-gradient(top, #afdcef, #c2e3f1) !important;
-	background-image:         linear-gradient(to bottom, #afdcef, #c2e3f1) !important;
-	border: 1px solid;
-	border-color: #93b7c7 #add2e2 #bcdce8!important;
-	-webkit-box-shadow: inset 0 1px 0 #a6d0e2, inset 0 -1px 0 #bedeeb;
-	box-shadow: inset 0 1px 0 #a6d0e2, inset 0 -1px 0 #bedeeb;
-	height: 22px;
-	width: 22px;
-}
-
-.bxhtmled-top-bar-btn-disabled,
-.bxhtmled-top-bar-btn-disabled:active {
-	background: none !important;
-	border: none !important;
-	-webkit-box-shadow: none !important;
-	box-shadow:  none !important;
-	cursor: auto;
-	height: 24px;
-	opacity: 0.5;
-	width: 24px;
-}
-*/
 
 /* Button icons END*/
 
@@ -654,7 +609,7 @@ span.bxhtmled-top-bar-dd-active:before {
 
 
 .bxhtmled-toolbar{ text-align: left !important;}
-.bxhtmled-area-cnt{position: absolute; top: 34px; left: 0; z-index: 100;}
+.bxhtmled-area-cnt{position: absolute; top: 34px; left: -5px; z-index: 100;}
 .bxhtmled-iframe-cnt{position: absolute; top: 0; left: 0; background-color: #FFF !important;}
 .bxhtmled-textarea-cnt{position: absolute; top: 0; left: 0;}
 
@@ -1067,6 +1022,12 @@ span.bxhtmled-top-bar-dd-active:before {
 	overflow: auto;
 	color: #000000 !important;
 	height: 200px !important;
+}
+
+.bxhtmled-img-dialog .bxhtmled-img-preview-bb {
+	text-align: center !important;
+	height: 250px !important;
+	background-color: transparent !important;
 }
 
 .bxhtmled-size-perc {
@@ -1823,10 +1784,70 @@ td.bxhtmled-color-inp-cell{height: 25px;}
 	color: #555555;
 }
 
+/* Spell check */
+.bxhtmled-spell-wrap {
+	vertical-align: top !important;
+	overflow: hidden !important;
+}
+
+.bxhtmled-spell-wrap-notice .bxhtmled-spell-left, .bxhtmled-spell-wrap-notice .bxhtmled-spell-right {display: none;}
+.bxhtmled-notice-cont {padding: 20px;}
+
+.bxhtmled-spell-left {
+	display: inline-block;
+	width: 300px;
+	vertical-align: top !important;
+	padding: 12px;
+}
+.bxhtmled-spell-left label{
+	display: block;
+}
+.bxhtmled-spell-left input, .bxhtmled-spell-left select{
+	width: 90% !important;
+	margin-bottom: 8px !important;
+}
+
+.bxhtmled-spell-right{
+	display: inline-block;
+	width: 200px;
+	vertical-align: top !important;
+	padding: 8px !important;
+}
+
+.bxhtmled-spell-right input{
+	margin-bottom: 8px !important;
+}
+
+/* *** END *** Spell check *** END *** */
+
+.bxhtmled-smile-cont {max-width: 160px;}
+.bxhtmled-smile-img
+{
+	margin: 4px;
+	cursor: pointer;
+}
+
+.bxhtmled-list li{margin-bottom: 2px;}
+.bxhtmled-list-del-item {
+	display: inline-block;
+	width: 24px;
+	height: 26px;
+	background: url(/bitrix/images/fileman/htmleditor/html-editor-sprite.png) no-repeat center -1210px !important;
+	vertical-align: bottom !important;
+	cursor: pointer;
+}
+
+.bxhtmled-list-add-item {font-weight: bold !important; display: inline-block; margin: 6px 0 0 42px; cursor: default;}
+.bxhtmled-list-add-item:hover{text-decoration: underline;}
+.bxhtmled-list-wrap {max-height: 400px; overflow: auto;}
+
+
+
+
 /* dirty hacks for old filedialog and medialib dialog*/
 /* File dialog*/
 .editor_dialog{z-index: 3500 !important;}
-.bx-js-float-shadow {z-index: 3498 !important;}
+/*.bx-js-float-shadow {z-index: 3498 !important;}*/
 .bxfd-sys-frame {z-index: 3495 !important;}
 div#__BXFDContextMenu {z-index: 3500 !important;}
 /* Medialib */
@@ -1834,3 +1855,8 @@ div#__BXFDContextMenu {z-index: 3500 !important;}
 .bxml-subdialog-cont {z-index: 3505 !important;}
 img#mlsd_item_shadow, img#mlsd_coll_shadow{z-index: 3502 !important;}
 /* dirty hacks END */
+
+.bxhtmled-warning {
+	padding: 10px;
+	color: #CD3738;
+}

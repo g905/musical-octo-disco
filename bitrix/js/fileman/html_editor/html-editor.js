@@ -26,9 +26,12 @@
 			"figure", "footer", "header", "hgroup", "keygen", "mark", "meter", "nav", "output", "progress",
 			"rp", "rt", "ruby", "svg", "section", "source", "summary", "time", "track", "video", "wbr"
 		];
-		this.BLOCK_TAGS = ["H1", "H2", "H3", "H4", "H5", "H6", "P", "BLOCKQUOTE", "DIV", "SECTION"];
+		this.BLOCK_TAGS = ["H1", "H2", "H3", "H4", "H5", "H6", "P", "BLOCKQUOTE", "DIV", "SECTION", "PRE"];
 		this.NESTED_BLOCK_TAGS = ["BLOCKQUOTE", "DIV"];
 		this.TABLE_TAGS = ["TD", "TR", "TH", "TABLE", "TBODY", "CAPTION", "COL", "COLGROUP", "TFOOT", "THEAD"];
+
+		this.BBCODE_TAGS = ['U', 'TABLE', 'TR', 'TD', 'TH', 'IMG', 'A', 'CENTER', 'LEFT', 'RIGHT', 'JUSTIFY'];
+		//this.BBCODE_TAGS = ['P', 'U', 'DIV', 'TABLE', 'TR', 'TD', 'TH', 'IMG', 'A', 'CENTER', 'LEFT', 'RIGHT', 'JUSTIFY'];
 
 		this.HTML_ENTITIES = ['&iexcl;','&cent;','&pound;','&curren;','&yen;','&brvbar;','&sect;','&uml;','&copy;','&ordf;','&laquo;','&not;','&reg;','&macr;','&deg;','&plusmn;','&sup2;','&sup3;','&acute;','&micro;','&para;','&middot;','&cedil;','&sup1;','&ordm;','&raquo;','&frac14;','&frac12;','&frac34;','&iquest;','&Agrave;','&Aacute;','&Acirc;','&Atilde;','&Auml;','&Aring;','&AElig;','&Ccedil;','&Egrave;','&Eacute;','&Ecirc;','&Euml;','&Igrave;','&Iacute;','&Icirc;','&Iuml;','&ETH;','&Ntilde;','&Ograve;','&Oacute;','&Ocirc;','&Otilde;','&Ouml;','&times;','&Oslash;','&Ugrave;','&Uacute;','&Ucirc;','&Uuml;','&Yacute;','&THORN;','&szlig;','&agrave;','&aacute;','&acirc;','&atilde;','&auml;','&aring;','&aelig;','&ccedil;','&egrave;','&eacute;','&ecirc;','&euml;','&igrave;','&iacute;','&icirc;','&iuml;','&eth;','&ntilde;','&ograve;','&oacute;','&ocirc;','&otilde;','&ouml;','&divide;','&oslash;','&ugrave;','&uacute;','&ucirc;','&uuml;','&yacute;','&thorn;','&yuml;','&OElig;','&oelig;','&Scaron;','&scaron;','&Yuml;','&circ;','&tilde;','&ndash;','&mdash;','&lsquo;','&rsquo;','&sbquo;','&ldquo;','&rdquo;','&bdquo;','&dagger;','&Dagger;','&permil;','&lsaquo;','&rsaquo;','&euro;','&Alpha;','&Beta;','&Gamma;','&Delta;','&Epsilon;','&Zeta;','&Eta;','&Theta;','&Iota;','&Kappa;','&Lambda;','&Mu;','&Nu;','&Xi;','&Omicron;','&Pi;','&Rho;','&Sigma;','&Tau;','&Upsilon;','&Phi;','&Chi;','&Psi;','&Omega;','&alpha;','&beta;','&gamma;','&delta;','&epsilon;','&zeta;','&eta;','&theta;','&iota;','&kappa;','&lambda;','&mu;','&nu;','&xi;','&omicron;','&pi;','&rho;','&sigmaf;','&sigma;','&tau;','&upsilon;','&phi;','&chi;','&psi;','&omega;','&bull;','&hellip;','&prime;','&Prime;','&oline;','&frasl;','&trade;','&larr;','&uarr;','&rarr;','&darr;','&harr;','&part;','&sum;','&minus;','&radic;','&infin;','&int;','&asymp;','&ne;','&equiv;','&le;','&ge;','&loz;','&spades;','&clubs;','&hearts;'];
 
@@ -57,47 +60,96 @@
 			'y': 89,
 			'shift': 16,
 			'ctrl': 17,
-			'alt': 18
+			'alt': 18,
+			'cmd': 91, // 93, 224, 17 Browser dependent
+			'cmdRight': 93 // 93, 224, 17 Browser dependent?
 		};
 		this.INVISIBLE_SPACE = "\uFEFF";
 		this.INVISIBLE_CURSOR = "\u2060";
-		this.NORMAL_WIDTH = 1000;
+		this.NORMAL_WIDTH = 1020;
 		this.MIN_WIDTH = 700;
-		this.MIN_HEIGHT = 400;
+		this.MIN_HEIGHT = 100;
 
 		this.MAX_HANDLED_FORMAT_LENGTH = 50000; // Max length of code which will be formated
 		this.MAX_HANDLED_FORMAT_TIME = 500;
+		this.iframeCssText = ''; // Here some controls can add additional css
 
-		config = this.CheckConfig(config);
-		BX.onCustomEvent(BXHtmlEditor, 'OnBeforeEditorInited',[this]);
-		this.Init(config);
+		this.Init(this.CheckConfig(config));
 	}
 
 	BXEditor.prototype = {
 		Init: function(config)
 		{
-			this.On("OnEditorInitedBefore");
 			this.config = config;
 			this.id = this.config.id;
 			this.dialogs = {};
-
+			this.bbCode = !!this.config.bbCode;
 			this.config.splitVertical = !!this.config.splitVertical;
 			this.config.splitRatio = parseFloat(this.config.splitRatio);
 			this.config.view = this.config.view || 'wysiwyg';
 			this.config.taskbarShown = !!this.config.taskbarShown;
 			this.config.taskbarWidth = parseInt(this.config.taskbarWidth);
+			this.config.showNodeNavi = this.config.showNodeNavi !== false;
+			this.config.setFocusAfterShow = this.config.setFocusAfterShow !== false;
+			this.cssCounter = 0;
+			this.iframeCssText = this.config.iframeCss;
+
+			if (this.config.bbCodeTags && this.bbCode)
+			{
+				this.BBCODE_TAGS = this.config.bbCodeTags;
+			}
+
+			if (this.config.minBodyWidth)
+				this.MIN_WIDTH = parseInt(this.config.minBodyWidth);
+			if (this.config.minBodyHeight)
+				this.MIN_HEIGHT = parseInt(this.config.minBodyHeight);
+			if (this.config.normalBodyWidth)
+				this.NORMAL_WIDTH = parseInt(this.config.normalBodyWidth);
+
+			if (this.config.smiles)
+			{
+				this.smilesIndex = {};
+				this.sortedSmiles = [];
+
+				var i, smile, j, arCodes;
+				for(i = 0; i < this.config.smiles.length; i++)
+				{
+					smile = this.config.smiles[i];
+					if (!smile['codes'] || smile['codes'] == smile['code'])
+					{
+						this.smilesIndex[this.config.smiles[i].code] = smile;
+						this.sortedSmiles.push(smile);
+					}
+					else if(smile['codes'].length > 0)
+					{
+						arCodes = smile['codes'].split(' ');
+						for(j = 0; j < arCodes.length; j++)
+						{
+							this.smilesIndex[arCodes[j]] = smile;
+							this.sortedSmiles.push({name: smile.name, path: smile.path, code: arCodes[j]});
+						}
+					}
+				}
+
+				this.sortedSmiles = this.sortedSmiles.sort(function(a, b){return b.code.length - a.code.length;});
+			}
 
 			this.allowPhp = !!this.config.allowPhp;
 			// Limited Php Access - when user can only move or delete php code or change component params
 			this.lpa = !this.config.allowPhp && this.config.limitPhpAccess;
 			this.templateId = this.config.templateId;
 			this.showSnippets = this.config.showSnippets !== false;
-			//this.showSnippets = false;
 			this.showComponents = this.config.showComponents !== false && (this.allowPhp || this.lpa);
-			this.showTaskbars = this.showSnippets || this.showComponents;
+			this.showTaskbars = this.config.showTaskbars !== false && (this.showSnippets || this.showComponents);
 
 			this.templates = {};
 			this.templates[this.templateId] = this.config.templateParams;
+
+			// Parser
+			this.parser = new BXHtmlEditor.BXEditorParser(this);
+
+			this.On("OnEditorInitedBefore", [this]);
+
 			this.BuildSceleton();
 			this.HTMLStyler = HTMLStyler;
 
@@ -106,8 +158,10 @@
 			this.dom.pValueInput = BX('bxed_' + this.id);
 			if (!this.dom.pValueInput)
 			{
-				this.dom.pValueInput = this.dom.cont.appendChild(BX.create("INPUT", {props: {type: "hidden", id: 'bxed_' + this.id, name: this.config.inputName, value: this.config.content}}));
+				this.dom.pValueInput = this.dom.cont.appendChild(BX.create("INPUT", {props: {type: "hidden", id: 'bxed_' + this.id, name: this.config.inputName}}));
 			}
+			this.dom.pValueInput.value = this.config.content;
+
 			this.dom.form = this.dom.textarea.form || false;
 			this.document = null;
 			// Protected iframe for wysiwyg
@@ -125,8 +179,11 @@
 			this.iframeView = new BXEditorIframeView(this, this.dom.textarea, this.dom.iframeCont);
 			// 3. Syncronizer
 			this.synchro = new BXEditorViewsSynchro(this, this.textareaView, this.iframeView);
-			// Parser
-			this.parser = new BXHtmlEditor.BXEditorParser(this);
+
+			if (this.bbCode)
+			{
+				this.bbParser = new BXHtmlEditor.BXEditorBbCodeParser(this);
+			}
 
 			// Php parser
 			this.phpParser = new BXHtmlEditor.BXEditorPhpParser(this);
@@ -140,8 +197,8 @@
 			if (this.showTaskbars)
 			{
 				this.taskbarManager = new BXHtmlEditor.TaskbarManager(this, true);
-				// Components
 
+				// Components
 				if (this.showComponents)
 				{
 					this.componentsTaskbar = new BXHtmlEditor.ComponentsControl(this);
@@ -157,12 +214,19 @@
 				}
 				this.taskbarManager.ShowTaskbar(this.showComponents ? this.componentsTaskbar.GetId() : this.snippetsTaskbar.GetId());
 			}
+			else
+			{
+				this.dom.taskbarCont.style.display = 'none';
+			}
 
 			// Context menu
 			this.contextMenu = new BXHtmlEditor.ContextMenu(this);
 
-			this.nodeNavi = new BXHtmlEditor.NodeNavigator(this);
-			this.nodeNavi.Show();
+			if (this.config.showNodeNavi)
+			{
+				this.nodeNavi = new BXHtmlEditor.NodeNavigator(this);
+				this.nodeNavi.Show();
+			}
 
 			this.styles = new BXStyles(this);
 
@@ -176,7 +240,12 @@
 			}
 
 			this.inited = true;
-			this.On("OnEditorInitedAfter");
+			this.On("OnEditorInitedAfter", [this]);
+
+			if (!this.CheckBrowserCompatibility())
+			{
+				this.dom.cont.parentNode.insertBefore(BX.create("DIV", {props: {className: "bxhtmled-warning"}, text: BX.message('BXEdInvalidBrowser')}), this.dom.cont);
+			}
 		},
 
 		InitEventHandlers: function()
@@ -243,9 +312,21 @@
 
 			BX.addCustomEvent(this, "OnSpecialcharInserted", function(entity)
 			{
-				var lastChars = _this.GetLastSpecialchars();
-				lastChars.unshift(entity);
-				lastChars.pop();
+				var
+					lastChars = _this.GetLastSpecialchars(),
+					exInd = BX.util.array_search(entity, lastChars);
+
+				if (exInd !== -1)
+				{
+					lastChars = BX.util.deleteFromArray(lastChars, exInd);
+					lastChars.unshift(entity);
+				}
+				else
+				{
+					lastChars.unshift(entity);
+					lastChars.pop();
+				}
+
 				_this.config.lastSpecialchars = lastChars;
 				_this.SaveOption('specialchars', lastChars.join('|'));
 			});
@@ -257,6 +338,16 @@
 			{
 				BX.addCustomEvent(this.parentDialog, 'onWindowResizeExt', function(){_this.ResizeSceleton();});
 			}
+
+			if (this.config.autoResize)
+			{
+				BX.addCustomEvent(this, "OnIframeKeyup", BX.proxy(this.AutoResizeSceleton, this));
+				BX.addCustomEvent(this, "OnInsertHtml", BX.proxy(this.AutoResizeSceleton, this));
+				BX.addCustomEvent(this, "OnIframeSetValue", BX.proxy(this.AutoResizeSceleton, this));
+				BX.addCustomEvent(this, "OnFocus", BX.proxy(this.AutoResizeSceleton, this));
+			}
+
+			BX.addCustomEvent(this, "OnIframeKeyup", BX.proxy(this.CheckBodyHeight, this));
 		},
 
 		BuildSceleton: function()
@@ -330,7 +421,6 @@
 				{
 					width = this.MIN_WIDTH;
 				}
-
 				styleW = width + 'px';
 			}
 
@@ -355,9 +445,12 @@
 			var
 				w = Math.max(width, this.MIN_WIDTH),
 				h = Math.max(height, this.MIN_HEIGHT),
+				toolbarHeight = this.toolbar.GetHeight(),
 				taskbarWidth = this.showTaskbars ? (this.taskbarManager.GetWidth(true, w * 0.8)) : 0,
-				areaH = h - this.toolbar.GetHeight() - this.nodeNavi.GetHeight(),
+				areaH = h - toolbarHeight - (this.config.showNodeNavi ? this.nodeNavi.GetHeight() : 0),
 				areaW = w - taskbarWidth;
+
+			this.dom.areaCont.style.top = toolbarHeight ? toolbarHeight + 'px' : 0;
 
 			// Area
 			this.SetAreaContSize(areaW, areaH, params);
@@ -373,8 +466,164 @@
 			this.toolbar.AdaptControls(width);
 		},
 
+		CheckBodyHeight: function()
+		{
+			if (this.iframeView.IsShown())
+			{
+				var
+					padding = 8,
+					minHeight,
+					doc = this.GetIframeDoc();
+
+				if (doc && doc.body)
+				{
+					minHeight = doc.body.parentNode.offsetHeight - padding * 2;
+					if (minHeight <= 20)
+					{
+						setTimeout(BX.proxy(this.CheckBodyHeight, this), 300);
+					}
+					else if (minHeight > doc.body.offsetHeight)
+					{
+						doc.body.style.minHeight = minHeight + 'px';
+					}
+				}
+			}
+		},
+
+		GetSceletonSize: function()
+		{
+			return {
+				width: this.dom.cont.offsetWidth,
+				height: this.dom.cont.offsetHeight
+			};
+		},
+
+		AutoResizeSceleton: function()
+		{
+			if (this.expanded)
+				return;
+
+			var
+				maxHeight = parseInt(this.config.autoResizeMaxHeight || 0),
+				minHeight = parseInt(this.config.autoResizeMinHeight || 50),
+				size = this.GetSceletonSize(),
+				newHeight,
+				_this = this;
+
+			if (this.autoResizeTimeout)
+			{
+				clearTimeout(this.autoResizeTimeout);
+			}
+
+			this.autoResizeTimeout = setTimeout(function()
+			{
+				newHeight = _this.GetHeightByContent();
+				if (newHeight > parseInt(size.height))
+				{
+					if (BX.browser.IsIOS())
+					{
+						maxHeight = Infinity;
+					}
+					else if (!maxHeight || maxHeight < 10)
+					{
+						maxHeight = Math.round(BX.GetWindowInnerSize().innerHeight * 0.9); // 90% from screen height
+					}
+
+					newHeight = Math.min(newHeight, maxHeight);
+					newHeight = Math.max(newHeight, minHeight);
+
+					_this.SmoothResizeSceleton(newHeight);
+				}
+			}, 300);
+		},
+
+		GetHeightByContent: function()
+		{
+			var
+				heightOffset = parseInt(this.config.autoResizeOffset || 80),
+				contentHeight;
+			if (this.GetViewMode() == 'wysiwyg')
+			{
+				var
+					body = this.GetIframeDoc().body,
+					node = body.lastChild,
+					offsetTop = false;
+
+				contentHeight = body.offsetHeight;
+
+				while (true)
+				{
+					if (!node)
+					{
+						break;
+					}
+					if (node.offsetTop)
+					{
+						offsetTop = node.offsetTop + (node.offsetHeight || 0);
+						contentHeight = offsetTop + heightOffset;
+						break;
+					}
+					else
+					{
+						node = node.previousSibling;
+					}
+				}
+
+				var oEdSize = BX.GetWindowSize(this.GetIframeDoc());
+				if (oEdSize.scrollHeight - oEdSize.innerHeight > 5)
+				{
+					contentHeight = Math.max(oEdSize.scrollHeight + heightOffset, contentHeight);
+				}
+			}
+			else
+			{
+				contentHeight = (this.textareaView.element.value.split("\n").length /* rows count*/ + 5) * 17;
+			}
+
+			return contentHeight;
+		},
+
+		SmoothResizeSceleton: function(height)
+		{
+			var
+				_this = this,
+				size = this.GetSceletonSize(),
+				curHeight = size.height,
+				count = 0,
+				bRise = height > curHeight,
+				timeInt = 50,
+				dy = 5;
+
+			if (!bRise)
+				return;
+
+			if (this.smoothResizeInt)
+			{
+				clearInterval(this.smoothResizeInt);
+			}
+
+			this.smoothResizeInt = setInterval(function()
+				{
+					curHeight += Math.round(dy * count);
+					if (curHeight > height)
+					{
+						clearInterval(_this.smoothResizeInt);
+						if (curHeight > height)
+						{
+							curHeight = height;
+						}
+					}
+					_this.config.height = curHeight;
+					_this.ResizeSceleton();
+					count++;
+				},
+				timeInt
+			);
+		},
+
 		SetAreaContSize: function(areaW, areaH, params)
 		{
+			areaW += 2;
 			this.dom.areaCont.style.width = areaW + 'px';
 			this.dom.areaCont.style.height = areaH + 'px';
 
@@ -501,13 +750,11 @@
 			this.action = new BXEditorActions(this);
 
 			this.config.content = this.dom.pValueInput.value;
+
 			this.SetContent(this.config.content, true);
 			this.undoManager = new BXEditorUndoManager(this);
-
 			this.action.Exec("styleWithCSS", false, true);
-
 			this.iframeView.InitAutoLinking();
-
 			// Simulate html5 placeholder attribute on contentEditable element
 //			var placeholderText = typeof(this.config.placeholder) === "string"
 //				? this.config.placeholder
@@ -516,28 +763,9 @@
 //				dom.simulatePlaceholder(this.parent, this, placeholderText);
 //			}
 
-			//this._initObjectResizing();
-
-			// Simulate html5 autofocus on contentEditable element
-//			if (this.textarea.element.hasAttribute("autofocus") || document.querySelector(":focus") == this.textarea.element)
-//			{
-//				setTimeout(function() {
-//					that.focus(); }, 100);
-//			}
-
-			// IE sometimes leaves a single paragraph, which can't be removed by the user
-//			if (!browser.clearsContentEditableCorrectly())
-//			{
-//				ensureProperClearing(this);
-//			}
-
-//			if (!browser.clearsListsInContentEditableCorrectly())
-//			{
-//				ensureProperClearingOfLists(this);
-//			}
-
 			this.SetView(this.config.view, false);
-			this.Focus(false);
+			if (this.config.setFocusAfterShow !== false)
+				this.Focus(false);
 			this.On('OnCreateIframeAfter');
 		},
 
@@ -567,6 +795,10 @@
 		SetView: function(view, saveValue)
 		{
 			this.On('OnSetViewBefore');
+
+			if (view == 'split' && this.bbCode)
+				view = 'wysiwyg';
+
 			if (this.currentViewName != view)
 			{
 				if (view == 'wysiwyg')
@@ -574,6 +806,7 @@
 					this.iframeView.Show();
 					this.textareaView.Hide();
 					this.dom.splitResizer.style.display = 'none';
+					this.CheckBodyHeight();
 				}
 				else if (view == 'code')
 				{
@@ -586,6 +819,7 @@
 					this.textareaView.Show();
 					this.iframeView.Show();
 					this.dom.splitResizer.style.display = '';
+					this.CheckBodyHeight();
 				}
 
 				this.currentViewName = view;
@@ -600,11 +834,24 @@
 			this.On('OnSetViewAfter');
 		},
 
+		GetViewMode: function()
+		{
+			return this.currentViewName;
+		},
+
 		SetContent: function(value, bParse)
 		{
 			this.On('OnSetContentBefore');
+			if (this.bbCode)
+			{
+				var htmlFromBbCode = this.bbParser.Parse(value);
+				this.iframeView.SetValue(htmlFromBbCode, bParse);
+			}
+			else
+			{
+				this.iframeView.SetValue(value, bParse);
+			}
 
-			this.iframeView.SetValue(value, bParse);
 			this.textareaView.SetValue(value, false);
 
 			this.On('OnSetContentAfter');
@@ -635,16 +882,12 @@
 			return this;
 		},
 
-		LoadContent: function()
-		{
-		},
-
 		SaveContent: function()
 		{
 			if (this.currentViewName == 'wysiwyg' ||
 				(this.currentViewName == 'split' && this.synchro.GetSplitMode() == 'wysiwyg'))
 			{
-				this.lastIframeValue = '';
+				this.synchro.lastIframeValue = '';
 				this.synchro.FromIframeToTextarea(true, true);
 			}
 			else
@@ -687,7 +930,6 @@
 				startHeight = this.dom.cont.offsetHeight;
 				startTop = pos.top;
 				startLeft = pos.left;
-
 				endWidth = innerSize.innerWidth;
 				endHeight = innerSize.innerHeight;
 				endTop = scrollPos.scrollTop;
@@ -710,7 +952,6 @@
 				BX.addClass(this.dom.cont, 'bx-html-editor-absolute');
 				this._bodyOverflow = document.body.style.overflow;
 				document.body.style.overflow = "hidden";
-				//window.scrollTo(0, 0);
 
 				// Create dummie div
 				this.dummieDiv = BX.create('DIV');
@@ -721,6 +962,7 @@
 
 				BX.addCustomEvent(this, 'OnIframeKeydown', BX.proxy(this.CheckEscCollapse, this));
 				BX.bind(document.body, "keydown", BX.proxy(this.CheckEscCollapse, this));
+				BX.bind(window, "scroll", BX.proxy(this.PreventScroll, this));
 			}
 			else
 			{
@@ -735,12 +977,15 @@
 
 				BX.removeCustomEvent(this, 'OnIframeKeydown', BX.proxy(this.CheckEscCollapse, this));
 				BX.unbind(document.body, "keydown", BX.proxy(this.CheckEscCollapse, this));
+				BX.unbind(window, "scroll", BX.proxy(this.PreventScroll, this));
 			}
 
 			this.dom.cont.style.width = startWidth + 'px';
 			this.dom.cont.style.height = startHeight + 'px';
 			this.dom.cont.style.top = startTop + 'px';
 			this.dom.cont.style.left = startLeft + 'px';
+
+			var content = this.GetContent();
 
 			this.expandAnimation = new BX.easing({
 				duration : 300,
@@ -768,11 +1013,7 @@
 				complete : function()
 				{
 					_this.expandAnimation = null;
-					if (bExpand)
-					{
-						//BX.bind(window, 'resize', BX.proxy(_this.ResizeExpanded, _this));
-					}
-					else
+					if (!bExpand)
 					{
 						_this.util.ReplaceNode(_this.dummieDiv, _this.dom.cont);
 						_this.dummieDiv = null;
@@ -784,18 +1025,13 @@
 						document.body.style.overflow = _this._bodyOverflow;
 						_this.config.width = _this.savedSize.configWidth;
 						_this.config.height = _this.savedSize.configHeight;
-						//window.scrollTo(_this.savedSize.scrollLeft, _this.savedSize.scrollTop);
 						_this.ResizeSceleton();
-
-						//BX.unbind(window, 'resize', BX.proxy(_this.ResizeExpanded, _this));
 					}
-
-					BX.defer(_this.ReInitIframe, _this)();
+					setTimeout(function(){_this.CheckAndReInit(content)}, 10);
 				}
 			});
 
 			this.expandAnimation.animate();
-
 			this.expanded = bExpand;
 		},
 
@@ -817,6 +1053,12 @@
 			}
 		},
 
+		PreventScroll: function(e)
+		{
+			window.scrollTo(this.savedSize.scrollLeft, this.savedSize.scrollTop);
+			return BX.PreventDefault(e);
+		},
+
 		IsPopupsOpened: function()
 		{
 			return !!(this.dialogShown ||
@@ -835,6 +1077,34 @@
 			this.synchro.StartSync();
 			this.iframeView.ReInit();
 			this.Focus();
+		},
+
+		CheckAndReInit: function(content)
+		{
+			if (this.sandbox.inited)
+			{
+				var win = this.sandbox.GetWindow();
+				if (win)
+				{
+					var doc = this.sandbox.GetDocument();
+					if (doc !== this.iframeView.document)
+					{
+						this.iframeView.document = doc;
+						this.iframeView.element = doc.body;
+						this.ReInitIframe();
+					}
+				}
+				else
+				{
+					throw new Error("HtmlEditor: CheckAndReInit error iframe isn't in the DOM");
+				}
+			}
+
+			if (content !== undefined)
+			{
+				this.SetContent(content, true);
+				this.Focus(true);
+			}
 		},
 
 		Disable: function()
@@ -871,6 +1141,18 @@
 					s = s.replace(/&amp;/ig, '&');
 					return s;
 				});
+			}
+
+			innerHTML = innerHTML.replace(/(?:title|alt)\s*=\s*("|')([\s\S]*?)(\1)/ig, function(s)
+			{
+				s = s.replace(/</g, '&lt;');
+				s = s.replace(/>/g, '&gt;');
+				return s;
+			});
+
+			if (this.bbCode)
+			{
+				innerHTML = innerHTML.replace(/[\s\n\r]*?<!--[\s\S]*?-->[\s\n\r]*?/ig, "");
 			}
 
 			return innerHTML;
@@ -991,6 +1273,13 @@
 			{
 				var result = !(BX.browser.IsChrome() || BX.browser.IsSafari());
 				_this.util.CheckImageSelectSupport = function(){return result;};
+				return result;
+			};
+
+			this.util.CheckPreCursorSupport = function()
+			{
+				var result = !(BX.browser.IsIE() || BX.browser.IsIE10() || BX.browser.IsIE11());
+				_this.util.CheckPreCursorSupport = function(){return result;};
 				return result;
 			};
 
@@ -1262,6 +1551,22 @@
 				};
 			}
 
+
+			this.util.GetTextContentEx = function(node)
+			{
+				var
+					i,
+					clone = node.cloneNode(true),
+					scripts = clone.getElementsByTagName('SCRIPT');
+
+				for (i = scripts.length - 1; i >= 0 ; i--)
+				{
+					BX.remove(scripts[i]);
+				}
+
+				return _this.util.GetTextContent(clone);
+			};
+
 			this.util.RgbToHex = function(str)
 			{
 				var res;
@@ -1275,7 +1580,7 @@
 				}
 				else
 				{
-					str = str.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+))?\)$/);
+					str = str.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d\.]+))?\)$/);
 					function hex(x)
 					{
 						return ("0" + parseInt(x).toString(16)).slice(-2);
@@ -1344,17 +1649,46 @@
 			{
 				return _this.phpParser.CheckSurrogateDd(node);
 			};
+
+			this.util.GetPreviousNotEmptySibling = function(node)
+			{
+				var prev = node.previousSibling;
+				while (prev && prev.nodeType == 3 && _this.util.IsEmptyNode(prev, true, true))
+				{
+					prev = prev.previousSibling;
+				}
+				return prev;
+			};
+
+			this.util.GetNextNotEmptySibling = function(node)
+			{
+				var next = node.nextSibling;
+				while (next && next.nodeType == 3 && _this.util.IsEmptyNode(next, true, true))
+				{
+					next = next.nextSibling;
+				}
+				return next;
+			};
+
+			this.util.IsEmptyLi = function(li)
+			{
+				if (li && li.nodeName == 'LI')
+				{
+					return _this.util.IsEmptyNode(li, true, true) || li.innerHTML.toLowerCase() == '<br>';
+				}
+				return false;
+			};
 		},
 
 		Parse: function(content, bParseBxNodes, bFormat)
 		{
-			this.On("OnParse", [bParseBxNodes]);
 			bParseBxNodes = !!bParseBxNodes;
+			this.On("OnParse", [bParseBxNodes]);
 
 			if (bParseBxNodes)
 			{
 				content = this.parser.Parse(content, this.GetParseRules(), this.GetIframeDoc(), true, bParseBxNodes);
-				if (bFormat === true || this.textareaView.IsShown())
+				if ((bFormat === true || this.textareaView.IsShown()) && !this.bbCode)
 				{
 					content = this.FormatHtml(content);
 				}
@@ -1511,8 +1845,6 @@
 
 					bxType = (node && node.getAttribute) ? node.getAttribute('data-bx-type') : null;
 				}
-
-				this.On("OnCommandBefore", [{node: node, bxType: bxType}]);
 
 				if (bxType == 'action') // Any type of button or element which runs action
 				{
@@ -1789,16 +2121,16 @@
 
 		CheckCurrentStatus: function()
 		{
+			if (!this.iframeView.IsFocused())
+				return this.On("OnIframeBlur");
+
 			var
 				arAction, action, actionState, value,
 				actionList = this.GetActiveActions(),
 				range = this.selection.GetRange();
 
-			if (!this.iframeView.IsFocused() || !range || !range.isValid())
-			{
-				this.On("OnIframeBlur");
-				return;
-			}
+			if (!range || !range.isValid())
+				return this.On("OnIframeBlur");
 
 			for (action in actionList)
 			{
@@ -1835,7 +2167,7 @@
 
 		SaveOption: function(name, value)
 		{
-			BX.userOptions.save('html_editor', 'user_settings', name, value);
+			BX.userOptions.save('html_editor', this.config.settingsKey, name, value);
 		},
 
 		GetCurrentCssClasses: function(filterTag)
@@ -1866,10 +2198,25 @@
 		{
 			if (!this.isSubmited)
 			{
+				this.RemoveCursorNode();
 				this.isSubmited = true;
+
+				if (this.iframeView.IsFocused())
+					this.On("OnIframeBlur");
+
 				this.On('OnSubmit');
 				this.SaveContent();
 			}
+		},
+
+		AllowBeforeUnloadHandler: function()
+		{
+			this.beforeUnloadHandlerAllowed = true;
+		},
+
+		DenyBeforeUnloadHandler: function()
+		{
+			this.beforeUnloadHandlerAllowed = false;
 		},
 
 		Destroy: function()
@@ -1881,6 +2228,11 @@
 		Check: function()
 		{
 			return this.dom.cont && BX.isNodeInDom(this.dom.cont);
+		},
+
+		IsVisible: function()
+		{
+			return this.Check() && this.dom.cont.offsetWidth > 0;
 		},
 
 		GetLastSpecialchars: function()
@@ -1917,6 +2269,59 @@
 			}
 		},
 
+		CheckBrowserCompatibility: function()
+		{
+			return !(BX.browser.IsOpera() || BX.browser.IsIE8() || BX.browser.IsIE7() || BX.browser.IsIE6());
+		},
+
+		GetCursorHtml: function()
+		{
+			return '<span id="bx-cursor-node"> </span>';
+		},
+
+		SetCursorNode: function(range)
+		{
+			if (!range)
+				range = this.selection.GetRange();
+			this.RemoveCursorNode();
+			this.selection.InsertHTML(this.GetCursorHtml(), range);
+		},
+
+		RestoreCursor: function()
+		{
+			var doc = this.GetIframeDoc();
+			if (doc)
+			{
+				var cursor = doc.getElementById('bx-cursor-node');
+				if (cursor)
+				{
+					this.selection.SetAfter(cursor);
+					BX.remove(cursor);
+				}
+			}
+		},
+
+		RemoveCursorNode: function()
+		{
+			if (this.synchro.IsFocusedOnTextarea())
+			{
+
+			}
+			else
+			{
+				var doc = this.GetIframeDoc();
+				if (doc)
+				{
+					var cursor = doc.getElementById('bx-cursor-node');
+					if (cursor)
+					{
+						this.selection.SetAfter(cursor);
+						BX.remove(cursor);
+					}
+				}
+			}
+		},
+
 		AddButton: function(params)
 		{
 			if (params.compact == undefined)
@@ -1936,7 +2341,10 @@
 				if (params.iconClassName)
 					this.className += ' ' + params.iconClassName;
 				if (params.action)
-					this.action = action;
+					this.action = params.action;
+
+				if (params.disabledForTextarea !== undefined)
+					this.disabledForTextarea = params.disabledForTextarea;
 
 				this.Create();
 
@@ -1963,6 +2371,50 @@
 					sort: params.toolbarSort
 				});
 			});
+		},
+
+		AddCustomParser: function(parser)
+		{
+			this.phpParser.AddCustomParser(parser);
+		},
+
+		AddParser: function(parser)
+		{
+			if (parser && parser.name && typeof parser.obj == 'object')
+			{
+				this.parser.specialParsers[parser.name] = parser.obj;
+			}
+		},
+
+		InsertHtml: function(html, range)
+		{
+			if (!this.synchro.IsFocusedOnTextarea())
+			{
+				this.Focus();
+				if (!range)
+					range = this.selection.GetRange();
+
+				if (!range.collapsed && range.startContainer == range.endContainer && range.startContainer.nodeName !== 'BODY')
+				{
+					var surNode = this.util.CheckSurrogateNode(range.startContainer);
+					if (surNode)
+					{
+						this.selection.SetAfter(surNode);
+					}
+				}
+
+				this.selection.InsertHTML(html, range);
+			}
+		},
+
+		ParseContentFromBbCode: function(content)
+		{
+			if (this.bbCode)
+			{
+				content = this.bbParser.Parse(content);
+				content = this.Parse(content, true, true);
+			}
+			return content;
 		}
 	};
 	window.BXEditor = BXEditor;
@@ -2099,7 +2551,10 @@
 				this.loaded = true;
 
 				// Trigger the callback
-				setTimeout(function() {_this.callback(_this); }, 0);
+				setTimeout(function()
+				{
+					_this.callback(_this);
+				}, 0);
 			}
 		},
 
@@ -2123,6 +2578,8 @@
 			{
 				return iframe.contentWindow.document;
 			};
+			this.inited = true;
+			this.editor.On("OnIframeInit");
 		},
 
 		GetHtml: function(css, cssText)
@@ -2139,20 +2596,26 @@
 					headHtml += '<link rel="stylesheet" href="' + css[i] + '">';
 			}
 
-
-			if (this.config.bodyClass)
+			if (this.editor.config.bodyClass)
 			{
-				bodyParams += ' class="' + this.config.bodyClass + '"';
+				bodyParams += ' class="' + this.editor.config.bodyClass + '"';
 			}
-			if (this.config.bodyId)
+			if (this.editor.config.bodyId)
 			{
-				bodyParams += ' id="' + this.config.bodyId + '"';
+				bodyParams += ' id="' + this.editor.config.bodyId + '"';
 			}
 
 			if (typeof cssText === "string")
+			{
 				headHtml += '<style type="text/css" data-bx-template-style="Y">' + cssText + '</style>';
+			}
 
-			headHtml += '<link rel="stylesheet" href="' + this.editor.config.cssIframePath + '">';
+			if (this.editor.iframeCssText && this.editor.iframeCssText.length > 0)
+			{
+				headHtml += '<style type="text/css">' + this.editor.iframeCssText + '</style>';
+			}
+
+			headHtml += '<link id="bx-iframe-link" rel="stylesheet" href="' + this.editor.config.cssIframePath + '_' + this.editor.cssCounter++ + '">';
 
 			return '<!DOCTYPE html><html><head>' + headHtml + '</head><body' + bodyParams + '></body></html>';
 		},
@@ -2225,6 +2688,12 @@
 			return this.lastRange;
 		},
 
+		GetLastRange: function()
+		{
+			if (this.lastRange)
+				return this.lastRange;
+		},
+
 		// Save current selection
 		RestoreBookmark: function()
 		{
@@ -2280,7 +2749,7 @@
 				bBlock = (styleDisplay === "block" || styleDisplay === "list-item");
 
 			if ((BX.browser.IsIE() || BX.browser.IsIE10() || BX.browser.IsIE11()) && node &&
-				BX.util.in_array(node.tagName.toUpperCase(), this.editor.TABLE_TAGS))
+				BX.util.in_array(node.nodeName.toUpperCase(), this.editor.TABLE_TAGS))
 			{
 				//"TD", "TR", "TH", "TABLE", "TBODY", "CAPTION", "COL", "COLGROUP", "TFOOT", "THEAD"];
 				if (node.tagName == 'TABLE' || node.tagName == 'TBODY')
@@ -2496,18 +2965,20 @@
 		 *
 		 * @param {String} html HTML string to insert
 		 */
-		InsertHTML: function(html)
+		InsertHTML: function(html, range)
 		{
 			var
-				range = rangy.createRange(this.document),
-				node = range.createContextualFragment(html),
+				rng = rangy.createRangyRange(this.document),
+				node = rng.createContextualFragment(html),
 				lastChild = node.lastChild;
 
-			this.InsertNode(node);
+			this.InsertNode(node, range);
 			if (lastChild)
 			{
 				this.SetAfter(lastChild);
 			}
+
+			this.editor.On('OnInsertHtml');
 		},
 
 		/**
@@ -2515,13 +2986,17 @@
 		 *
 		 * @param {Object} node HTML string to insert
 		 */
-		InsertNode: function(node)
+		InsertNode: function(node, range)
 		{
-			var range = this.GetRange();
+			if (!range)
+				range = this.GetRange();
+
 			if (range)
 			{
 				range.insertNode(node);
 			}
+
+			this.editor.On('OnInsertHtml');
 		},
 
 		RemoveNode: function(node)
@@ -2714,20 +3189,23 @@
 				return [];
 		},
 
-		GetRange: function()
+		GetRange: function(selection)
 		{
-			if (!this.editor.iframeView.IsFocused())
+			if (!selection)
 			{
-				this.editor.iframeView.Focus();
-			}
+				if (!this.editor.iframeView.IsFocused())
+				{
+					this.editor.iframeView.Focus();
+				}
 
-			var selection = this.GetSelection();
+				selection = this.GetSelection();
+			}
 			return selection && selection.rangeCount && selection.getRangeAt(0);
 		},
 
-		GetSelection: function()
+		GetSelection: function(doc)
 		{
-			return rangy.getSelection(this.document.defaultView || this.document.parentWindow);
+			return rangy.getSelection(doc || this.document.defaultView || this.document.parentWindow);
 		},
 
 		SetSelection: function(range)
@@ -2763,177 +3241,9 @@
 			return this.structuralTags;
 		},
 
-		SetCursorAfterNode: function(e)
-		{
-			var
-				parent,
-				prevToSur, nextToSur,
-				range = this.GetRange();
-
-			this.GetStructuralTags();
-
-			// Moving cursor by arrows (right & down)
-			if (range.collapsed)
-			{
-				var
-					isSur,
-					node = range.endContainer,
-					isEmpty = this.editor.util.IsEmptyNode(node),
-					// We check if last range was the same - it means that cursor doesn't
-					// moved when user tried to move it
-					sameLastRange = this.CheckLastRange(range);
-
-				// If cursor in the invisible node - we take next node
-				if (node.nodeType == 3 && isEmpty && node.nextSibling)
-				{
-					node = node.nextSibling;
-					isEmpty = this.editor.util.IsEmptyNode(node);
-				}
-
-				isSur = this.editor.util.CheckSurrogateNode(node);
-				// It's surrogate
-				if (isSur)
-				{
-					nextToSur = node.nextSibling;
-					if (nextToSur && nextToSur.nodeType == 3 && this.editor.util.IsEmptyNode(nextToSur))
-						this._MoveCursorAfterNode(nextToSur);
-					else
-						this._MoveCursorAfterNode(node);
-
-					BX.PreventDefault(e);
-				}
-				// If it's element
-				else if (node.nodeType == 1 && node.nodeName != "BODY" && !isEmpty)
-				{
-					if (sameLastRange)
-					{
-						this._MoveCursorAfterNode(node);
-						BX.PreventDefault(e);
-					}
-				}
-				else if (sameLastRange && node.nodeType == 3 && node.length == range.endOffset && !isEmpty)
-				{
-					parent = node.parentNode;
-					if (parent && node === parent.lastChild && parent.nodeName != "BODY")
-					{
-						this._MoveCursorAfterNode(parent);
-					}
-				}
-			}
-			else // Selection Shift + Right & Shift + down
-			{
-				var
-					startCont = range.startContainer,
-					endCont = range.endContainer,
-					startIsSur = this.editor.util.CheckSurrogateNode(startCont),
-					endIsSur = this.editor.util.CheckSurrogateNode(endCont);
-
-				if (startIsSur)
-				{
-					prevToSur = startCont.previousSibling;
-					if (prevToSur && prevToSur.nodeType == 3 && this.editor.util.IsEmptyNode(prevToSur))
-						range.setStartBefore(prevToSur);
-					else
-						range.setStartBefore(startCont);
-					this.SetSelection(range);
-				}
-
-				if (endIsSur)
-				{
-					nextToSur = endCont.nextSibling;
-					if (nextToSur && nextToSur.nodeType == 3 && this.editor.util.IsEmptyNode(nextToSur))
-						range.setEndAfter(nextToSur);
-					else
-						range.setEndAfter(endCont);
-
-					this.SetSelection(range);
-				}
-			}
-		},
-
 		SetCursorBeforeNode: function(e)
 		{
-			var
-				prevToSur, nextToSur,
-				parent, isSur, isEmpty, node, sameLastRange,
-				range = this.GetRange();
 
-			this.GetStructuralTags();
-
-			// Moving cursor by arrows (left & up)
-			if (range.collapsed)
-			{
-				node = range.startContainer;
-				isEmpty = this.editor.util.IsEmptyNode(node);
-				// We check if last range was the same - it means that cursor doesn't
-				// moved when user tried to move it
-				sameLastRange = this.CheckLastRange(range);
-
-				// If cursor in the invisible node - we take next node
-				if (node.nodeType == 3 && isEmpty && node.previousSibling)
-				{
-					node = node.previousSibling;
-					isEmpty = this.editor.util.IsEmptyNode(node);
-				}
-
-				isSur = this.editor.util.CheckSurrogateNode(node);
-				// It's surrogate
-				if (isSur)
-				{
-					prevToSur = node.previousSibling;
-					if (prevToSur && prevToSur.nodeType == 3 && this.editor.util.IsEmptyNode(prevToSur))
-						this._MoveCursorBeforeNode(prevToSur);
-					else
-						this._MoveCursorBeforeNode(node);
-
-					BX.PreventDefault(e);
-				}
-				// If it's element
-				else if (node.nodeType == 1 && node.nodeName != "BODY" && !isEmpty)
-				{
-					if (sameLastRange)
-					{
-						this._MoveCursorBeforeNode(node);
-						BX.PreventDefault(e);
-					}
-				}
-				else if (sameLastRange && node.nodeType == 3 && range.startOffset == 0 && !isEmpty)
-				{
-					parent = node.parentNode;
-					if (parent && node === parent.firstChild && parent.nodeName != "BODY")
-					{
-						this._MoveCursorBeforeNode(parent);
-					}
-				}
-			}
-			else // Selection Shift + left & Shift + up
-			{
-				var
-					startCont = range.startContainer,
-					endCont = range.endContainer,
-					startIsSur = this.editor.util.CheckSurrogateNode(startCont),
-					endIsSur = this.editor.util.CheckSurrogateNode(endCont);
-
-				if (startIsSur)
-				{
-					prevToSur = startCont.previousSibling;
-					if (prevToSur && prevToSur.nodeType == 3 && this.editor.util.IsEmptyNode(prevToSur))
-						range.setStartBefore(prevToSur);
-					else
-						range.setStartBefore(startCont);
-					this.SetSelection(range);
-				}
-
-				if (endIsSur)
-				{
-					nextToSur = endCont.nextSibling;
-					if (nextToSur && nextToSur.nodeType == 3 && this.editor.util.IsEmptyNode(nextToSur))
-						range.setEndAfter(nextToSur);
-					else
-						range.setEndAfter(endCont);
-					this.SetSelection(range);
-				}
-			}
 		},
 
 		_GetNonTextLastChild: function(n)
@@ -3008,7 +3318,6 @@
 				possibleParentRe, parNode, isLastNode;
 
 			this.GetStructuralTags();
-
 			// Check if it's child node which have special parent
 			// We can't add text node and put carret <td> and <tr> or between <li>...
 			// So we trying handle the only case when carret in the end of the last child of last child of our structural tags (UL, OL, MENU, DIR, TABLE, DL)
@@ -3059,37 +3368,42 @@
 			return this.lastCheckedRange && this.lastCheckedRange.endOffset == range.endOffset && this.lastCheckedRange.endContainer == range.endContainer;
 		},
 
-		SetInvisibleTextAfterNode: function(node)
+		SetInvisibleTextAfterNode: function(node, setCursorBefore)
 		{
-			var invis_text;
+			var invis_text = this.editor.util.GetInvisibleTextNode();
 			if (node.nextSibling && node.nextSibling.nodeType == 3 && this.editor.util.IsEmptyNode(node.nextSibling))
 			{
-				invis_text = node.nextSibling;
+				this.editor.util.ReplaceNode(node.nextSibling, invis_text);
 			}
 			else
 			{
-				invis_text = this.editor.util.GetInvisibleTextNode();
+				this.editor.util.InsertAfter(invis_text, node);
 			}
 
-			this.editor.util.InsertAfter(invis_text, node);
-			this.SetAfter(invis_text);
+			if (setCursorBefore)
+			{
+				this.SetBefore(invis_text);
+			}
+			else
+			{
+				this.SetAfter(invis_text);
+			}
+
 			this.editor.Focus();
 		},
 
 		SetInvisibleTextBeforeNode: function(node)
 		{
-			var invis_text;
-
+			var invis_text = this.editor.util.GetInvisibleTextNode();
 			if (node.previousSibling && node.previousSibling.nodeType == 3 && this.editor.util.IsEmptyNode(node.previousSibling))
 			{
-				invis_text = node.previousSibling;
+				this.editor.util.ReplaceNode(node.previousSibling, invis_text);
 			}
 			else
 			{
-				invis_text = this.editor.util.GetInvisibleTextNode();
+				node.parentNode.insertBefore(invis_text, node);
 			}
 
-			node.parentNode.insertBefore(invis_text, node);
 			this.SetBefore(invis_text);
 			this.editor.Focus();
 		},
@@ -3551,6 +3865,13 @@
 
 			range.splitBoundaries();
 			textNodes = range.getNodes([3]);
+
+			if (!textNodes.length && range.collapsed && range.startContainer == range.endContainer)
+			{
+				var inv = this.editor.util.GetInvisibleTextNode();
+				this.editor.selection.InsertNode(inv);
+				textNodes = [inv];
+			}
 
 			if (textNodes.length)
 			{
@@ -4034,7 +4355,6 @@
 
 			// popular tags
 			"span": {clean_empty: true},
-			//"span": {replace_with_children: 1},
 			"p": {},
 			"br": {},
 			"div": {},
@@ -4046,6 +4366,10 @@
 			"figcaption": {},
 			"fieldset": {},
 			"address": {},
+			"nav": {},
+			"aside": {},
+			"article": {},
+			"main": {},
 
 			// Lists
 			"menu": {rename_tag: "ul"}, // ??
@@ -4156,15 +4480,12 @@
 			"details": {rename_tag: "div"},
 			"multicol": {rename_tag: "div"},
 			"footer": {rename_tag: "div"},
-			"nav": {rename_tag: "div"},
 			"map": {rename_tag: "div"},
-			"aside": {rename_tag: "div"},
 			"body": {rename_tag: "div"},
 			"html": {rename_tag: "div"},
 			"hgroup": {rename_tag: "div"},
 			"listing": {rename_tag: "div"},
 			"header": {rename_tag: "div"},
-			"article": {rename_tag: "div"},
 			// to SPAN
 			"rt": {rename_tag: "span"},
 			"acronym": {rename_tag: "span"},
@@ -4238,5 +4559,4 @@
 			"cite": {}
 		}
 	};
-
 })();

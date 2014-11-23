@@ -37,7 +37,12 @@
 			outdent: 1,
 			formatStyle: 1,
 			fontFamily: 1,
-			universalFormatStyle: 1
+			universalFormatStyle: 1,
+			quote: 1,
+			code: 1,
+			sub: 1,
+			sup: 1,
+			insertSmile: 1
 		};
 	}
 
@@ -224,7 +229,16 @@
 
 				selectNode: this.GetSelectNode(),
 				doUndo: this.GetUndoRedo(true),
-				doRedo: this.GetUndoRedo(false)
+				doRedo: this.GetUndoRedo(false),
+
+				sub: this.GetSubSup('sub'),
+				sup: this.GetSubSup('sup'),
+				quote: this.GetQuote(),
+				code: this.GetCode(),
+				insertSmile: this.GetInsertSmile(),
+
+				// Bbcodes actions
+				formatBbCode: this.GetFormatBbCode()
 			};
 
 			this.editor.On("OnGetActionsList");
@@ -361,6 +375,7 @@
 				exec: function(command, value, tagName, arStyle, cssClass, params)
 				{
 					params = (!params || typeof params != 'object') ? {} : params;
+					_this.editor.iframeView.Focus();
 					var range = _this.editor.selection.GetRange();
 					if (!range)
 					{
@@ -465,32 +480,6 @@
 				element.className = element.className.replace(classRegExp, "");
 			}
 
-			// Check whether given node is a text node and whether it's empty
-			function isEmptyTextNode(node)
-			{
-				return node.nodeType === 3 && BX.util.trim(node.data) == '';
-			}
-
-			function  getPreviousNotEmptySibling(node)
-			{
-				var previousSibling = node.previousSibling;
-				while (previousSibling && isEmptyTextNode(previousSibling))
-				{
-					previousSibling = previousSibling.previousSibling;
-				}
-				return previousSibling;
-			}
-
-			function getNextNotEmptySibling(node)
-			{
-				var nextSibling = node.nextSibling;
-				while (nextSibling && isEmptyTextNode(nextSibling))
-				{
-					nextSibling = nextSibling.nextSibling;
-				}
-				return nextSibling;
-			}
-
 			/**
 			 * Adds line breaks before and after the given node if the previous and next siblings
 			 * aren't already causing a visual line break (block element or <br>)
@@ -498,8 +487,8 @@
 			function addBrBeforeAndAfter(node)
 			{
 				var
-					nextSibling = getNextNotEmptySibling(node),
-					previousSibling = getPreviousNotEmptySibling(node);
+					nextSibling = _this.editor.util.GetNextNotEmptySibling(node),
+					previousSibling = _this.editor.util.GetPreviousNotEmptySibling(node);
 
 				if (nextSibling && !isBrOrBlockElement(nextSibling))
 				{
@@ -516,8 +505,8 @@
 			function removeBrBeforeAndAfter(node)
 			{
 				var
-					nextSibling = getNextNotEmptySibling(node),
-					previousSibling = getPreviousNotEmptySibling(node);
+					nextSibling = _this.editor.util.GetNextNotEmptySibling(node),
+					previousSibling = _this.editor.util.GetPreviousNotEmptySibling(node);
 
 				if (nextSibling && nextSibling.nodeName === "BR")
 				{
@@ -608,9 +597,12 @@
 					nodeName = typeof nodeName === "string" ? nodeName.toUpperCase() : nodeName;
 					var
 						childBlockNodes, i, allNodes, createdBlockNodes,
-						range = _this.editor.selection.GetRange(),
+						range = params.range || _this.editor.selection.GetRange(),
 						blockElement = nodeName ? _this.actions.formatBlock.state(command, nodeName, className, arStyle) : false,
 						selectedNode;
+
+					if (params.range)
+						_this.editor.selection.RestoreBookmark();
 
 					if (blockElement) // Same block element
 					{
@@ -672,26 +664,21 @@
 								}
 							}
 
-							if (blockElement)
+							if (blockElement && !_this.actions.quote.checkNode(blockElement))
 							{
 								_this.editor.selection.ExecuteAndRestoreSimple(function()
 								{
 									applyBlockElement(blockElement, nodeName, className, arStyle);
 								});
-
 								return true;
 							}
 						}
 
-						//if (_this.IsSupportedByBrowser(command))
-						//	return execNativeCommand(command, nodeName || DEFAULT_NODE_NAME, className, arStyle);
-
-						blockElement = _this.document.createElement(nodeName || DEFAULT_NODE_NAME);
+						blockElement = BX.create(nodeName || DEFAULT_NODE_NAME, {}, _this.document);
 						if (className)
 						{
 							blockElement.className = className;
 						}
-
 						_this.editor.util.SetCss(blockElement, arStyle);
 
 						if (range.collapsed || selectedNode && selectedNode.nodeType == 3 /* text node*/)
@@ -760,6 +747,56 @@
 									addBrBeforeAndAfter(childHeaders[i]);
 									_this.editor.util.ReplaceWithOwnChildren(childHeaders[i]);
 								}
+							}
+						}
+
+						if (blockElement && params.bxTagParams && typeof params.bxTagParams == 'object')
+						{
+							_this.editor.SetBxTag(blockElement, params.bxTagParams);
+						}
+
+						if (blockElement && blockElement.parentNode)
+						{
+							var parent = blockElement.parentNode;
+							if (parent.nodeName == 'UL' || parent.nodeName == 'OL')
+							{
+								// 1. Clean empty LI before and after
+								var li = _this.editor.util.GetPreviousNotEmptySibling(blockElement);
+								if (_this.editor.util.IsEmptyLi(li))
+								{
+									BX.remove(li);
+								}
+								li = _this.editor.util.GetNextNotEmptySibling(blockElement);
+								if (_this.editor.util.IsEmptyLi(li))
+								{
+									BX.remove(li);
+								}
+
+								// 2. If parent list doesn't have other items - put it inside blockquote
+								if (!_this.editor.util.GetPreviousNotEmptySibling(blockElement) && !_this.editor.util.GetNextNotEmptySibling(blockElement))
+								{
+									var blockElementNew = blockElement.cloneNode(false);
+									parent.parentNode.insertBefore(blockElementNew, parent);
+									_this.editor.util.ReplaceWithOwnChildren(blockElement);
+									blockElementNew.appendChild(parent);
+								}
+							}
+
+							if (blockElement.firstChild && blockElement.firstChild.nodeName == 'BLOCKQUOTE')
+							{
+								var prev = _this.editor.util.GetPreviousNotEmptySibling(blockElement);
+								if (prev && prev.nodeName == 'BLOCKQUOTE' && _this.editor.util.IsEmptyNode(prev))
+								{
+									BX.remove(prev);
+								}
+							}
+
+							if ((blockElement.nodeName == 'BLOCKQUOTE' || blockElement.nodeName == 'PRE') && _this.editor.util.IsEmptyNode(blockElement))
+							{
+								blockElement.innerHTML = '';
+								var br = _this.document.createElement("br");
+								blockElement.appendChild(br);
+								_this.editor.selection.SetAfter(br);
 							}
 						}
 
@@ -848,7 +885,8 @@
 					"UL" : 1,
 					"OL" : 1,
 					"MENU" : 1,
-					"BLOCKQUOTE": 1
+					"BLOCKQUOTE": 1,
+					"PRE": 1
 				},
 				_this = this;
 
@@ -869,6 +907,11 @@
 					node.removeAttribute("style");
 					node.removeAttribute("class");
 					node.removeAttribute("align");
+
+					if (_this.editor.bbCode && node.nodeName == 'TABLE')
+					{
+						node.removeAttribute('align');
+					}
 				}
 			}
 
@@ -1161,7 +1204,15 @@
 			return {
 				exec: function(action, value)
 				{
-					return _this.actions.formatInline.exec(action, value, "b");
+					// Iframe
+					if (!_this.editor.bbCode || !_this.editor.synchro.IsFocusedOnTextarea())
+					{
+						return _this.actions.formatInline.exec(action, value, "b");
+					}
+					else // BBCode mode
+					{
+						return _this.actions.formatBbCode.exec(action, {tag: 'B'});
+					}
 				},
 				state: function(action, value)
 				{
@@ -1177,7 +1228,15 @@
 			return {
 				exec: function(action, value)
 				{
-					return _this.actions.formatInline.exec(action, value, "i");
+					// Iframe
+					if (!_this.editor.bbCode || !_this.editor.synchro.IsFocusedOnTextarea())
+					{
+						return _this.actions.formatInline.exec(action, value, "i");
+					}
+					else
+					{
+						return _this.actions.formatBbCode.exec(action, {tag: 'I'});
+					}
 				},
 				state: function(action, value)
 				{
@@ -1193,7 +1252,15 @@
 			return {
 				exec: function(action, value)
 				{
-					return _this.actions.formatInline.exec(action, value, "u");
+					// Iframe
+					if (!_this.editor.bbCode || !_this.editor.synchro.IsFocusedOnTextarea())
+					{
+						return _this.actions.formatInline.exec(action, value, "u");
+					}
+					else
+					{
+						return _this.actions.formatBbCode.exec(action, {tag: 'U'});
+					}
 				},
 				state: function(action, value)
 				{
@@ -1209,7 +1276,15 @@
 			return {
 				exec: function(action, value)
 				{
-					return _this.actions.formatInline.exec(action, value, "del");
+					// Iframe
+					if (!_this.editor.bbCode || !_this.editor.synchro.IsFocusedOnTextarea())
+					{
+						return _this.actions.formatInline.exec(action, value, "del");
+					}
+					else
+					{
+						return _this.actions.formatBbCode.exec(action, {tag: 'S'});
+					}
 				},
 				state: function(action, value)
 				{
@@ -1226,11 +1301,18 @@
 				exec: function(action, value)
 				{
 					var res;
-					if (value > 0) // Format
-						res = _this.actions.formatInline.exec(action, value, "span", {fontSize: value + 'pt'});
-					else // Clear font-size format
-						res = _this.actions.formatInline.exec(action, value, "span", {fontSize: null}, null, {bClear: true});
-
+					// Iframe
+					if (!_this.editor.bbCode || !_this.editor.synchro.IsFocusedOnTextarea())
+					{
+						if (value > 0) // Format
+							res = _this.actions.formatInline.exec(action, value, "span", {fontSize: value + 'pt'});
+						else // Clear font-size format
+							res = _this.actions.formatInline.exec(action, value, "span", {fontSize: null}, null, {bClear: true});
+					}
+					else // textarea + bbcode
+					{
+						res = _this.actions.formatBbCode.exec(action, {tag: 'SIZE', value: value + 'pt'});
+					}
 					return res;
 				},
 
@@ -1363,14 +1445,23 @@
 				exec: function(action, value)
 				{
 					var res;
-					if (value == '')
+
+					// Iframe
+					if (!_this.editor.bbCode || !_this.editor.synchro.IsFocusedOnTextarea())
 					{
-						res = _this.actions.formatInline.exec(action, value, "span", {color: null}, null, {bClear: true});
+						if (value == '')
+						{
+							res = _this.actions.formatInline.exec(action, value, "span", {color: null}, null, {bClear: true});
+						}
+						else
+						{
+							res =  _this.actions.formatInline.exec(action, value, "span", {color: value});
+							checkAndApplyColorListItems(value);
+						}
 					}
-					else
+					else if (value) // textarea + bbcode
 					{
-						res =  _this.actions.formatInline.exec(action, value, "span", {color: value});
-						checkAndApplyColorListItems(value);
+						res = _this.actions.formatBbCode.exec(action, {tag: 'COLOR', value: value});
 					}
 
 					return res;
@@ -1428,103 +1519,130 @@
 			return {
 				exec: function(action, value)
 				{
-					_this.editor.iframeView.Focus();
-
-					var
-						params = typeof(value) === "object" ? value : {href: value},
-						i, link, linksCount = 0, lastLink,
-						links;
-
-					function applyAttributes(link, params)
+					// Only for bbCode == true
+					if (_this.editor.bbCode && _this.editor.synchro.IsFocusedOnTextarea())
 					{
-						var attr;
-						link.removeAttribute("class");
-						link.removeAttribute("target");
-
-						for (attr in params)
-						{
-							if (params.hasOwnProperty(attr) && BX.util.in_array(attr, ATTRIBUTES))
-							{
-								if (params[attr] == '' || params[attr] == undefined)
-								{
-									link.removeAttribute(attr);
-								}
-								else
-								{
-									link.setAttribute(attr, params[attr]);
-								}
-							}
-						}
-						if (params.className)
-							link.className = params.className;
-						link.href = params.href || '';
-
-						if (params.noindex)
-						{
-							link.setAttribute("data-bx-noindex", "Y");
-						}
-						else
-						{
-							link.removeAttribute("data-bx-noindex");
-						}
-					}
-
-					links = _this.actions.formatInline.state(action, value, "a");
-					if (links)
-					{
-						// Selection contains links
-						for (i = 0; i < links.length; i++)
-						{
-							link = links[i];
-							if (link)
-							{
-								applyAttributes(link, params);
-								lastLink = link;
-								linksCount++;
-							}
-						}
-
-						if (linksCount === 1 && lastLink && !lastLink.querySelector("*") && params.text != '')
-						{
-							_this.editor.util.SetTextContent(lastLink, params.text);
-						}
+						_this.editor.textareaView.Focus();
+						var linkHtml = "[URL=" + value.href + "]" + (value.text || value.href) + "[/URL]";
+						_this.editor.textareaView.WrapWith(false, false, linkHtml);
 					}
 					else
 					{
+						_this.editor.iframeView.Focus();
+
 						var
-							tmpClass = "_bx-editor-temp-" + Math.round(Math.random() * 1000000),
-							invisText,
-							isEmpty,
-							textContent;
+							nodeToSetCarret,
+							params = typeof(value) === "object" ? value : {href: value},
+							i, link, linksCount = 0, lastLink,
+							links;
 
-						// Create LINKS
-						_this.actions.formatInline.exec(action, value, "A", false, tmpClass);
-
-						links = _this.document.querySelectorAll("A." + tmpClass);
-						for (i = 0; i < links.length; i++)
+						function applyAttributes(link, params)
 						{
-							link = links[i];
-							if (link)
+							var attr;
+							link.removeAttribute("class");
+							link.removeAttribute("target");
+
+							for (attr in params)
 							{
-								applyAttributes(link, params);
+								if (params.hasOwnProperty(attr) && BX.util.in_array(attr, ATTRIBUTES))
+								{
+									if (params[attr] == '' || params[attr] == undefined)
+									{
+										link.removeAttribute(attr);
+									}
+									else
+									{
+										link.setAttribute(attr, params[attr]);
+									}
+								}
+							}
+							if (params.className)
+								link.className = params.className;
+							link.href = params.href || '';
+
+							if (params.noindex)
+							{
+								link.setAttribute("data-bx-noindex", "Y");
+							}
+							else
+							{
+								link.removeAttribute("data-bx-noindex");
 							}
 						}
-						var nodeToSetCarret = link; // last link
 
-						if (links.length === 1)
+						links = _this.actions.formatInline.state(action, value, "a");
+						if (links)
 						{
-							textContent = _this.editor.util.GetTextContent(link);
-							isEmpty = textContent === "" || textContent === _this.editor.INVISIBLE_SPACE;
-
-							if (textContent != params.text)
+							// Selection contains links
+							for (i = 0; i < links.length; i++)
 							{
-								_this.editor.util.SetTextContent(link, params.text || params.href);
+								link = links[i];
+								if (link)
+								{
+									applyAttributes(link, params);
+									lastLink = link;
+									linksCount++;
+								}
 							}
 
-							if (!link.querySelector("*") && isEmpty) // Link is empty
+							if (linksCount === 1 && lastLink && !lastLink.querySelector("*") && params.text != '')
 							{
-								_this.editor.util.SetTextContent(link, params.text || params.href);
-								_this.editor.selection.SetAfter(link);
+								_this.editor.util.SetTextContent(lastLink, params.text);
+							}
+							nodeToSetCarret = lastLink;
+
+							if (nodeToSetCarret)
+								_this.editor.selection.SetAfter(nodeToSetCarret);
+
+							setTimeout(function()
+							{
+								if (nodeToSetCarret)
+									_this.editor.selection.SetAfter(nodeToSetCarret);
+							}, 10);
+						}
+						else
+						{
+
+							var
+								tmpClass = "_bx-editor-temp-" + Math.round(Math.random() * 1000000),
+								invisText,
+								isEmpty,
+								textContent;
+
+							// Create LINKS
+							_this.actions.formatInline.exec(action, value, "A", false, tmpClass);
+
+							links = _this.document.querySelectorAll("A." + tmpClass);
+
+							for (i = 0; i < links.length; i++)
+							{
+								link = links[i];
+								if (link)
+								{
+									applyAttributes(link, params);
+								}
+							}
+
+							nodeToSetCarret = link; // last link
+
+							if (links.length === 1)
+							{
+								textContent = _this.editor.util.GetTextContent(link);
+								isEmpty = textContent === "" || textContent === _this.editor.INVISIBLE_SPACE;
+
+								if (textContent != params.text)
+								{
+									_this.editor.util.SetTextContent(link, params.text || params.href);
+								}
+
+								if (!link.querySelector("*") && isEmpty) // Link is empty
+								{
+									_this.editor.util.SetTextContent(link, params.text || params.href);
+								}
+							}
+
+							if (link)
+							{
 								if (link.nextSibling && link.nextSibling.nodeType == 3 && _this.editor.util.IsEmptyNode(link.nextSibling))
 								{
 									invisText = link.nextSibling;
@@ -1533,11 +1651,19 @@
 								{
 									invisText = _this.editor.util.GetInvisibleTextNode();
 								}
-								_this.editor.selection.InsertNode(invisText);
+								_this.editor.util.InsertAfter(invisText, link);
 								nodeToSetCarret = invisText;
 							}
+
+							if (nodeToSetCarret)
+								_this.editor.selection.SetAfter(nodeToSetCarret);
+
+							setTimeout(function()
+							{
+								if (nodeToSetCarret)
+									_this.editor.selection.SetAfter(nodeToSetCarret);
+							}, 10);
 						}
-						_this.editor.selection.SetAfter(nodeToSetCarret);
 					}
 				},
 
@@ -1628,6 +1754,20 @@
 			return {
 				exec: function(action, value)
 				{
+					// Only for bbCode == true
+					if (_this.editor.bbCode && _this.editor.synchro.IsFocusedOnTextarea())
+					{
+						_this.editor.textareaView.Focus();
+						var size = '';
+						if (value.width)
+							size += ' WIDTH=' + parseInt(value.width);
+						if (value.height)
+							size += ' HEIGHT=' + parseInt(value.height);
+						var imgHtml = "[IMG" + size + "]" + value.src + "[/IMG]";
+						_this.editor.textareaView.WrapWith(false, false, imgHtml);
+						return;
+					}
+
 					_this.editor.iframeView.Focus();
 					var
 						params = typeof(value) === "object" ? value : {src: value},
@@ -1636,7 +1776,7 @@
 
 					function applyAttributes(image, params)
 					{
-						var attr;
+						var attr, appAttr;
 						image.removeAttribute("class");
 
 						for (attr in params)
@@ -1649,15 +1789,34 @@
 								}
 								else
 								{
-									image.setAttribute(attr, params[attr]);
+									appAttr = image.getAttribute('data-bx-app-ex-' + attr);
+									if (!appAttr || _this.editor.phpParser.AdvancedPhpGetFragmentByCode(appAttr, true) != params[attr])
+									{
+										image.setAttribute(attr, params[attr]);
+										if (appAttr)
+										{
+											image.removeAttribute('data-bx-app-ex-' + attr);
+										}
+									}
 								}
 							}
 						}
+
 						if (params.className)
 						{
 							image.className = params.className;
 						}
-						image.src = params.src || '';
+
+						appAttr = image.getAttribute('data-bx-app-ex-src');
+						if (!appAttr || _this.editor.phpParser.AdvancedPhpGetFragmentByCode(appAttr, true) != params.src)
+						{
+							image.src = params.src || '';
+							if (appAttr)
+							{
+								image.removeAttribute('data-bx-app-ex-src');
+							}
+						}
+
 					}
 
 					if (!image)
@@ -1931,57 +2090,86 @@
 			return {
 				exec: function(action, params)
 				{
-					if (!params || !params.rows || !params.cols)
+					// Iframe
+					if (!_this.editor.bbCode || !_this.editor.synchro.IsFocusedOnTextarea())
 					{
-						return false;
-					}
+						if (!params || !params.rows || !params.cols)
+						{
+							return false;
+						}
 
-					_this.editor.iframeView.Focus();
-					var table = params.table || _this.actions.insertTable.state(action, params);
-
-					params.rows = parseInt(params.rows) || 1;
-					params.cols = parseInt(params.cols) || 1;
-
-					if (params.align == 'left')
-					{
-						params.align = '';
-					}
-
-					if (!table)
-					{
-						table = _this.document.createElement('TABLE');
-
-						var
-							tbody = table.appendChild(_this.document.createElement('TBODY')),
-							r, c, row, cell;
+						_this.editor.iframeView.Focus();
+						var table = params.table || _this.actions.insertTable.state(action, params);
 
 						params.rows = parseInt(params.rows) || 1;
 						params.cols = parseInt(params.cols) || 1;
 
-						for(r = 0; r < params.rows; r++)
+						if (params.align == 'left' || _this.editor.bbCode)
 						{
-							row = tbody.insertRow(-1);
-							for(c = 0; c < params.cols; c++)
-							{
-								cell = BX.adjust(row.insertCell(-1), {html: '&nbsp;'});
-							}
+							params.align = '';
 						}
-						applyAttributes(table, params);
-						_this.editor.selection.InsertNode(table);
-					}
-					else
-					{
-						applyAttributes(table, params);
-					}
 
-					var nodeToSetCarret = table.rows[0].cells[0].firstChild;
-					if (nodeToSetCarret)
-					{
-						_this.editor.selection.SetAfter(nodeToSetCarret);
-					}
+						if (!table)
+						{
+							table = _this.document.createElement('TABLE');
 
-					// For Firefox refresh white markers
-					setTimeout(function(){_this.editor.util.Refresh(table);}, 10);
+							var
+								tbody = table.appendChild(_this.document.createElement('TBODY')),
+								r, c, row, cell;
+
+							params.rows = parseInt(params.rows) || 1;
+							params.cols = parseInt(params.cols) || 1;
+
+							for(r = 0; r < params.rows; r++)
+							{
+								row = tbody.insertRow(-1);
+								for(c = 0; c < params.cols; c++)
+								{
+									cell = BX.adjust(row.insertCell(-1), {html: '&nbsp;'});
+								}
+							}
+							applyAttributes(table, params);
+							_this.editor.selection.InsertNode(table);
+						}
+						else
+						{
+							applyAttributes(table, params);
+						}
+
+						var nodeToSetCarret = table.rows[0].cells[0].firstChild;
+						if (nodeToSetCarret)
+						{
+							_this.editor.selection.SetAfter(nodeToSetCarret);
+						}
+
+						// For Firefox refresh white markers
+						setTimeout(function(){_this.editor.util.Refresh(table);}, 10);
+					}
+					else // bbcode + textarea
+					{
+						_this.editor.textareaView.Focus();
+						var
+							tbl = '',
+							i, j,
+							cellHTML = _this.editor.INVISIBLE_SPACE;
+
+						if (params.rows > 0 && params.cols > 0)
+						{
+							tbl += "[TABLE]\n";
+							for(i = 0; i < params.rows; i++)
+							{
+								tbl += "\t[TR]\n";
+								for(j = 0; j < params.cols; j++)
+								{
+									tbl += "\t\t[TD]" + cellHTML + "[/TD]\n";
+								}
+								tbl += "\t[/TR]\n";
+							}
+							tbl += "[/TABLE]\n";
+						}
+
+						_this.editor.textareaView.WrapWith(false, false, tbl);
+					}
 				},
 
 				state: function(action, value)
@@ -2085,7 +2273,7 @@
 					listItem.parentNode.removeChild(listItem);
 				}
 
-				var nextSibling = getNextNotEmptySibling(list);
+				var nextSibling = _this.editor.util.GetNextNotEmptySibling(list);
 				if (nextSibling && nextSibling.nodeName == 'BR' && frag.lastChild && frag.lastChild.nodeName == 'BR')
 				{
 					// Remove unnecessary BR
@@ -2191,52 +2379,109 @@
 			}
 
 			return {
-				exec: function(action, value)
+				exec: function(action, params)
 				{
-					var
-						range = _this.editor.selection.GetRange();
-
-					if (_this.IsSupportedByBrowser(action) && range.collapsed)
+					// Iframe
+					if (!_this.editor.bbCode || !_this.editor.synchro.IsFocusedOnTextarea())
 					{
-						_this.document.execCommand(action, false, null);
-					}
-					else
-					{
-						var
-							selectedNode = _this.editor.selection.GetSelectedNode(),
-							list = getSelectedList(listTag, selectedNode),
-							otherList = getSelectedList(otherListTag, selectedNode),
-							isEmpty,
-							tempElement;
+						var range = _this.editor.selection.GetRange();
 
-						if (list)
+						if (_this.IsSupportedByBrowser(action) && range.collapsed)
 						{
-							_this.editor.selection.ExecuteAndRestoreSimple(function()
-							{
-								removeList(list);
-							});
-						}
-						else if (otherList)
-						{
-							_this.editor.selection.ExecuteAndRestoreSimple(function()
-							{
-								_this.editor.util.RenameNode(otherList, listTag);
-							});
+							_this.document.execCommand(action, false, null);
 						}
 						else
 						{
-							tempElement = _this.document.createElement("span");
-							_this.editor.selection.Surround(tempElement);
-							isEmpty = tempElement.innerHTML === "" || tempElement.innerHTML === _this.editor.INVISIBLE_SPACE;
-							_this.editor.selection.ExecuteAndRestoreSimple(function()
-							{
-								list = convertToList(tempElement, listTag);
-							});
+							var
+								selectedNode = _this.editor.selection.GetSelectedNode(),
+								list = getSelectedList(listTag, selectedNode),
+								otherList = getSelectedList(otherListTag, selectedNode),
+								isEmpty,
+								tempElement;
 
-							if (isEmpty && list)
+							if (list)
 							{
-								_this.editor.selection.SelectNode(list.querySelector("li"));
+								_this.editor.selection.ExecuteAndRestoreSimple(function()
+								{
+									removeList(list);
+								});
 							}
+							else if (otherList)
+							{
+								_this.editor.selection.ExecuteAndRestoreSimple(function()
+								{
+									_this.editor.util.RenameNode(otherList, listTag);
+								});
+							}
+							else
+							{
+								tempElement = _this.document.createElement("span");
+								_this.editor.selection.Surround(tempElement);
+								isEmpty = tempElement.innerHTML === "" || tempElement.innerHTML === _this.editor.INVISIBLE_SPACE;
+								_this.editor.selection.ExecuteAndRestoreSimple(function()
+								{
+									list = convertToList(tempElement, listTag);
+								});
+
+								if (list)
+								{
+									var i = 0, item;
+									while (i < list.childNodes.length)
+									{
+										item = list.childNodes[i];
+										if (item.nodeName == 'LI')
+										{
+											if (_this.editor.util.IsEmptyNode(item, true, true))
+											{
+												BX.remove(item);
+												continue;
+											}
+											i++;
+										}
+										else if (item.nodeType == 1)
+										{
+											BX.remove(item);
+										}
+									}
+
+									// Mantis: #53646, #53820
+									var prevSib = _this.editor.util.GetPreviousNotEmptySibling(list);
+									if (prevSib && (
+										prevSib.nodeName == 'BLOCKQUOTE' ||
+										prevSib.nodeName == 'PRE' ||
+										prevSib.nodeName == 'UL' ||
+										prevSib.nodeName == 'OL'
+										)
+										&& list.childNodes[0] && BX.findChild(list.childNodes[0], {tag: prevSib.nodeName}))
+									{
+										if (BX.util.trim(_this.editor.util.GetTextContent(prevSib)) == '')
+										{
+											BX.remove(prevSib);
+										}
+									}
+								}
+
+								if (isEmpty && list)
+								{
+									_this.editor.selection.SelectNode(list.querySelector("li"));
+								}
+							}
+						}
+					}
+					else // bbcode + textarea
+					{
+						if (params && params.items)
+						{
+							_this.editor.textareaView.Focus();
+							var lst = '[LIST' + (bOrdered ? '=1' : '')+ ']\n', it;
+
+							for(it = 0; it < params.items.length; it++)
+							{
+								lst += "\t[*]" + params.items[it] + "\n";
+							}
+							lst += "[/LIST]\n";
+
+							_this.editor.textareaView.WrapWith(false, false, lst);
 						}
 					}
 				},
@@ -2305,7 +2550,7 @@
 
 			function alignTable(n, value)
 			{
-				if (value == 'left' || value == 'justify')
+				if (value == 'left' || value == 'justify' || _this.editor.bbCode)
 				{
 					n.removeAttribute('align');
 				}
@@ -2350,14 +2595,33 @@
 				}
 			}
 
+			function createAlignNodeInside(node, value)
+			{
+				var alignNode = BX.create("DIV", {style: {textAlign: value}, html: node.innerHTML}, _this.editor.GetIframeDoc());
+				node.innerHTML = '';
+				node.appendChild(alignNode);
+				return alignNode;
+			}
+
+			function createAlignNodeOutside(node, value)
+			{
+				var alignNode = BX.create("DIV", {style: {textAlign: value}}, _this.editor.GetIframeDoc());
+				node.parentNode.insertBefore(alignNode, node);
+				alignNode.appendChild(node);
+				return alignNode;
+			}
+
 			function checkListItemsAlign(list, item, value)
 			{
+				var
+					doc = _this.editor.GetIframeDoc(),
+					bb = _this.editor.bbCode;
 				if (!list && item)
 				{
 					list = BX.findParent(item, function(n)
 					{
 						return n.nodeName == 'OL' || n.nodeName == 'UL' || n.nodeName == 'MENU';
-					}, _this.editor.GetIframeDoc());
+					}, doc);
 				}
 
 				if (list && !list.getAttribute(LIST_ALIGN_ATTR))
@@ -2375,7 +2639,18 @@
 						}
 					}
 
-					if (clean)
+					if (bb)
+					{
+						list.style.textAlign = '';
+						if (list.style.cssText == '')
+						{
+							list.removeAttribute('style');
+						}
+						cleanListItemsAlign(list);
+
+						createAlignNodeOutside(list, value);
+					}
+					else if (clean)
 					{
 						list.style.textAlign = value;
 						cleanListItemsAlign(list);
@@ -2425,263 +2700,316 @@
 			return {
 				exec: function(action, value)
 				{
-					var
-						i,
-						tagName = 'P',
-						res,
-						range = _this.editor.selection.GetRange(),
-						blockElement = false,
-						tableElement = false,
-						listNode = false,
-						bookmark = _this.editor.selection.GetBookmark(),
-						selectedNode = _this.editor.selection.GetSelectedNode();
+					var res;
 
-					if (selectedNode)
+					// Iframe
+					if (!_this.editor.bbCode || !_this.editor.synchro.IsFocusedOnTextarea())
 					{
-						if (_this.editor.util.IsBlockNode(selectedNode))
-						{
-							blockElement = selectedNode;
-						}
-						else if (selectedNode.nodeType == 1 && TABLE_NODES[selectedNode.nodeName])
-						{
-							tableElement = selectedNode;
-							res = true;
-							setTimeout(function(){
-								_this.editor.selection.SelectNode(tableElement);
-								if (tableElement.nodeName == 'TABLE')
-								{
-									alignTable(tableElement, value);
-								}
-							}, 10);
-						}
-						else
-						{
-							if (selectedNode.nodeName == 'LI')
-							{
-								listNode = selectedNode;
-							}
-							else if (selectedNode.nodeName == 'OL' || selectedNode.nodeName == 'UL' || selectedNode.nodeName == 'MENU')
-							{
-								selectedNode.style.textAlign = value;
-								res = true;
-								cleanListItemsAlign(selectedNode);
-								setTimeout(function(){_this.editor.selection.SelectNode(selectedNode);}, 10);
-							}
-							else
-							{
-								listNode = BX.findParent(selectedNode, function(n)
-								{
-									return n.nodeName == 'LI';
-								}, _this.document.body);
-
-							}
-
-							if (listNode)
-							{
-								listNode.style.textAlign = value;
-								res = true;
-								setTimeout(function(){_this.editor.selection.SelectNode(listNode);}, 10);
-							}
-							else
-							{
-								blockElement = BX.findParent(selectedNode, function(n)
-								{
-									return _this.editor.util.IsBlockNode(n);
-								}, _this.document.body);
-							}
-						}
-					}
-					else
-					{
-						// In Chrome when we select some parts of table we apply align for tds, but if entire table was selected - we trying to continue align other elements.
 						var
-							tables = [],
-							tableIsHere = false,
-							arLists = [], arLis = [],
-							nodes = range.getNodes([1]);
+							i,
+							tagName = 'P',
+							range = _this.editor.selection.GetRange(),
+							blockElement = false,
+							tableElement = false,
+							listNode = false,
+							bookmark = _this.editor.selection.GetBookmark(),
+							selectedNode = _this.editor.selection.GetSelectedNode();
 
-						for (i = 0; i < nodes.length; i++)
+
+						if (selectedNode)
 						{
-							if (isCell(nodes[i]))
+							if (_this.editor.util.IsBlockNode(selectedNode))
 							{
-								tables = pushTable(tables, BX.findParent(nodes[i], {tagName: 'TABLE'}));
-								alignTableNode(nodes[i], value);
+								blockElement = selectedNode;
+							}
+							else if (selectedNode.nodeType == 1 && TABLE_NODES[selectedNode.nodeName])
+							{
+								tableElement = selectedNode;
 								res = true;
-							}
-
-							if (nodes[i].nodeName == 'TABLE')
-							{
-								tables = pushTable(tables, nodes[i]);
-								tableIsHere = true;
-							}
-							else if (nodes[i].nodeName == 'OL' || nodes[i].nodeName == 'UL' || nodes[i].nodeName == 'MENU')
-							{
-								nodes[i].style.textAlign = value;
-								arLists.push(nodes[i]);
-								res = true;
-							}
-							else if (nodes[i].nodeName == 'LI')
-							{
-								nodes[i].style.textAlign = value;
-								res = true;
-								arLis.push(nodes[i]);
-							}
-						}
-
-						for (i = 0; i < tables.length; i++)
-						{
-							checkAlignTable(tables[i], value);
-						}
-
-						// Example: ctra+a was pressed
-						if (res)
-						{
-							var commonAncestor = _this.editor.selection.GetCommonAncestorForRange(range);
-							if (commonAncestor && commonAncestor.nodeName == 'BODY')
-							{
-								res = false;
-							}
-						}
-
-						for (i = 0; i < arLists.length; i++)
-						{
-							cleanListItemsAlign(arLists[i]);
-						}
-						var arCheckedLists = [], checkedList;
-						for (i = 0; i < arLis.length; i++)
-						{
-							checkedList = checkListItemsAlign(false, arLis[i], value);
-							if (checkedList)
-							{
-								arCheckedLists.push(checkedList);
-							}
-						}
-						for (i = 0; i < arCheckedLists.length; i++)
-						{
-							arCheckedLists[i].removeAttribute(LIST_ALIGN_ATTR);
-						}
-					}
-
-					if (!res)
-					{
-						// Simple situation - we inside of the block element - just add text-align to it...
-						if (blockElement)
-						{
-							// Accept all block tags except DIVs
-							tagName = blockElement.tagName != 'DIV' ? blockElement.tagName : 'P';
-							res = _this.actions.formatBlock.exec('formatBlock', tagName, null, {textAlign: value});
-							_this.editor.util.Refresh(blockElement);
-						}
-						else if(tableElement)
-						{
-							if (isCell(tableElement))
-							{
-								alignTableNode(tableElement, value);
+								setTimeout(function(){
+									_this.editor.selection.SelectNode(tableElement);
+									if (tableElement.nodeName == 'TABLE')
+									{
+										alignTable(tableElement, value);
+									}
+								}, 10);
 							}
 							else
 							{
-								var
-									tds = BX.findChild(tableElement, isCell, true, true),
-									ths = BX.findChild(tableElement, isCell, true, true);
-
-								for (i = 0; i < tds.length; i++)
+								if (selectedNode.nodeName == 'LI')
 								{
-									alignTableNode(tds[i], value);
+									listNode = selectedNode;
 								}
-								for (i = 0; i < ths.length; i++)
+								else if (selectedNode.nodeName == 'OL' || selectedNode.nodeName == 'UL' || selectedNode.nodeName == 'MENU')
 								{
-									alignTableNode(ths[i], value);
+									if (_this.editor.bbCode)
+									{
+										createAlignNodeOutside(selectedNode, value);
+										selectedNode.style.textAlign = '';
+									}
+									else
+									{
+										selectedNode.style.textAlign = value;
+									}
+									res = true;
+									cleanListItemsAlign(selectedNode);
+									setTimeout(function(){_this.editor.selection.SelectNode(selectedNode);}, 10);
+								}
+								else
+								{
+									listNode = BX.findParent(selectedNode, function(n)
+									{
+										return n.nodeName == 'LI';
+									}, _this.document.body);
+
+								}
+
+								if (listNode)
+								{
+									if (_this.editor.bbCode)
+									{
+										createAlignNodeInside(listNode, value);
+										listNode.style.textAlign = '';
+									}
+									else
+									{
+										listNode.style.textAlign = value;
+									}
+									res = true;
+									setTimeout(function(){_this.editor.selection.SelectNode(listNode);}, 10);
+								}
+								else
+								{
+									blockElement = BX.findParent(selectedNode, function(n)
+									{
+										return _this.editor.util.IsBlockNode(n) && !_this.actions.quote.checkNode(n);
+									}, _this.document.body);
 								}
 							}
-						}
-						else if (range.collapsed)
-						{
-							res = _this.actions.formatBlock.exec('formatBlock', 'P', null, {textAlign: value});
 						}
 						else
 						{
-							// Image selected
-							var image = _this.actions.insertImage.state();
-
-							if (!res && false)
-							{
-								var onlyPar = true;
+							// In Chrome when we select some parts of table we apply align for tds, but if entire table was selected - we trying to continue align other elements.
+							var
+								tables = [],
+								tableIsHere = false,
+								arLists = [], arLis = [],
 								nodes = range.getNodes([1]);
-								if (nodes && nodes.length > 0)
+
+							for (i = 0; i < nodes.length; i++)
+							{
+								if (isCell(nodes[i]))
 								{
-									for (i = 0; i < nodes.length; i++)
-									{
-										if (nodes[i].nodeName == "P")
-										{
-											nodes[i].style.textAlign = value;
-										}
-										else
-										{
-											onlyPar = false;
-										}
-									}
-									res = onlyPar;
+									tables = pushTable(tables, BX.findParent(nodes[i], {tagName: 'TABLE'}));
+									alignTableNode(nodes[i], value);
+									res = true;
+								}
+
+								if (nodes[i].nodeName == 'TABLE')
+								{
+									tables = pushTable(tables, nodes[i]);
+									tableIsHere = true;
+								}
+								else if (nodes[i].nodeName == 'OL' || nodes[i].nodeName == 'UL' || nodes[i].nodeName == 'MENU')
+								{
+									nodes[i].style.textAlign = value;
+									arLists.push(nodes[i]);
+									res = true;
+								}
+								else if (nodes[i].nodeName == 'LI')
+								{
+									nodes[i].style.textAlign = value;
+									res = true;
+									arLis.push(nodes[i]);
 								}
 							}
 
-							// Mixed content
-							if (!res)
+							for (i = 0; i < tables.length; i++)
 							{
-								res = _this.actions.formatBlock.exec('formatBlock', 'P', null, {textAlign: value}, {leaveChilds: true});
-								if (res && typeof res == 'object' && res.nodeName == 'P')
+								checkAlignTable(tables[i], value);
+							}
+
+							// Example: ctra+a was pressed
+							if (res)
+							{
+								var commonAncestor = _this.editor.selection.GetCommonAncestorForRange(range);
+								if (commonAncestor && commonAncestor.nodeName == 'BODY')
+								{
+									res = false;
+								}
+							}
+
+							for (i = 0; i < arLists.length; i++)
+							{
+								cleanListItemsAlign(arLists[i]);
+							}
+							var arCheckedLists = [], checkedList;
+
+							for (i = 0; i < arLis.length; i++)
+							{
+								checkedList = checkListItemsAlign(false, arLis[i], value);
+								if (checkedList)
+								{
+									arCheckedLists.push(checkedList);
+								}
+							}
+							for (i = 0; i < arCheckedLists.length; i++)
+							{
+								arCheckedLists[i].removeAttribute(LIST_ALIGN_ATTR);
+							}
+						}
+
+						if (!res)
+						{
+							// Simple situation - we inside of the block element - just add text-align to it...
+							if (blockElement)
+							{
+								if (_this.editor.bbCode)
+								{
+									createAlignNodeInside(blockElement, value);
+									blockElement.style.textAlign = '';
+								}
+								else
+								{
+									// Accept all block tags except DIVs
+									tagName = blockElement.tagName != 'DIV' ? blockElement.tagName : 'P';
+									res = _this.actions.formatBlock.exec('formatBlock', tagName, null, {textAlign: value});
+								}
+								_this.editor.util.Refresh(blockElement);
+							}
+							else if(tableElement)
+							{
+								if (isCell(tableElement))
+								{
+									alignTableNode(tableElement, value);
+								}
+								else
 								{
 									var
-										iter = 0, maxIter = 2000,
-										child, newPar, createNewPar = false;
-									i = 0;
-									while (i < res.childNodes.length || iter > maxIter)
-									{
-										child = res.childNodes[i];
-										if(_this.editor.util.IsBlockNode(child))
-										{
-											child.style.textAlign = value;
-											createNewPar = true;
-											i++;
-										}
-										else
-										{
-											if (!newPar || createNewPar)
-											{
-												newPar = _this.document.createElement("P");
-												newPar.style.textAlign = value;
-												res.insertBefore(newPar, child);
-												i++;
-											}
+										tds = BX.findChild(tableElement, isCell, true, true),
+										ths = BX.findChild(tableElement, isCell, true, true);
 
-											newPar.appendChild(child);
-											createNewPar = false;
-										}
-										iter++;
-									}
-
-									// Clean useless <p></p> before and after
-									if (res.previousSibling && res.previousSibling.nodeName == "P" && _this.editor.util.IsEmptyNode(res.previousSibling, true, true))
+									for (i = 0; i < tds.length; i++)
 									{
-										BX.remove(res.previousSibling);
+										alignTableNode(tds[i], value);
 									}
-									if (res.nextSibling && res.nextSibling.nodeName == "P" && _this.editor.util.IsEmptyNode(res.nextSibling, true, true))
+									for (i = 0; i < ths.length; i++)
 									{
-										BX.remove(res.nextSibling);
+										alignTableNode(ths[i], value);
 									}
-									_this.editor.util.ReplaceWithOwnChildren(res);
 								}
 							}
-
-							if (image)
+							else if (range.collapsed)
 							{
-								// For Firefox
-								_this.editor.util.Refresh(image);
+								res = _this.actions.formatBlock.exec('formatBlock', 'P', null, {textAlign: value});
+							}
+							else
+							{
+								// Image selected
+								var image = _this.actions.insertImage.state();
+
+								if (!res && false)
+								{
+									var onlyPar = true;
+									nodes = range.getNodes([1]);
+									if (nodes && nodes.length > 0)
+									{
+										for (i = 0; i < nodes.length; i++)
+										{
+											if (nodes[i].nodeName == "P")
+											{
+												nodes[i].style.textAlign = value;
+											}
+											else
+											{
+												onlyPar = false;
+											}
+										}
+										res = onlyPar;
+									}
+								}
+
+								// Mixed content
+								if (!res)
+								{
+									tagName = _this.editor.bbCode ? 'DIV' : 'P';
+
+									res = _this.actions.formatBlock.exec('formatBlock', tagName, null, {textAlign: value}, {leaveChilds: true});
+
+									if (res && typeof res == 'object' && res.nodeName == tagName)
+									{
+
+										var
+											iter = 0, maxIter = 2000, prev,
+											child, newPar, createNewPar = false;
+
+										// mantis:#54026
+										if (res.firstChild && res.firstChild.nodeName == 'BLOCKQUOTE')
+										{
+											prev = _this.editor.util.GetPreviousNotEmptySibling(res);
+											if (prev && prev.nodeName == 'BLOCKQUOTE' && _this.editor.util.IsEmptyNode(prev))
+											{
+												BX.remove(prev);
+											}
+										}
+
+										i = 0;
+
+										while (i < res.childNodes.length || iter > maxIter)
+										{
+											child = res.childNodes[i];
+											if(_this.editor.util.IsBlockNode(child))
+											{
+												child.style.textAlign = value;
+												createNewPar = true;
+												i++;
+											}
+											else
+											{
+												if (!newPar || createNewPar)
+												{
+													newPar = _this.document.createElement(tagName);
+													newPar.style.textAlign = value;
+													res.insertBefore(newPar, child);
+													i++;
+												}
+
+												newPar.appendChild(child);
+												createNewPar = false;
+											}
+											iter++;
+										}
+
+										// Clean useless <p></p> before and after
+										if (res.previousSibling && res.previousSibling.nodeName == "P" && _this.editor.util.IsEmptyNode(res.previousSibling, true, true))
+										{
+											BX.remove(res.previousSibling);
+										}
+										if (res.nextSibling && res.nextSibling.nodeName == "P" && _this.editor.util.IsEmptyNode(res.nextSibling, true, true))
+										{
+											BX.remove(res.nextSibling);
+										}
+										_this.editor.util.ReplaceWithOwnChildren(res);
+									}
+								}
+
+								if (image)
+								{
+									// For Firefox
+									_this.editor.util.Refresh(image);
+								}
 							}
 						}
+
+						setTimeout(function(){_this.editor.selection.SetBookmark(bookmark);}, 10);
 					}
-
-					setTimeout(function(){_this.editor.selection.SetBookmark(bookmark);}, 10);
-
+					else // bbcode + textarea
+					{
+						if (value)
+						{
+							res = _this.actions.formatBbCode.exec(action, {tag: value.toUpperCase()});
+						}
+					}
 
 					return res;
 				},
@@ -2780,6 +3108,15 @@
 					if (range)
 					{
 						var i, nodes = range.getNodes([1]);
+						if (range.collapsed && range.startContainer && nodes.length == 0)
+						{
+							var bq = BX.findParent(range.startContainer, {tag: 'BLOCKQUOTE'});
+							bq.removeAttribute('style');
+							var invis_text = _this.editor.util.GetInvisibleTextNode();
+							bq.appendChild(invis_text);
+							_this.editor.selection.SetAfter(invis_text);
+						}
+
 						for (i = 0; i < nodes.length; i++)
 						{
 							if (nodes[i].nodeName == 'BLOCKQUOTE')
@@ -2814,51 +3151,44 @@
 			return {
 				exec: function(action, value)
 				{
-//					if (_this.IsSupportedByBrowser(action))
-//					{
-//						_this.document.execCommand(action);
-//					}
-//					else
+					var
+						i,
+						attr = 'data-bx-tmp-flag',
+						doc = _this.editor.GetIframeDoc(),
+						blockNodes = doc.getElementsByTagName('BLOCKQUOTE');
+
+					//if (blockNodes && blockNodes.length > 0)
 					{
 						var
-							i,
-							attr = 'data-bx-tmp-flag',
-							doc = _this.editor.GetIframeDoc(),
-							blockNodes = doc.getElementsByTagName('BLOCKQUOTE');
-
-						//if (blockNodes && blockNodes.length > 0)
-						{
-							var
-								parNodesToClear = [],
-								parNodes = doc.getElementsByTagName('P');
-							for (i = 0; i < parNodes.length; i++)
-							{
-								parNodes[i].setAttribute(attr, 'Y');
-							}
-							_this.document.execCommand(action);
-
+							parNodesToClear = [],
 							parNodes = doc.getElementsByTagName('P');
-							for (i = 0; i < parNodes.length; i++)
-							{
-								if (!parNodes[i].getAttribute(attr))
-								{
-									parNodesToClear.push(parNodes[i]);
-								}
-								else
-								{
-									parNodes[i].removeAttribute(attr);
-								}
-							}
-
-							_this.editor.selection.ExecuteAndRestoreSimple(function()
-							{
-								for (i = 0; i < parNodesToClear.length; i++)
-								{
-									_this.actions.formatBlock.addBrBeforeAndAfter(parNodesToClear[i]);
-									_this.editor.util.ReplaceWithOwnChildren(parNodesToClear[i]);
-								}
-							});
+						for (i = 0; i < parNodes.length; i++)
+						{
+							parNodes[i].setAttribute(attr, 'Y');
 						}
+						_this.document.execCommand(action);
+
+						parNodes = doc.getElementsByTagName('P');
+						for (i = 0; i < parNodes.length; i++)
+						{
+							if (!parNodes[i].getAttribute(attr))
+							{
+								parNodesToClear.push(parNodes[i]);
+							}
+							else
+							{
+								parNodes[i].removeAttribute(attr);
+							}
+						}
+
+						_this.editor.selection.ExecuteAndRestoreSimple(function()
+						{
+							for (i = 0; i < parNodesToClear.length; i++)
+							{
+								_this.actions.formatBlock.addBrBeforeAndAfter(parNodesToClear[i]);
+								_this.editor.util.ReplaceWithOwnChildren(parNodesToClear[i]);
+							}
+						});
 					}
 				},
 				state: function(action, value)
@@ -2879,10 +3209,20 @@
 				exec: function(action, value)
 				{
 					var res;
-					if (value)
-						res = _this.actions.formatInline.exec(action, value, "span", {fontFamily: value});
-					else // Clear fontFamily format
-						res = _this.actions.formatInline.exec(action, value, "span", {fontFamily: null}, null, {bClear: true});
+
+					// Iframe
+					if (!_this.editor.bbCode || !_this.editor.synchro.IsFocusedOnTextarea())
+					{
+						if (value)
+							res = _this.actions.formatInline.exec(action, value, "span", {fontFamily: value});
+						else // Clear fontFamily format
+							res = _this.actions.formatInline.exec(action, value, "span", {fontFamily: null}, null, {bClear: true});
+					}
+					else // textarea + bbcode
+					{
+						return _this.actions.formatBbCode.exec(action, {tag: 'FONT', value: value});
+					}
+
 					return res;
 				},
 
@@ -3220,6 +3560,192 @@
 						return nodes;
 					}
 				},
+				value: BX.DoNothing
+			};
+		},
+
+		GetSubSup: function(type)
+		{
+			var _this = this;
+
+			type = type == 'sup' ? 'sup' : 'sub';
+
+			return {
+				exec: function(action, value)
+				{
+					return _this.actions.formatInline.exec(action, value, type);
+				},
+				state: function(action, value)
+				{
+					return _this.actions.formatInline.state(action, value, type);
+				},
+				value: BX.DoNothing
+			};
+		},
+
+		GetQuote: function()
+		{
+			var
+				range,
+				externalSelection,
+				_this = this;
+
+			function checkNode(n)
+			{
+				return n && n.className == 'bxhtmled-quote' && n.nodeName == 'BLOCKQUOTE';
+			}
+
+			function setExternalSelection(text)
+			{
+				externalSelection = text;
+			}
+			function getExternalSelection()
+			{
+				return externalSelection;
+			}
+			function setRange(rng)
+			{
+				return range = rng;
+			}
+
+			return {
+				exec: function(action)
+				{
+					var
+						res = false,
+						sel = getExternalSelection();
+
+					if (_this.editor.bbCode && _this.editor.synchro.IsFocusedOnTextarea())
+					{
+						_this.editor.textareaView.Focus();
+						if(sel)
+						{
+							res = _this.editor.textareaView.WrapWith(false, false, "[QUOTE]" + sel + "[/QUOTE]");
+						}
+						else
+						{
+							res = _this.actions.formatBbCode.exec(action, {tag: 'QUOTE'});
+						}
+					}
+					else
+					{
+						if(sel)
+						{
+							_this.editor.iframeView.Focus();
+							if (range)
+								_this.editor.selection.SetSelection(range);
+							_this.editor.InsertHtml('<blockquote class="bxhtmled-quote">' + sel + '</blockquote>' + _this.editor.INVISIBLE_SPACE, range);
+						}
+						else
+						{
+							res = _this.actions.formatBlock.exec('formatBlock', 'blockquote', 'bxhtmled-quote', false, {range: range});
+						}
+					}
+					return res;
+				},
+				state: function()
+				{
+					return _this.actions.formatBlock.state('formatBlock', 'blockquote', 'bxhtmled-quote');
+				},
+				value: BX.DoNothing,
+				setExternalSelection : setExternalSelection,
+				getExternalSelection : getExternalSelection,
+				setRange : setRange,
+				checkNode: checkNode
+			};
+		},
+
+		GetCode: function()
+		{
+			var _this = this;
+			return {
+				exec: function(action)
+				{
+					// Iframe
+					if (!_this.editor.bbCode || !_this.editor.synchro.IsFocusedOnTextarea())
+					{
+						var codeElement = _this.actions.code.state();
+						if (codeElement)
+						{
+							_this.editor.selection.ExecuteAndRestoreSimple(function()
+							{
+								codeElement.className = '';
+								codeElement = _this.editor.util.RenameNode(codeElement, 'P');
+							});
+						}
+						else
+						{
+							_this.actions.formatBlock.exec('formatBlock', 'pre', 'bxhtmled-code');
+						}
+					}
+					else // bbcode + textarea
+					{
+						return _this.actions.formatBbCode.exec(action, {tag: 'CODE'});
+					}
+				},
+				state: function()
+				{
+					return _this.actions.formatBlock.state('formatBlock', 'pre', 'bxhtmled-code');
+				},
+				value: BX.DoNothing
+			};
+		},
+
+		GetInsertSmile: function()
+		{
+			var _this = this;
+			return {
+				exec: function(action, value)
+				{
+					var smile = _this.editor.smilesIndex[value];
+					if (_this.editor.bbCode && _this.editor.synchro.IsFocusedOnTextarea())
+					{
+						_this.editor.textareaView.Focus();
+						_this.editor.textareaView.WrapWith(false, false, smile.code);
+					}
+					else
+					{
+						_this.editor.iframeView.Focus();
+						if (smile)
+						{
+							var smileImg = BX.create("IMG", {props:
+							{
+								src: smile.path,
+								title: smile.name || smile.code
+							}});
+							_this.editor.SetBxTag(smileImg, {tag: "smile", params: smile});
+							_this.editor.selection.InsertNode(smileImg);
+
+							_this.editor.selection.SetAfter(smileImg);
+							setTimeout(function(){_this.editor.selection.SetAfter(smileImg);}, 10);
+						}
+					}
+				},
+				state: BX.DoNothing,
+				value: BX.DoNothing
+			};
+		},
+
+		GetFormatBbCode: function()
+		{
+			var _this = this;
+			return {
+				view: 'textarea',
+				exec: function(action, params)
+				{
+					var
+						value = params.value,
+						tag = params.tag.toUpperCase(),
+						tag_end = tag;
+
+					if (tag == 'FONT' || tag == 'COLOR' || tag == 'SIZE')
+					{
+						tag += "=" + value;
+					}
+
+					_this.editor.textareaView.WrapWith("[" + tag + "]", "[/" + tag_end + "]");
+				},
+				state: BX.DoNothing,
 				value: BX.DoNothing
 			};
 		}

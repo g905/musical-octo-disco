@@ -1093,9 +1093,9 @@ function __runsnips()
 	window.BXHtmlEditor.dialogs.snippetsCategories = SnippetsCategoryDialog;
 }
 
-	if (window.BXHtmlEditor)
+	if (window.BXHtmlEditor && window.BXHtmlEditor.dialogs)
 		__runsnips();
 	else
-		BX.addCustomEvent(window, "OnBXHtmlEditorInit", __runsnips);
+		BX.addCustomEvent(window, "OnEditorBaseControlsDefined", __runsnips);
 
 })();

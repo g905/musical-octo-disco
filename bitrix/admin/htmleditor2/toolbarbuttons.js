@@ -256,25 +256,6 @@ arButtons['SpecialChar'] = ['BXButton',
 	}
 ];
 
-arButtons['spellcheck'] = ['BXButton',
-	{
-		id : 'spellcheck',
-		iconkit : '_global_iconkit.gif',
-		name : 'spellCheck',
-		title : BX_MESS.SpellTitle,
-		handler : function ()
-		{
-			if (!window.spellcheck_js)
-			{
-				BXLoadJSFiles(['spellcheck.js?v='+spellcheck_js_v], {func: this.pMainObj.OnSpellCheck, obj: this.pMainObj});
-			}
-			else
-				this.pMainObj.OnSpellCheck();
-		},
-		hideCondition: function(pMainObj){return (pMainObj.bDotNet || false);}
-	}
-];
-
 arButtons['Bold'] = ['BXButton',
 	{
 		id : 'Bold',
@@ -1150,7 +1131,7 @@ arToolbars['standart'] = [
 	arButtons['Undo'], arButtons['Redo'], arButtons['separator'],
 	arButtons['borders'], 'separator',
 	arButtons['table'], arButtons['anchor'], arButtons['CreateLink'], arButtons['deletelink'], arButtons['image'],  'separator',
-	arButtons['SpecialChar'], /* arButtons['spellcheck'] */
+	arButtons['SpecialChar'],
 	arButtons['page_break'],
 	arButtons['break_tag'],
 	arButtons['insert_flash']
@@ -2393,7 +2374,7 @@ if (window.lightMode || window._showAllButtons)
 		arButtons['Undo'], arButtons['Redo'],
 		arButtons['borders'], 'separator',
 		arButtons['table'], arButtons['anchor'], arButtons['CreateLink'], arButtons['deletelink'], arButtons['image'],
-		arButtons['SpecialChar'], /* arButtons['spellcheck'], */
+		arButtons['SpecialChar'],
 		arButtons['insert_flash'],
 		arButtons['InsertHorizontalRule'], 'separator',
 		arButtons['InsertOrderedList'], arButtons['InsertUnorderedList'], 'separator',
