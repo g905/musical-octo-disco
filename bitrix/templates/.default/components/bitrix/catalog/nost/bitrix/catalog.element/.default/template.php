@@ -13,7 +13,16 @@
 		endforeach;
 	
 	endif;
-?>            				<div id="image" style="display: block;height:<?=$arResult["DETAIL_PICTURE"]["HEIGHT"]?>px;width:<?=$arResult["DETAIL_PICTURE"]["WIDTH"]?>px;">
+?>
+<?
+					// adl 10.12.14 Изменяем размер главной картинки на странице товара, чтобы сэкономить трафик
+					$file2 = CFile::ResizeImageGet($arResult["DETAIL_PICTURE"], array('width'=>'577', 'height'=>'432'), BX_RESIZE_IMAGE_EXACT, true); 
+					$arResult["DETAIL_PICTURE"]["SRC"] = $file2["src"];
+					$arResult["DETAIL_PICTURE"]["WIDTH"] = $file2["width"];
+					$arResult["DETAIL_PICTURE"]["HEIGHT"] = $file2["height"];
+					$arResult["DETAIL_PICTURE"]["FILE_SIZE"] = $file2["size"];
+?>
+            				<div id="image" style="display: block;height:<?=$arResult["DETAIL_PICTURE"]["HEIGHT"]?>px;width:<?=$arResult["DETAIL_PICTURE"]["WIDTH"]?>px;">
 						<img id="mainPict" src="<?=$arResult["DETAIL_PICTURE"]["SRC"]?>" width="<?=$arResult["DETAIL_PICTURE"]["WIDTH"]?>" height="<?=$arResult["DETAIL_PICTURE"]["HEIGHT"]?>" alt="<?=$seo_title?>" title="<?=$seo_title?>" />
 					</div>
 					<div class="clearfix"></div>
