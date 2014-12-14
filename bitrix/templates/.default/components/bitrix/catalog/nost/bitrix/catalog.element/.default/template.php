@@ -23,12 +23,12 @@
 ?>
 <?
 					// adl 10.12.14 Изменяем размер главной картинки на странице товара, чтобы сэкономить трафик
+					$file2_big = CFile::ResizeImageGet($arResult["DETAIL_PICTURE"], array('width'=>'1000'), BX_RESIZE_IMAGE_EXACT, true); 
 					$file2 = CFile::ResizeImageGet($arResult["DETAIL_PICTURE"], array('width'=>'577', 'height'=>'432'), BX_RESIZE_IMAGE_EXACT, true); 
 					$arResult["DETAIL_PICTURE"]["SRC"] = $file2["src"];
 					$arResult["DETAIL_PICTURE"]["WIDTH"] = $file2["width"];
 					$arResult["DETAIL_PICTURE"]["HEIGHT"] = $file2["height"];
 					$arResult["DETAIL_PICTURE"]["FILE_SIZE"] = $file2["size"];
-					$file2_big = CFile::ResizeImageGet($arResult["DETAIL_PICTURE"], array('width'=>'1000'), BX_RESIZE_IMAGE_EXACT, true); 
 ?>
             				<div id="image" style="display: block;height:<?=$arResult["DETAIL_PICTURE"]["HEIGHT"]?>px;width:<?=$arResult["DETAIL_PICTURE"]["WIDTH"]?>px;">
 						<a href="<?=$file2_big["src"]?>" id="fancyboxPict" class="fancybox" rel="images" title="<?=$seo_title?>">
@@ -94,13 +94,12 @@
 					
 					// adl 03.06.14 Изменяем размер картинок на странице товара, чтобы сэкономить трафик
 					// если честно - мне так не очень нравится(особенно $PHOTO["SUBDIR"], но может будет работать.
+					$file1_big = CFile::ResizeImageGet($PHOTO, array('width'=>'1000'), BX_RESIZE_IMAGE_EXACT, true); 
 					$file1 = CFile::ResizeImageGet($PHOTO, array('width'=>'577', 'height'=>'432'), BX_RESIZE_IMAGE_EXACT, true); 
 					$PHOTO["SRC"] = $file1["src"];
 					$PHOTO["WIDTH"] = $file1["width"];
 					$PHOTO["HEIGHT"] = $file1["height"];
 					$PHOTO["FILE_SIZE"] = $file1["size"];
-					$file1_big = CFile::ResizeImageGet($PHOTO, array('width'=>'1000'), BX_RESIZE_IMAGE_EXACT, true); 
-					$file1_big["src"];
 				?>
 				<? endif?>
                             	<div onclick="changePict('<?=$PHOTO["SRC"]?>', this, '<?=$format?>', '<?=$file1_big["src"];?>');">
