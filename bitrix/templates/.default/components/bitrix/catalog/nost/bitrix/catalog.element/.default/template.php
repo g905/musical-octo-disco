@@ -1,4 +1,11 @@
 <?if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();?>
+    <script>
+	var j$ = jQuery.noConflict();
+        j$(document).ready(function() {
+            j$('.fancybox').fancybox();
+        });
+    </script>
+
  		<div class="container subtext">
 			<div class="row">
 				<div class="col-xs-18">
@@ -21,9 +28,12 @@
 					$arResult["DETAIL_PICTURE"]["WIDTH"] = $file2["width"];
 					$arResult["DETAIL_PICTURE"]["HEIGHT"] = $file2["height"];
 					$arResult["DETAIL_PICTURE"]["FILE_SIZE"] = $file2["size"];
+					$file2_big = CFile::ResizeImageGet($arResult["DETAIL_PICTURE"], array('width'=>'1000'), BX_RESIZE_IMAGE_EXACT, true); 
 ?>
             				<div id="image" style="display: block;height:<?=$arResult["DETAIL_PICTURE"]["HEIGHT"]?>px;width:<?=$arResult["DETAIL_PICTURE"]["WIDTH"]?>px;">
-						<img id="mainPict" src="<?=$arResult["DETAIL_PICTURE"]["SRC"]?>" width="<?=$arResult["DETAIL_PICTURE"]["WIDTH"]?>" height="<?=$arResult["DETAIL_PICTURE"]["HEIGHT"]?>" alt="<?=$seo_title?>" title="<?=$seo_title?>" />
+						<a href="<?=$file2_big["src"]?>" id="fancyboxPict" class="fancybox" rel="images" title="<?=$seo_title?>">
+							<img id="mainPict" src="<?=$arResult["DETAIL_PICTURE"]["SRC"]?>" width="<?=$arResult["DETAIL_PICTURE"]["WIDTH"]?>" height="<?=$arResult["DETAIL_PICTURE"]["HEIGHT"]?>" alt="<?=$seo_title?>" title="<?=$seo_title?>" />
+						</a>
 					</div>
 					<div class="clearfix"></div>
   		<? foreach($arResult["MORE_PHOTO"] as $PHOTO):?>  
@@ -36,7 +46,7 @@
 		<div style="display: block;height:20px;width:<?=$arResult["DETAIL_PICTURE"]["WIDTH"]?>px;text-align:center;font-family:Tahoma;font-size: 12px;"><?=$seo_title?></div>
 					<div id="items-miniimg" class="miniatures">
 			<? $file = CFile::ResizeImageGet($arResult["DETAIL_PICTURE"], array('width'=>'102', 'height'=>'68'), BX_RESIZE_IMAGE_EXACT, true); ?>  
-                	<div class="activ" onclick="changePict('<?=$arResult["DETAIL_PICTURE"]["SRC"]?>', this);">
+                	<div class="activ" onclick="changePict('<?=$arResult["DETAIL_PICTURE"]["SRC"]?>', this, 'img', '<?=$file2_big["src"]?>');">
 				<img src="<?=$file["src"]?>" width="<?=$file["width"]?>" height="<?=$file["height"]?>" alt="<?=$arResult["NAME"]?>" title="<?=$arResult["NAME"]?>" />
 			</div>
 		<?
@@ -89,9 +99,11 @@
 					$PHOTO["WIDTH"] = $file1["width"];
 					$PHOTO["HEIGHT"] = $file1["height"];
 					$PHOTO["FILE_SIZE"] = $file1["size"];
+					$file1_big = CFile::ResizeImageGet($PHOTO, array('width'=>'1000'), BX_RESIZE_IMAGE_EXACT, true); 
+					$file1_big["src"];
 				?>
 				<? endif?>
-                            	<div onclick="changePict('<?=$PHOTO["SRC"]?>', this, '<?=$format?>');">
+                            	<div onclick="changePict('<?=$PHOTO["SRC"]?>', this, '<?=$format?>', '<?=$file1_big["src"];?>');">
                     			<img src="<?=$file["src"]?>" width="<?=$file["width"]?>" height="<?=$file["height"]?>" alt="<?=$arResult["NAME"]?>" title="<?=$arResult["NAME"]?>" />  
               			</div>
 			<? endforeach?>  
