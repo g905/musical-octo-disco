@@ -21,40 +21,45 @@
 	
 	endif;
 ?>
+
 <?
-					// adl 10.12.14 Изменяем размер главной картинки на странице товара, чтобы сэкономить трафик
-					$file2_big = CFile::ResizeImageGet($arResult["DETAIL_PICTURE"], array('width'=>'1000', 'height'=>'1000'), BX_RESIZE_IMAGE_PROPORTIONAL, true); 
-					$file2 = CFile::ResizeImageGet($arResult["DETAIL_PICTURE"], array('width'=>'577', 'height'=>'432'), BX_RESIZE_IMAGE_EXACT, true); 
-					$arResult["DETAIL_PICTURE"]["SRC"] = $file2["src"];
-					$arResult["DETAIL_PICTURE"]["WIDTH"] = $file2["width"];
-					$arResult["DETAIL_PICTURE"]["HEIGHT"] = $file2["height"];
-					$arResult["DETAIL_PICTURE"]["FILE_SIZE"] = $file2["size"];
+
+			// adl 10.12.14 Изменяем размер главной картинки на странице товара, чтобы сэкономить трафик
+			$file2_big = CFile::ResizeImageGet($arResult["DETAIL_PICTURE"], array('width'=>'1000', 'height'=>'1000'), BX_RESIZE_IMAGE_PROPORTIONAL, true); 
+			$file2 = CFile::ResizeImageGet($arResult["DETAIL_PICTURE"], array('width'=>'577', 'height'=>'432'), BX_RESIZE_IMAGE_EXACT, true); 
+			$arResult["DETAIL_PICTURE"]["SRC"] = $file2["src"];
+			$arResult["DETAIL_PICTURE"]["WIDTH"] = $file2["width"];
+			$arResult["DETAIL_PICTURE"]["HEIGHT"] = $file2["height"];
+			$arResult["DETAIL_PICTURE"]["FILE_SIZE"] = $file2["size"];
+			$file = CFile::ResizeImageGet($arResult["DETAIL_PICTURE"], array('width'=>'102', 'height'=>'68'), BX_RESIZE_IMAGE_EXACT, true);
+
+
+			// adl 21.12.2014 Создаем массив всех без исключения картинок и флешек (путь до супер-большой картинки, титл для <a>, путь до средней картинки, ширина средней картинки, 
+			// высота средней картинки, alt и title для <img>, видимость средней картинки, путь до маленькой картинки, ширина маленькой картинки, высота маленькой картинки, 
+			// alt и title маленькой картинки, формат - изображение или флеш)
+			$allMedia[0] = Array(	"BIG_PATH" => $file2_big["src"],
+						"A_TITLE" => $seo_title,
+						"NORMAL_PATH" => $arResult["DETAIL_PICTURE"]["SRC"],
+						"NORMAL_WIDTH" => $arResult["DETAIL_PICTURE"]["WIDTH"],
+						"NORMAL_HEIGHT" => $arResult["DETAIL_PICTURE"]["HEIGHT"],
+						"NORMAL_TITLE" => $seo_title,
+						"NORMAL_VISIBLE" => "block",
+						"SMALL_PATH" => $file["src"],
+						"SMALL_WIDTH" => $file["width"],
+						"SMALL_HEIGHT" => $file["height"],
+						"SMALL_TITLE" => $arResult["NAME"],
+						"FORMAT" => "img"
+					    );
+
 ?>
-            				<div id="image" style="display: block;height:<?=$arResult["DETAIL_PICTURE"]["HEIGHT"]?>px;width:<?=$arResult["DETAIL_PICTURE"]["WIDTH"]?>px;">
-						<a href="<?=$file2_big["src"]?>" id="fancyboxPict" class="fancybox" rel="images" title="<?=$seo_title?>">
-							<img id="mainPict" src="<?=$arResult["DETAIL_PICTURE"]["SRC"]?>" width="<?=$arResult["DETAIL_PICTURE"]["WIDTH"]?>" height="<?=$arResult["DETAIL_PICTURE"]["HEIGHT"]?>" alt="<?=$seo_title?>" title="<?=$seo_title?>" />
-						</a>
-					</div>
-					<div class="clearfix"></div>
-  		<? foreach($arResult["MORE_PHOTO"] as $PHOTO):?>  
-			<? if ($PHOTO["CONTENT_TYPE"] == "application/x-shockwave-flash"): ?>
-				<div id="flash" style="display:none;height:<?=$arResult["DETAIL_PICTURE"]["HEIGHT"]?>px;width:<?=$arResult["DETAIL_PICTURE"]["WIDTH"]?>px;background-color:#000000;">
-					<embed id="mainSwf" src="<?=$PHOTO["SRC"]?>" type="application/x-shockwave-flash" bgcolor="#000000" quality="high" width="400" height="300" style="margin-left:<?=($arResult["DETAIL_PICTURE"]["WIDTH"]-400)/2?>px;margin-top:<?=($arResult["DETAIL_PICTURE"]["HEIGHT"]-300)/2?>px;">
-				</div>
-			<?endif?>
-		<? endforeach?>  
-		<div style="display: block;height:20px;width:<?=$arResult["DETAIL_PICTURE"]["WIDTH"]?>px;text-align:center;font-family:Tahoma;font-size: 12px;"><?=$seo_title?></div>
-					<div id="items-miniimg" class="miniatures">
-			<? $file = CFile::ResizeImageGet($arResult["DETAIL_PICTURE"], array('width'=>'102', 'height'=>'68'), BX_RESIZE_IMAGE_EXACT, true); ?>  
-                	<div class="activ" onclick="changePict('<?=$arResult["DETAIL_PICTURE"]["SRC"]?>', this, 'img', '<?=$file2_big["src"]?>');">
-				<img src="<?=$file["src"]?>" width="<?=$file["width"]?>" height="<?=$file["height"]?>" alt="<?=$arResult["NAME"]?>" title="<?=$arResult["NAME"]?>" />
-			</div>
+
+
 		<?
-		// additional photos  
-		$LINE_ELEMENT_COUNT = 5; // number of elements in a row  
-		if(count($arResult["MORE_PHOTO"])>0):?>  
-    			<? foreach($arResult["MORE_PHOTO"] as $PHOTO):?>  
-				<? if ($PHOTO["CONTENT_TYPE"] == "application/x-shockwave-flash"): 
+		$i = 1;
+		// Заносим в массив $allMedia[$i] дополнительные фотографии и флешки
+		if(count($arResult["MORE_PHOTO"])>0):
+			foreach($arResult["MORE_PHOTO"] as $PHOTO):
+				if ($PHOTO["CONTENT_TYPE"] == "application/x-shockwave-flash") {
 					$format = "swf";
 					// Получаем изображение "3Д вращения" из медиабиблиотеки
 					if (CModule::IncludeModule("fileman")) {
@@ -87,8 +92,7 @@
 							}
 						}
 					}
-				?>
-				<? else:
+				} else {
 					$format = "img";
 					$file = CFile::ResizeImageGet($PHOTO, array('width'=>'102', 'height'=>'68'), BX_RESIZE_IMAGE_EXACT, true); 
 					
@@ -100,13 +104,56 @@
 					$PHOTO["WIDTH"] = $file1["width"];
 					$PHOTO["HEIGHT"] = $file1["height"];
 					$PHOTO["FILE_SIZE"] = $file1["size"];
-				?>
-				<? endif?>
-                            	<div onclick="changePict('<?=$PHOTO["SRC"]?>', this, '<?=$format?>', '<?=$file1_big["src"];?>');">
-                    			<img src="<?=$file["src"]?>" width="<?=$file["width"]?>" height="<?=$file["height"]?>" alt="<?=$arResult["NAME"]?>" title="<?=$arResult["NAME"]?>" />  
-              			</div>
-			<? endforeach?>  
-		<?endif?>  
+
+				}
+				
+				$allMedia[$i] = Array(	
+						"BIG_PATH" => $file1_big["src"],
+						"A_TITLE" => $arResult["NAME"],
+						"NORMAL_PATH" => $PHOTO["SRC"],
+						"NORMAL_WIDTH" => $PHOTO["WIDTH"],
+						"NORMAL_HEIGHT" => $PHOTO["HEIGHT"],
+						"NORMAL_TITLE" => $arResult["NAME"],
+						"NORMAL_VISIBLE" => "none",
+						"SMALL_PATH" => $file["src"],
+						"SMALL_WIDTH" => $file["width"],
+						"SMALL_HEIGHT" => $file["height"],
+						"SMALL_TITLE" => $arResult["NAME"],
+						"FORMAT" => $format
+						    );
+
+				$i++;
+			endforeach;
+		endif;?>  
+
+			<? for ($i=0; $i < count($allMedia); $i++):?>
+				<? if($allMedia[$i]['FORMAT'] == 'img'):?>
+            				<div id="image<?=$i?>" style="display: <?=$allMedia[$i]['NORMAL_VISIBLE'];?>; height:<?=$allMedia[$i]['NORMAL_HEIGHT']?>px; width:<?=$allMedia[$i]['NORMAL_WIDTH'];?>px;">
+						<a href="<?=$allMedia[$i]['BIG_PATH']?>" class="fancybox" rel="images" title="<?=$allMedia[$i]['A_TITLE']?>">
+							<img id="mainPict<?=$i?>" src="<?=$allMedia[$i]['NORMAL_PATH']?>" width="<?=$allMedia[$i]['NORMAL_WIDTH']?>" height="<?=$allMedia[$i]['NORMAL_HEIGHT']?>" alt="<?=$allMedia[$i]['NORMAL_TITLE']?>" title="<?=$allMedia[$i]['NORMAL_TITLE']?>" />
+						</a>
+					</div>
+				<?endif?>
+			<? endfor;?>
+					<div class="clearfix"></div>
+  		<? foreach($arResult["MORE_PHOTO"] as $PHOTO):?>  
+			<? if ($PHOTO["CONTENT_TYPE"] == "application/x-shockwave-flash"): ?>
+				<div id="flash" style="display:none;height:<?=$arResult["DETAIL_PICTURE"]["HEIGHT"]?>px;width:<?=$arResult["DETAIL_PICTURE"]["WIDTH"]?>px;background-color:#000000;">
+					<embed id="mainSwf" src="<?=$PHOTO["SRC"]?>" type="application/x-shockwave-flash" bgcolor="#000000" quality="high" width="400" height="300" style="margin-left:<?=($arResult["DETAIL_PICTURE"]["WIDTH"]-400)/2?>px;margin-top:<?=($arResult["DETAIL_PICTURE"]["HEIGHT"]-300)/2?>px;">
+				</div>
+			<?endif?>
+		<? endforeach?>  
+
+		<div style="display: block;height:20px;width:<?=$arResult["DETAIL_PICTURE"]["WIDTH"]?>px;text-align:center;font-family:Tahoma;font-size: 12px;"><?=$seo_title?></div>
+
+					<div id="items-miniimg" class="miniatures">
+
+			<? for ($i=0; $i < count($allMedia); $i++):?>
+                		<div <?if($i==0):?>class="activ"<?endif?> onclick="changePict('<?=$i?>', this, '<?=$allMedia[$i]['FORMAT']?>');">
+					<img src="<?=$allMedia[$i]['SMALL_PATH']?>" width="<?=$allMedia[$i]['SMALL_WIDTH']?>" height="<?=$allMedia[$i]['SMALL_HEIGHT']?>" alt="<?=$allMedia[$i]['SMALL_TITLE']?>" title="<?=$allMedia[$i]['SMALL_TITLE']?>" />
+				</div>
+			<? endfor;?>
+
 						<span></span>
 					</div>
 				</div>
