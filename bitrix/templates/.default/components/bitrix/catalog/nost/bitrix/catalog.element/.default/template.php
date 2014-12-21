@@ -130,7 +130,7 @@
 				<? if($allMedia[$i]['FORMAT'] == 'img'):?>
             				<div id="image<?=$i?>" style="display: <?=$allMedia[$i]['NORMAL_VISIBLE'];?>; height:<?=$allMedia[$i]['NORMAL_HEIGHT']?>px; width:<?=$allMedia[$i]['NORMAL_WIDTH'];?>px;">
 						<a href="<?=$allMedia[$i]['BIG_PATH']?>" class="fancybox" rel="images" title="<?=$allMedia[$i]['A_TITLE']?>">
-							<img id="mainPict<?=$i?>" src="<?=$allMedia[$i]['NORMAL_PATH']?>" width="<?=$allMedia[$i]['NORMAL_WIDTH']?>" height="<?=$allMedia[$i]['NORMAL_HEIGHT']?>" alt="<?=$allMedia[$i]['NORMAL_TITLE']?>" title="<?=$allMedia[$i]['NORMAL_TITLE']?>" />
+							<img id="mainPict<?=$i?>" class="mainPict" src="<?=$allMedia[$i]['NORMAL_PATH']?>" width="<?=$allMedia[$i]['NORMAL_WIDTH']?>" height="<?=$allMedia[$i]['NORMAL_HEIGHT']?>" alt="<?=$allMedia[$i]['NORMAL_TITLE']?>" title="<?=$allMedia[$i]['NORMAL_TITLE']?>" />
 						</a>
 					</div>
 				<?endif?>

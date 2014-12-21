@@ -187,3 +187,8 @@ right: 20px;
 h1, .h1, h2, .h2 {
 margin-top: 0px;
 }
+
+/* лишние границы ссылки при нажатии */
+a.fancybox-nav, a.fancybox-close {
+	outline: none;
+}
