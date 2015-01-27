@@ -44,7 +44,7 @@ false
 								<tr>
 									<td><span id="reddy">Модель</span></td>
 									<td>Базовая цена</td>
-									<td>от 30 шт.</td>
+									<td>от 20 шт.</td>
 									<td>от 50 шт.</td>
 									<td>от 100 шт.</td>
 									<td>от 200 шт.</td>
@@ -52,47 +52,47 @@ false
 								</tr>
 								<tr>
 									<td class="text-left"><span id="reddy"><a href="/products/shashki-dlya-taksi/shashki-45-sm/">Шашки 45см</a></span></td>
+									<td>1200</td>
+									<td>960</td>
 									<td>900</td>
-									<td>855</td>
-									<td>810</td>
-									<td>765</td>
+									<td>840</td>
 									<td>Цена договорная</td>
 									<td>+ 10%</td>
 								</tr>
 								<tr>
 									<td class="text-left"><span id="reddy"><a href="/products/shashki-dlya-taksi/shashki-52-sm/">Шашки 52см</a></span></td>
-									<td>1000</td>
-									<td>950</td>
-									<td>900</td>
-									<td>850</td>
+									<td>1350</td>
+									<td>1080</td>
+									<td>999</td>
+									<td>945</td>
 									<td>Цена договорная</td>
 									<td>+ 10%</td>
 								</tr>
 								<tr>
 									<td class="text-left"><span id="reddy"><a href="/products/shashki-dlya-taksi/shashki-60-sm/">Шашки 60см</a></span></td>
-									<td>1100</td>
-									<td>1045</td>
-									<td>990</td>
-									<td>935</td>
+									<td>1500</td>
+									<td>1200</td>
+									<td>1125</td>
+									<td>1050</td>
 									<td>Цена договорная</td>
 									<td>+ 10%</td>
 								</tr>
 								<tr>
 									<td class="text-left"><span id="reddy"><a href="/products/shashki-dlya-taksi/shashki-70-sm/">Шашки 70см</a></span></td>
+									<td>1600</td>
+									<td>1280</td>
 									<td>1200</td>
-									<td>1140</td>
-									<td>1080</td>
-									<td>1020</td>
+									<td>1120</td>
 									<td>Цена договорная</td>
 									<td>+ 10%</td>
 								</tr>
 								<tr>
 									<td class="text-left"><span id="reddy"><a href="/products/shashki-dlya-taksi/shashki-40x30/">Шашки 40x30</a></span></td>
-									<td>1100</td>
-									<td>1100</td>
-									<td>1100</td>
-									<td>1100</td>
-									<td>1100</td>
+									<td>1500</td>
+									<td>1200</td>
+									<td>1125</td>
+									<td>1050</td>
+									<td>Цена договорная</td>
 									<td>+ 10%</td>
 								</tr>
 								<tr>
@@ -106,11 +106,11 @@ false
 								</tr>
 								<tr>
 									<td class="text-left"><span id="reddy"><a href="/products/shashki-dlya-taksi/shashki-38-sm/">Шашки 38см</a></span></td>
-									<td>650</td>
-									<td>650</td>
-									<td>650</td>
-									<td>650</td>
-									<td>650</td>
+									<td>690</td>
+									<td>690</td>
+									<td>690</td>
+									<td>690</td>
+									<td>690</td>
 									<td>+ 10%</td>
 								</tr>
 							</tbody>
