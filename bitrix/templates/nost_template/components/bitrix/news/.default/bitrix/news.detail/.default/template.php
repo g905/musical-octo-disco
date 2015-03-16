@@ -20,22 +20,7 @@
 		<?echo $arResult["NAV_TEXT"];?>
 		<?if($arParams["DISPLAY_BOTTOM_PAGER"]):?><br /><?=$arResult["NAV_STRING"]?><?endif;?>
  	<?elseif(strlen($arResult["DETAIL_TEXT"])>0):?>
-
 		<span class="itemstext"><?echo $arResult["DETAIL_TEXT"];?></span>
-		<?if (strpos($arResult["DETAIL_TEXT"], "<!--form-here-->") !== false):?>
-			<? $APPLICATION->IncludeComponent(
-				"fake:main.feedback",
-				"",
-				Array(
-					"USE_CAPTCHA" => "N",
-					"OK_TEXT" => "Спасибо, ваше сообщение принято.",
-					"EMAIL_TO" => "3412558963@mail.ru",
-					"REQUIRED_FIELDS" => array("NAME","PHONE","MESSAGE"),
-					"EVENT_MESSAGE_ID" => array("7")
-				)
-			);?>
-		<?endif?>
-
  	<?else:?>
 		<span class="itemstext"><?echo $arResult["PREVIEW_TEXT"];?></span>
 	<?endif?>
