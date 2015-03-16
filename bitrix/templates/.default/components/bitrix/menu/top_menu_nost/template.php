@@ -48,7 +48,7 @@ foreach($arResult as $arItem):?>
 		<?if ($arItem["PERMISSION"] > "D"):?>
 
 			<?if ($arItem["DEPTH_LEVEL"] == 1):?>
-			<li>
+			<li <?if ($index == count($arResult)):?>style="float:right;"<?endif?>>
 		                <a href="<?=$arItem["LINK"]?>">
         		            <div class="<?if ($arItem["SELECTED"]):?>but activ<?else:?>but<?endif?>">
 					<?if ($index==1):?>
