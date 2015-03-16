@@ -1,6 +1,10 @@
 <?if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();?>
 <div class="container subtext">
+<?if ($arParams["IBLOCK_TYPE"] == "promo"):?>
+<p class="zagl">Наши акции и спецпредложения</p>
+<?else:?>
 <p class="zagl">Наш блог</p>
+<?endif?>
 			<div class="row">
 <?foreach($arResult["ITEMS"] as $arItem):?>
 	<? 
@@ -15,7 +19,9 @@
 					</h1>
 					<p id="date"><strong><?echo $arItem["DISPLAY_ACTIVE_FROM"]?></strong></p>
 					<?if ($arItem["PREVIEW_PICTURE"]):?>
-						<img src="<?=$arItem["PREVIEW_PICTURE"]["SRC"]?>" <?if ($arItem["PREVIEW_PICTURE"]["WIDTH"]>994):?>width="994"<?endif?>>
+						<a href="<?echo $arItem["DETAIL_PAGE_URL"]?>" style="font-family: Arial Narrow,ArNarrow; text-decoration:none; ">
+							<img src="<?=$arItem["PREVIEW_PICTURE"]["SRC"]?>" <?if ($arItem["PREVIEW_PICTURE"]["WIDTH"]>994):?>width="994"<?endif?>>
+						</a>
 					<?endif?>
 					<br>
 					<p>

@@ -1,0 +1,20 @@
+div.mfeedback {padding-top:20px;}
+div.mf-name, div.mf-email, div.mf-phone, div.mf-captcha, div.mf-message {width:23%; padding-bottom:0.4em; float:left;}
+div.mf-name input, div.mf-email input, div.mf-phone input {width:80%;}
+div.mf-message input {width: 80%;}
+span.mf-req {color:red;}
+div.mf-ok-text {color:green; font-weight:bold; padding-bottom: 1em;}
+#sub_button {
+	cursor: pointer;
+	border-radius: 0.5em;
+	padding: 8px 18px;
+	margin-left: 40%;
+	color: #FFF;
+	font-family: Arial,Helvetica,sans-serif;
+	font-size: 12px;
+	font-weight: bold;
+	text-shadow: -1px -1px 0px #A60000;
+	border: 1px solid #A60000 !important;
+	box-shadow: 0px 1px 0px 0px #F29D93 inset;
+	background: -moz-linear-gradient(center top , #FE1900 0%, #CE0000 100%) repeat scroll 0% 0% transparent;
+}

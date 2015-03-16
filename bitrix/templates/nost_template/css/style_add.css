@@ -192,3 +192,8 @@ margin-top: 0px;
 a.fancybox-nav, a.fancybox-close {
 	outline: none;
 }
+
+/* цифры на баннере на главном экране */
+.beono-banner_slider-pager-inner {
+	margin-top: -2px;
+}

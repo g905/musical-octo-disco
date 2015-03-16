@@ -21,19 +21,63 @@ false
 <table width="1000px"> 
   <tbody> 
     <tr><td colspan="2">&nbsp<br/>&nbsp<br/></td></tr>
-    <tr> 	<td width="50%" align="center"> 1. Конструкция шашки на такси(<a href="/" title="шашки на такси">виды шашек такси</a>):</td> <td align="center"> 2. Смена плафона на стандартном <a href="/products/shashki-dlya-taksi/shashki-45-sm/">фонаре такси</a>:</b> </td> </tr>
-   
-    <tr> 	<td align="center"> <object width="340" height="285"><param name="movie" value="http://www.youtube.com/v/YCekD9Otx6g&amp;hl=ru&amp;fs=1&amp;rel=0&amp;border=1"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" src="http://www.youtube.com/v/YCekD9Otx6g&amp;hl=ru&amp;fs=1&amp;rel=0&amp;border=1" allowscriptaccess="always" allowfullscreen="true" height="285" width="340" ></embed></object> 	</td> 	<td align="center"> <object width="340" height="285"><param name="movie" value="http://www.youtube.com/v/vU31txswEAM&amp;hl=ru&amp;fs=1&amp;rel=0&amp;border=1"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" src="http://www.youtube.com/v/vU31txswEAM&amp;hl=ru&amp;fs=1&amp;rel=0&amp;border=1" allowscriptaccess="always" allowfullscreen="true" height="285" width="340" ></embed></object> 	</td> </tr>
+    <tr> 	<td width="50%" align="center"> 
+			<iframe width="340" height="255" src="https://www.youtube.com/embed/YCekD9Otx6g?rel=0" frameborder="0" allowfullscreen></iframe>
+		</td> 
+		<td align="center"> 
+			Конструкция шашки на такси(<a href="/" title="шашки на такси">виды шашек такси</a>)
+		</td> 
+    </tr>
 
     <tr><td colspan="2">&nbsp<br/>&nbsp<br/></td></tr>
-    <tr> 	<td align="center"> 3. Испытание шашки на такси на скорости 160 км/ч(<a href="/" title="купить шашки для такси">купить такие шашки на такси</a>): </td> <td align="center"> 4. Испытание шашки на прочность из монолитного поликарбоната(купить такие шашки для такси можно <a href="/" title="купить шашки для такси">здесь</a>):</td> </tr>
    
-    <tr> 	<td align="center"> <object width="340" height="285"><param name="movie" value="http://www.youtube.com/v/XYDcxNbo_P0&amp;hl=ru&amp;fs=1&amp;rel=0&amp;border=1"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" src="http://www.youtube.com/v/XYDcxNbo_P0&amp;hl=ru&amp;fs=1&amp;rel=0&amp;border=1" allowscriptaccess="always" allowfullscreen="true" height="285" width="340" ></embed></object> 	</td> 	<td align="center"> <object width="340" height="285"><param name="movie" value="http://www.youtube.com/v/wIftSzex7KU&amp;hl=ru&amp;fs=1&amp;rel=0&amp;border=1"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" src="http://www.youtube.com/v/wIftSzex7KU&amp;hl=ru&amp;fs=1&amp;rel=0&amp;border=1" allowscriptaccess="always" allowfullscreen="true" height="285" width="340" ></embed></object> 	</td> </tr>
+    <tr> 	<td align="center"> 
+			<iframe width="340" height="255" src="https://www.youtube.com/embed/vU31txswEAM?rel=0" frameborder="0" allowfullscreen></iframe>
+		</td> 	
+		<td align="center"> 
+			Смена плафона на стандартном <a href="/products/shashki-dlya-taksi/shashki-45-sm/">фонаре такси</a>
+		</td> 
+    </tr>
+
+    <tr><td colspan="2">&nbsp<br/>&nbsp<br/></td></tr>
+
+    <tr> 	<td align="center"> 
+			<iframe width="340" height="255" src="https://www.youtube.com/embed/XYDcxNbo_P0?rel=0" frameborder="0" allowfullscreen></iframe>
+		</td> 
+		<td align="center"> 
+			Испытание шашки на такси на скорости 160 км/ч(<a href="/" title="купить шашки для такси">купить такие шашки на такси</a>)
+		</td> 
+    </tr>
    
     <tr><td colspan="2">&nbsp<br/>&nbsp<br/></td></tr>
-    <tr> <td align="center"> 5. Испытание шашки на прочность из монолитного поликарбоната(<a href="/information/materialy/polikarbonat.html" title="поликарбонат">описание материала</a>):</td> <td align="center"> 6. Испытание шашки из полистирола: </td> </tr>
+
+    <tr> 	<td align="center"> 
+			<iframe width="340" height="255" src="https://www.youtube.com/embed/wIftSzex7KU?rel=0" frameborder="0" allowfullscreen></iframe>
+		</td> 	
+		<td align="center"> 
+			Испытание шашки на прочность из монолитного поликарбоната(купить такие шашки для такси можно <a href="/" title="купить шашки для такси">здесь</a>)
+		</td> 
+   </tr>
    
-    <tr> 	<td align="center"> <object width="340" height="285"><param name="movie" value="http://www.youtube.com/v/xJweh_UTing&amp;hl=ru&amp;fs=1&amp;rel=0&amp;border=1"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" src="http://www.youtube.com/v/xJweh_UTing&amp;hl=ru&amp;fs=1&amp;rel=0&amp;border=1" allowscriptaccess="always" allowfullscreen="true" height="285" width="340" ></embed></object> 	</td> 	<td align="center"> <object width="340" height="285"><param name="movie" value="http://www.youtube.com/v/l5ift5NEs_I&amp;hl=ru&amp;fs=1&amp;rel=0&amp;border=1"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" src="http://www.youtube.com/v/l5ift5NEs_I&amp;hl=ru&amp;fs=1&amp;rel=0&amp;border=1" allowscriptaccess="always" allowfullscreen="true" height="285" width="340" ></embed></object> 	</td> </tr>
+    <tr><td colspan="2">&nbsp<br/>&nbsp<br/></td></tr>
+
+    <tr> 	<td align="center"> 
+			<iframe width="340" height="255" src="https://www.youtube.com/embed/xJweh_UTing?rel=0" frameborder="0" allowfullscreen></iframe>
+		</td> 
+		<td align="center"> 
+			Испытание шашки на прочность из монолитного поликарбоната(<a href="/information/materialy/polikarbonat.html" title="поликарбонат">описание материала</a>)
+		</td> 
+    </tr>
+   
+    <tr><td colspan="2">&nbsp<br/>&nbsp<br/></td></tr>
+
+    <tr> 	<td align="center"> 
+			<iframe width="340" height="255" src="https://www.youtube.com/embed/l5ift5NEs_I?rel=0" frameborder="0" allowfullscreen></iframe>
+		</td> 	
+		<td align="center"> 
+			Испытание шашки из полистирола
+		</td> 
+    </tr>
    </tbody>
  </table>
  <?require($_SERVER["DOCUMENT_ROOT"]."/bitrix/footer.php");?>

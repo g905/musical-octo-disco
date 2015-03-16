@@ -42,7 +42,7 @@ false
 	"DISPLAY_DATE" => "N",
 	"DISPLAY_COUNT" => "Y",
 /*	"DETAIL_URL" => "album/?ID=#ID#",*/
-	"DETAIL_URL" => "album/#CODE#/",
+	"DETAIL_URL" => "album/#CODE#/", // Чтобы это работало "допиливал" компонент - обновлять нельзя
 	"CACHE_TYPE" => "A",
 	"CACHE_TIME" => "3600",
 	"CACHE_GROUPS" => "Y",
