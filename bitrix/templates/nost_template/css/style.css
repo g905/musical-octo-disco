@@ -1097,7 +1097,7 @@ img
     font-size: 22px;
     font-weight: bold;
     float: left;
-    text-align: right;
+/*    text-align: right;*/
     background-color: #ffffff;
     padding-right: 15px;
 }

@@ -62,12 +62,44 @@ foreach($arResult["ITEMS"] as $cell=>$arElement):
 
 <?	if (trim($arElement["PROPERTIES"]["DISCOUNT_TABLE"]["VALUE"]) <> '') {
 		$arDiscount = preg_split("/[:;]/" , $arElement["PROPERTIES"]["DISCOUNT_TABLE"]["VALUE"]);
+
+		// adl 05.04.15 В поле скидки может быть два значения, разбираем это
+		$arDisc1 = explode("," , $arDiscount[1]);
+		$arDisc2 = explode("," , $arDiscount[3]);
+		$arDisc3 = explode("," , $arDiscount[5]);
+
+		// Вычисляем реальную скидку на продукцию
+		foreach ($arDisc1 as &$disc)
+			if (strpos($disc, "%") !== false) $disc = $arElement["PROPERTIES"]["PRICE"]["VALUE"] - $arElement["PROPERTIES"]["PRICE"]["VALUE"]*$disc/100;
+		foreach ($arDisc2 as &$disc)
+			if (strpos($disc, "%") !== false) $disc = $arElement["PROPERTIES"]["PRICE"]["VALUE"] - $arElement["PROPERTIES"]["PRICE"]["VALUE"]*$disc/100;
+		foreach ($arDisc3 as &$disc)
+			if (strpos($disc, "%") !== false) $disc = $arElement["PROPERTIES"]["PRICE"]["VALUE"] - $arElement["PROPERTIES"]["PRICE"]["VALUE"]*$disc/100;
+
+		unset($disc);
+
+		// В зависимости от того, есть или нет вторая скидка - формируем все три строчки
+		if ($arDisc1[1] != "")
+			$string1 = "<del>" . $arDisc1[0] . "</del>&nbsp;<font color='#FF2B23'>" . $arDisc1[1] . "</font>";
+		else
+			$string1 = $arDisc1[0];
+		if ($arDisc2[1] != "")
+			$string2 = "<del>" . $arDisc2[0] . "</del>&nbsp;<font color='#FF2B23'>" . $arDisc2[1] . "</font>";
+		else
+			$string2 = $arDisc2[0];
+		if ($arDisc3[1] != "")
+			$string3 = "<del>" . $arDisc3[0] . "</del>&nbsp;<font color='#FF2B23'>" . $arDisc3[1] . "</font>";
+		else
+			$string3 = $arDisc3[0];
+
+		$whole_string = $string1 . "<br/>" . $string2 . "<br/>" . $string3; // Собираем все три строчки в одну
 	?>
 				<div class="all-prices">
 					<p class="prices">
-<?=($arElement["PROPERTIES"]["PRICE"]["VALUE"] - $arElement["PROPERTIES"]["PRICE"]["VALUE"]*$arDiscount[1]/100);?>
+<?=$whole_string;?>
+<?/*=($arElement["PROPERTIES"]["PRICE"]["VALUE"] - $arElement["PROPERTIES"]["PRICE"]["VALUE"]*$arDiscount[1]/100);?>
 <br><?=($arElement["PROPERTIES"]["PRICE"]["VALUE"] - $arElement["PROPERTIES"]["PRICE"]["VALUE"]*$arDiscount[3]/100);?>
-<br><?=($arElement["PROPERTIES"]["PRICE"]["VALUE"] - $arElement["PROPERTIES"]["PRICE"]["VALUE"]*$arDiscount[5]/100);?></p>
+<br><?=($arElement["PROPERTIES"]["PRICE"]["VALUE"] - $arElement["PROPERTIES"]["PRICE"]["VALUE"]*$arDiscount[5]/100);*/?></p>
 					<p class="count">От <?=$arDiscount[0];?> шт.<br>От <?=$arDiscount[2];?> шт.<br>От <?=$arDiscount[4];?> шт.</p>
 				</div>
 				<p class="item-note">* От <?=$arDiscount[6];?> шт. <?=strtolower($arDiscount[7]);?>.</p>

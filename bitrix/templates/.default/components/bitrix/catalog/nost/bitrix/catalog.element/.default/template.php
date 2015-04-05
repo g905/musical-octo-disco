@@ -189,6 +189,62 @@
 						</form>
 			<?endif?>
 					</div>
+	<!-- Блок со скидочными ценами -->
+<?	if (trim($arResult["PROPERTIES"]["DISCOUNT_TABLE"]["VALUE"]) <> '') { 
+		$arDiscount = preg_split("/[:;]/" , $arResult["PROPERTIES"]["DISCOUNT_TABLE"]["VALUE"]);
+
+		if (count($arDiscount) >= 2) {
+
+		// adl 05.04.15 В поле скидки может быть два значения, разбираем это
+		$arDisc1 = explode("," , $arDiscount[1]);
+		$arDisc2 = explode("," , $arDiscount[3]);
+		$arDisc3 = explode("," , $arDiscount[5]);
+
+		// Вычисляем реальную скидку на продукцию
+		foreach ($arDisc1 as &$disc)
+			if (strpos($disc, "%") !== false) $disc = $arResult["PROPERTIES"]["PRICE"]["VALUE"] - $arResult["PROPERTIES"]["PRICE"]["VALUE"]*$disc/100;
+		foreach ($arDisc2 as &$disc)
+			if (strpos($disc, "%") !== false) $disc = $arResult["PROPERTIES"]["PRICE"]["VALUE"] - $arResult["PROPERTIES"]["PRICE"]["VALUE"]*$disc/100;
+		foreach ($arDisc3 as &$disc)
+			if (strpos($disc, "%") !== false) $disc = $arResult["PROPERTIES"]["PRICE"]["VALUE"] - $arResult["PROPERTIES"]["PRICE"]["VALUE"]*$disc/100;
+
+		unset($disc);
+
+		// В зависимости от того, есть или нет вторая скидка - формируем все три строчки
+		if ($arDisc1[1] != "")
+			$string1 = "<del>" . $arDisc1[0] . "</del>&nbsp;<font color='#FF2B23'>" . $arDisc1[1] . "</font>";
+		else
+			$string1 = $arDisc1[0];
+		if ($arDisc2[1] != "")
+			$string2 = "<del>" . $arDisc2[0] . "</del>&nbsp;<font color='#FF2B23'>" . $arDisc2[1] . "</font>";
+		else
+			$string2 = $arDisc2[0];
+		if ($arDisc3[1] != "")
+			$string3 = "<del>" . $arDisc3[0] . "</del>&nbsp;<font color='#FF2B23'>" . $arDisc3[1] . "</font>";
+		else
+			$string3 = $arDisc3[0];
+
+		$whole_string = $string1 . "<br/>" . $string2 . "<br/>" . $string3; // Собираем все три строчки в одну
+
+	?>
+<div class="r-catalog">
+	<div class="col-xs-10" style="background: #ffffff;width: 100%;" >
+		<div class="item">
+			<div class="item-inner">
+				<div class="all-prices">
+					<p class="prices">
+						<?=$whole_string;?>
+					</p>
+					<p class="count">От <?=$arDiscount[0];?> шт.<br>От <?=$arDiscount[2];?> шт.<br>От <?=$arDiscount[4];?> шт.</p>
+				</div>
+				<p class="item-note">* От <?=$arDiscount[6];?> шт. <?=strtolower($arDiscount[7]);?>.</p>
+			</div>
+		</div>
+	</div>
+</div>
+		<? } ?>
+<? } ?>
+	<!-- /Блок со скидочными ценами -->
 
 	<!-- Закладки -->
 						<div class="clearfix"></div>
@@ -253,7 +309,7 @@
 	$ar_discount = array("9", "25", "26", "27", "38", "5"); // список айдишников категорий, в которых должна быть таблица скидок
 	if (in_array($arResult["IBLOCK_SECTION_ID"], $ar_discount)) { */
 	if (trim($arResult["PROPERTIES"]["DISCOUNT_TABLE"]["VALUE"]) <> '') {
-		$arDiscount = preg_split("/[:;]/" , $arResult["PROPERTIES"]["DISCOUNT_TABLE"]["VALUE"]);
+		$arDiscount = preg_split("/[:;]/" , $arResult["PROPERTIES"]["DISCOUNT_TABLE"]["VALUE"]); 
 	?>
 									<div class="tab-pane fade" id="skidki">
 											<table class="table table-bordered">
@@ -275,18 +331,19 @@
 													    		$elem = '<a href="/price/" title="шашки такси цена">Цена</a> договорная';
 													    	}
 
-
+													        // adl 05.04.15 Может быть несколько скидок - разбиваем строку по разделителю ,
+														$elem1 = explode("," ,	$elem);
 												?>
-													<td><span id="reddy"><?echo $elem;?></span></td>
+													<td><span id="reddy"><?echo $elem1[0];?></span></td>
 												<?} }?>
 												</tr>
-												<?else:?>
+											<?else:?>
 												<tr>
 													<td colspan="<?=((int)(count($arDiscount)/2)+1)?>">
 														<? echo $arDiscount[0];?>
 													</td>
 												</tr>
-												<?endif?>
+											<?endif?>
 												<tr style="text-align:left;"><td colspan="<?=((int)(count($arDiscount)/2)+1)?>"><span id="reddy"><?echo str_replace("поликарбоната", "<b>поликарбоната</b>", str_replace("полистирола", "<b>полистирола</b>", $arResult["PROPERTIES"]["ADDITIONAL_TEXT"]["VALUE"]));?></span></td></tr>
 											</table>
 									</div>

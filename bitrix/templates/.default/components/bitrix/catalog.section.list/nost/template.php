@@ -49,7 +49,15 @@ for($i=0; $i<5; $i++) {
  $price_from = $arProps["PRICE"]["VALUE"];
  if (trim($arProps["DISCOUNT_TABLE"]["VALUE"]) <> '') {
 	$arDiscount = preg_split("/[:;]/" , $arProps["DISCOUNT_TABLE"]["VALUE"]); 
-	$price_from = $arProps["PRICE"]["VALUE"] - $arProps["PRICE"]["VALUE"]*$arDiscount[5]/100;
+	// adl 05.04.15 В $arDiscount[5] могуть быть проценты и не проценты, также там может быть два значения
+	$arDisc = explode("," , $arDiscount[5]);
+	$discount = ($arDisc[1] == "") ? $arDisc[0] : $arDisc[1];
+
+	// Разбираем в процентах у нас скидки или в абсолютных значениях
+	if (strpos($discount, "%") === false)
+		$price_from = $discount;
+	else
+		$price_from = $arProps["PRICE"]["VALUE"] - $arProps["PRICE"]["VALUE"]*$discount/100;
  }
 
 
