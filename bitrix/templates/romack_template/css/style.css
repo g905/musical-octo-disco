@@ -1022,7 +1022,8 @@ img
     margin: 0px 0 10px;
     color: #000000;
     font-weight: bold;
-    height: 50px;
+    height: 75px; 
+    width: 265px;
 }
 
 .r-catalog .prop-block {
