@@ -4,11 +4,9 @@
 					<div class="our-products">
 <?
 // adl 26.10.14 Дебильные массивы, задающие какие товары из каких категорий брать
-  $arProducts['39'] = Array(197,198,338,102,104); // преимум
-  $arProducts['6'] = Array(Array(9, 51),Array(9, 43),Array(25, 86),Array(26, 89),Array(28, 182)); // стандарт
-  $arProducts['5'] = Array(122,123,124,169,121); // короба
-  $arProducts['7'] = Array(114,118,116,117,115); // учебки
-  $arProducts['8'] = Array(110,111,112,113,0); // наклейки
+  $arProducts['40'] = Array(356,360,361,362,363); 
+  $arProducts['41'] = Array(358,364,365,366,367); 
+  $arProducts['42'] = Array(368,369,370,371,372); 
 
 ?>
 
@@ -24,9 +22,9 @@ $arSelect = Array("ID", "IBLOCK_ID", "NAME", "DATE_ACTIVE_FROM", "CODE", "DETAIL
 for($i=0; $i<5; $i++) {
 	// Для категории "Шашки на такси" особенный алгоритм выбора товаров
 	if ($arSection['ID'] <> 6) 
-		$arFilter = Array("IBLOCK_ID"=>2, "SECTION_ID"=>$arSection["ID"], "ID"=> $arProducts[$arSection['ID']][$i], "ACTIVE_DATE"=>"Y", "ACTIVE"=>"Y");
+		$arFilter = Array("IBLOCK_ID"=>8, "SECTION_ID"=>$arSection["ID"], "ID"=> $arProducts[$arSection['ID']][$i], "ACTIVE_DATE"=>"Y", "ACTIVE"=>"Y");
 	else
-		$arFilter = Array("IBLOCK_ID"=>2, "SECTION_ID"=>$arProducts[$arSection["ID"]][$i][0], "ID"=> $arProducts[$arSection['ID']][$i][1], "ACTIVE_DATE"=>"Y", "ACTIVE"=>"Y");
+		$arFilter = Array("IBLOCK_ID"=>8, "SECTION_ID"=>$arProducts[$arSection["ID"]][$i][0], "ID"=> $arProducts[$arSection['ID']][$i][1], "ACTIVE_DATE"=>"Y", "ACTIVE"=>"Y");
 	$res = CIBlockElement::GetList(Array(), $arFilter, false, Array("nPageSize"=>5), $arSelect);
 	$res_res[$i] = $res;
 }
@@ -78,7 +76,6 @@ if ($arSection["ID"] == 6) { // Только для стандартных ша�
 							<a class="item anchor" href="<?=$full_path?><?=$arFields["CODE"]?>.html">
 								<img src="/thumb/160x104xcut<?=$arFields["DETAIL_PICTURE"]["SRC"]?>" alt="<?=$arFields["NAME"];?>" title="<?=$arFields["NAME"];?>" class="product-img" />
 								<span class="product-name">&#8220;<?=$arFields["NAME"];?>&#8221;</span>
-								<p class="product-price">от <?=$price_from;?> р</p>
 								<span class="product-size"><?=$arProps["SIZE"]["VALUE"];?></span>
 							</a>
 						</div>

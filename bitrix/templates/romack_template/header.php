@@ -107,8 +107,9 @@ $curPage = $APPLICATION->GetCurPage(true);
 	<div id="content">
 
 
-<?/*if ($curPage == '/index.php'):?>
+<?if ($curPage == '/index.php'):?>
 		<div class="container slyder">
+<? /* ?>
 <!-- SLIDER -->
 			<div class="row">
 				<div class="jumbwrap">
@@ -148,5 +149,6 @@ $curPage = $APPLICATION->GetCurPage(true);
 				</div>
 			</div>
 <!-- SLIDER -->
-<?endif*/?>
+<? */ ?>
+<?endif?>
 
