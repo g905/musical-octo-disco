@@ -93,7 +93,7 @@
 </div>
 <?endforeach?>
 <?/* Баннер "Не забудьте посетить раздел "Премиум""*/?>
-<?
+<?/*
 $nextSect = CIBlockSection::GetList(array(), array('IBLOCK_ID' => 2, 'ID' => 39), false, array('CODE', 'ID') )->fetch(); 
 ?>
 <?
@@ -129,3 +129,4 @@ $res = CIBlockElement::GetList(Array(), $arFilter, false, Array("nPageSize"=>5),
 				</div>
 			</div>
 		</div>
+<?*/?>

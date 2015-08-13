@@ -98,6 +98,7 @@ $APPLICATION->IncludeComponent(
 		"SECTION_ID" => $curSectionID/*$arResult["VARIABLES"]["SECTION_ID"]*/
 	)
 );
+
 ?>
 <?else:?>
 <?if($arParams["USE_FILTER"]=="Y"):?>
