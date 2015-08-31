@@ -5,7 +5,7 @@
 <?
 // adl 26.10.14 Дебильные массивы, задающие какие товары из каких категорий брать
   $arProducts['40'] = Array(356,360,361,362,363); 
-  $arProducts['41'] = Array(358,364,365,366,367); 
+  $arProducts['41'] = Array(array(45,382), array(46,443), array(48,423), array(49,404), array(47,397));
   $arProducts['42'] = Array(368,369,370,371,372); 
 
 ?>
@@ -21,7 +21,7 @@ foreach($arResult["SECTIONS"] as $arSection):
 $arSelect = Array("ID", "IBLOCK_ID", "NAME", "DATE_ACTIVE_FROM", "CODE", "DETAIL_PICTURE", "PROPERTY_*");
 for($i=0; $i<5; $i++) {
 	// Для категории "Шашки на такси" особенный алгоритм выбора товаров
-	if ($arSection['ID'] <> 6) 
+	if ($arSection['ID'] <> 41) 
 		$arFilter = Array("IBLOCK_ID"=>8, "SECTION_ID"=>$arSection["ID"], "ID"=> $arProducts[$arSection['ID']][$i], "ACTIVE_DATE"=>"Y", "ACTIVE"=>"Y");
 	else
 		$arFilter = Array("IBLOCK_ID"=>8, "SECTION_ID"=>$arProducts[$arSection["ID"]][$i][0], "ID"=> $arProducts[$arSection['ID']][$i][1], "ACTIVE_DATE"=>"Y", "ACTIVE"=>"Y");
