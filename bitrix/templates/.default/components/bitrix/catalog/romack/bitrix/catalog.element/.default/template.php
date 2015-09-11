@@ -16,12 +16,12 @@
 
 			// adl 10.12.14 Изменяем размер главной картинки на странице товара, чтобы сэкономить трафик
 			$file2_big = CFile::ResizeImageGet($arResult["DETAIL_PICTURE"], array('width'=>'1000', 'height'=>'1000'), BX_RESIZE_IMAGE_PROPORTIONAL, true); 
-			$file2 = CFile::ResizeImageGet($arResult["DETAIL_PICTURE"], array('width'=>'577', 'height'=>'432'), BX_RESIZE_IMAGE_EXACT, true); 
+			$file2 = CFile::ResizeImageGet($arResult["DETAIL_PICTURE"], array('width'=>'577', 'height'=>'432'), BX_RESIZE_IMAGE_PROPORTIONAL, true); 
 			$arResult["DETAIL_PICTURE"]["SRC"] = $file2["src"];
 			$arResult["DETAIL_PICTURE"]["WIDTH"] = $file2["width"];
 			$arResult["DETAIL_PICTURE"]["HEIGHT"] = $file2["height"];
 			$arResult["DETAIL_PICTURE"]["FILE_SIZE"] = $file2["size"];
-			$file = CFile::ResizeImageGet($arResult["DETAIL_PICTURE"], array('width'=>'102', 'height'=>'68'), BX_RESIZE_IMAGE_EXACT, true);
+			$file = CFile::ResizeImageGet($arResult["DETAIL_PICTURE"], array('width'=>'102', 'height'=>'68'), BX_RESIZE_IMAGE_PROPORTIONAL, true);
 
 
 			// adl 21.12.2014 Создаем массив всех без исключения картинок и флешек (путь до супер-большой картинки, титл для <a>, путь до средней картинки, ширина средней картинки, 
@@ -76,20 +76,20 @@
 								$SWF["SUBDIR"] = $items[0]["SUBDIR"];
 								$SWF["FILE_NAME"] = $items[0]["FILE_NAME"];
 								$SWF["SRC"] = $items[0]["PATH"];
-								$file = CFile::ResizeImageGet($SWF, array('width'=>'102', 'height'=>'68'), BX_RESIZE_IMAGE_EXACT, true); 
+								$file = CFile::ResizeImageGet($SWF, array('width'=>'102', 'height'=>'68'), BX_RESIZE_IMAGE_PROPORTIONAL, true); 
 							} else {
-								$file = CFile::ResizeImageGet($PHOTO, array('width'=>'102', 'height'=>'68'), BX_RESIZE_IMAGE_EXACT, true); 
+								$file = CFile::ResizeImageGet($PHOTO, array('width'=>'102', 'height'=>'68'), BX_RESIZE_IMAGE_PROPORTIONAL, true); 
 							}
 						}
 					}
 				} else {
 					$format = "img";
-					$file = CFile::ResizeImageGet($PHOTO, array('width'=>'102', 'height'=>'68'), BX_RESIZE_IMAGE_EXACT, true); 
+					$file = CFile::ResizeImageGet($PHOTO, array('width'=>'102', 'height'=>'68'), BX_RESIZE_IMAGE_PROPORTIONAL, true); 
 					
 					// adl 03.06.14 Изменяем размер картинок на странице товара, чтобы сэкономить трафик
 					// если честно - мне так не очень нравится(особенно $PHOTO["SUBDIR"], но может будет работать.
 					$file1_big = CFile::ResizeImageGet($PHOTO, array('width'=>'1000', 'height'=>'1000'), BX_RESIZE_IMAGE_PROPORTIONAL, true); 
-					$file1 = CFile::ResizeImageGet($PHOTO, array('width'=>'577', 'height'=>'432'), BX_RESIZE_IMAGE_EXACT, true); 
+					$file1 = CFile::ResizeImageGet($PHOTO, array('width'=>'577', 'height'=>'432'), BX_RESIZE_IMAGE_PROPORTIONAL, true); 
 					$PHOTO["SRC"] = $file1["src"];
 					$PHOTO["WIDTH"] = $file1["width"];
 					$PHOTO["HEIGHT"] = $file1["height"];
@@ -118,7 +118,7 @@
 
 			<? for ($i=0; $i < count($allMedia); $i++):?>
 				<? if($allMedia[$i]['FORMAT'] == 'img'):?>
-            				<div id="image<?=$i?>" style="display: <?=$allMedia[$i]['NORMAL_VISIBLE'];?>; height:<?=$allMedia[$i]['NORMAL_HEIGHT']?>px; width:<?=$allMedia[$i]['NORMAL_WIDTH'];?>px;">
+            				<div id="image<?=$i?>" style="display: <?=$allMedia[$i]['NORMAL_VISIBLE'];?>; height:<?=$allMedia[$i]['NORMAL_HEIGHT']?>px; width:<?=$allMedia[$i]['NORMAL_WIDTH'];?>px; margin:auto;">
 						<a href="<?=$allMedia[$i]['BIG_PATH']?>" class="fancybox" rel="images" title="<?=$allMedia[$i]['A_TITLE']?>">
 							<img id="mainPict<?=$i?>" class="mainPict" src="<?=$allMedia[$i]['NORMAL_PATH']?>" width="<?=$allMedia[$i]['NORMAL_WIDTH']?>" height="<?=$allMedia[$i]['NORMAL_HEIGHT']?>" alt="<?=$allMedia[$i]['NORMAL_TITLE']?>" title="<?=$allMedia[$i]['NORMAL_TITLE']?>" />
 						</a>

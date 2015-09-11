@@ -74,7 +74,7 @@ if ($arSection["ID"] == 6) { // Только для стандартных ша�
 
 						<div class="col-xs-6">
 							<a class="item anchor" href="<?=$full_path?><?=$arFields["CODE"]?>.html">
-								<img src="/thumb/160x104xcut<?=$arFields["DETAIL_PICTURE"]["SRC"]?>" alt="<?=$arFields["NAME"];?>" title="<?=$arFields["NAME"];?>" class="product-img" />
+								<img src="/thumb/160x104xin<?=$arFields["DETAIL_PICTURE"]["SRC"]?>" alt="<?=$arFields["NAME"];?>" title="<?=$arFields["NAME"];?>" class="product-img" />
 								<span class="product-name">&#8220;<?=$arFields["NAME"];?>&#8221;</span>
 								<span class="product-size"><?=$arProps["SIZE"]["VALUE"];?></span>
 							</a>
