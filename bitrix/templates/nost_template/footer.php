@@ -95,7 +95,7 @@ IncludeTemplateLangFile(__FILE__);
 	<div id="content">
 		<div class="container subtext">
 			<div class="row icons">
-				<h2 class="h2">5 причин купить шашки для такси от компании НОСТ</h2>
+				<h1 class="h2">5 причин купить шашки для такси от компании НОСТ</h2>
 				<p>
 					Купить шашки для такси, а также шашечки для такси можно на нашем сайте напрямую у производителя.
 					Наши заказчики – службы такси, диспетчерские, автошколы и службы доставки, которые хотят выделить свои автомобили из потока и стать заметнее для потенциальных клиентов. И вот те 5 причин, по которым заказчики предпочитают купить шашки для такси именно в компании НОСТ.	
@@ -105,7 +105,7 @@ IncludeTemplateLangFile(__FILE__);
 					Мы делаем Вас заметнее. Продукция производственной компании НОСТ – шашки на такси, шашечки для такси и <a href="/products/magnitnye-nakleyki-na-taksi/">магнитные наклейки для авто</a>.
 				</p>
 				<div class="col-xs-6">
-					<a href="" class="thumbnail" onclick="toggle_text(1);return false;">
+					<a href="javascript:void(0);" class="thumbnail" onclick="toggle_text(1);return false;">
 							<img src="<?=SITE_TEMPLATE_PATH?>/images/purse.png" alt="Низкая стоимость">
 							<div class="caption">
 								<h3 class="h4 text-center">Низкая стоимость</h3>
@@ -113,7 +113,7 @@ IncludeTemplateLangFile(__FILE__);
 						</a>
 				</div>
 				<div class="col-xs-6">
-					<a href="" class="thumbnail" onclick="toggle_text(2);return false;">
+					<a href="javascript:void(0);" class="thumbnail" onclick="toggle_text(2);return false;">
 							<img src="<?=SITE_TEMPLATE_PATH?>/images/watch.png" alt="Сроки изготовления">
 							<div class="caption">
 								<h3 class="h4 text-center">Сроки изготовления</h3>
@@ -121,7 +121,7 @@ IncludeTemplateLangFile(__FILE__);
 						</a>
 				</div>
 				<div class="col-xs-6">
-					<a href="" class="thumbnail" onclick="toggle_text(3);return false;">
+					<a href="javascript:void(0);" class="thumbnail" onclick="toggle_text(3);return false;">
 							<img src="<?=SITE_TEMPLATE_PATH?>/images/thumbup.png" alt="Надежные материалы">
 							<div class="caption">
 								<h3 class="h4 text-center">Надежные материалы</h3>
@@ -129,7 +129,7 @@ IncludeTemplateLangFile(__FILE__);
 						</a>
 				</div>
 				<div class="col-xs-6">
-					<a href="" class="thumbnail" onclick="toggle_text(4);return false;">
+					<a href="javascript:void(0);" class="thumbnail" onclick="toggle_text(4);return false;">
 							<img src="<?=SITE_TEMPLATE_PATH?>/images/moto.png" alt="Доставка по всей России">
 							<div class="caption">
 								<h3 class="h4 text-center">Доставка по всей России</h3>
@@ -137,7 +137,7 @@ IncludeTemplateLangFile(__FILE__);
 						</a>
 				</div>
 				<div class="col-xs-6">
-					<a href="" class="thumbnail" onclick="toggle_text(5);return false;">
+					<a href="javascript:void(0);" class="thumbnail" onclick="toggle_text(5);return false;">
 							<img src="<?=SITE_TEMPLATE_PATH?>/images/clock.png" alt="Оплата любым удобным способом">
 							<div class="caption">
 								<h3 class="h4 text-center">Оплата любым удобным способом</h3>

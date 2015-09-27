@@ -13,7 +13,7 @@
 				Array(
 					"USE_CAPTCHA" => "N",
 					"OK_TEXT" => "Спасибо, ваше сообщение принято.",
-					"EMAIL_TO" => "3412558963@mail.ru",
+					"EMAIL_TO" => "558963@nost.ru",
 					"REQUIRED_FIELDS" => array("NAME","PHONE","MESSAGE"),
 					"EVENT_MESSAGE_ID" => array("7")
 				)

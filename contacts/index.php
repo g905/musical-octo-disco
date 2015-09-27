@@ -108,7 +108,7 @@ false
 			</tr>
 			<tr>
 				<td width="33%">
-		     			<span class="red">3412558963@mail.ru</span>
+		     			<span class="red">558963@nost.ru</span>
 				</td>
 				<td width="33%">
 		     			nost.ru 

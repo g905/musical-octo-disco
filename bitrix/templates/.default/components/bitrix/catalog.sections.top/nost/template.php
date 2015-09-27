@@ -20,7 +20,7 @@
 			<div class="item-inner">
 				<a href="<?=$arElement["DETAIL_PAGE_URL"]?>" style="color: #000;">
 					<img src="/thumb/247x185xin<?=$arElement["DETAIL_PICTURE"]["SRC"]?>" width="247" height="185" alt="<?=$arElement["NAME"]?>" title="<?=$arElement["NAME"]?>" />
-					<span class="item-category">Шашки на такси</span>
+					<span class="item-category"><img src="<?=SITE_TEMPLATE_PATH;?>/images/product_name.gif" alt="Наименование продукции" title="Наименование продукции"/></span>
 					<h3 class="item-name">&#8220;<?=$arElement["NAME"]?>&#8221;</h3>
 				</a>
 				<div class="prop-block" id="prop-size">

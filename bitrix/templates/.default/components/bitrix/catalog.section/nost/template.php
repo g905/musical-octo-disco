@@ -17,7 +17,7 @@ $header = ($res["UF_H1"] =='') ? $arResult["NAME"] : $res["UF_H1"];
 	elseif ($arResult["ID"] == 7) $product_name = "Короба для автошкол";
 	elseif ($arResult["ID"] == 8) $product_name = "Магнитные наклейки на такси";
 	elseif ($arResult["ID"] == 0) $product_name = "";
-	else $product_name = "Шашки на такси";
+	else $product_name = '<img src="'.SITE_TEMPLATE_PATH.'/images/product_name.gif" alt="Наименование продукции" title="Наименование продукции" />';
 	
 
 ?>

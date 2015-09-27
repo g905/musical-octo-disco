@@ -72,12 +72,18 @@ if ($arSection["ID"] == 6) { // Только для стандартных ша�
 }
 
  $arFields["DETAIL_PICTURE"] = CFile::GetFileArray($arFields["DETAIL_PICTURE"]);
+
+// adl 27.09.15 Добавляем надпись "Шашки на такси" для некоторых категорий
+$add_text = "";
+if (($arSection["ID"] == 6)||($arSection["ID"] == 39)) { 
+	$add_text = "Шашки на такси<br/>";
+}
 ?>
 
 						<div class="col-xs-6">
 							<a class="item anchor" href="<?=$full_path?><?=$arFields["CODE"]?>.html">
 								<img src="/thumb/160x104xcut<?=$arFields["DETAIL_PICTURE"]["SRC"]?>" alt="<?=$arFields["NAME"];?>" title="<?=$arFields["NAME"];?>" class="product-img" />
-								<span class="product-name">&#8220;<?=$arFields["NAME"];?>&#8221;</span>
+								<span class="product-name"><?=$add_text;?>&#8220;<?=$arFields["NAME"];?>&#8221;</span>
 								<p class="product-price">от <?=$price_from;?> р</p>
 								<span class="product-size"><?=$arProps["SIZE"]["VALUE"];?></span>
 							</a>
