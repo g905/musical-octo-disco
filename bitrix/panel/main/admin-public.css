@@ -1,5 +1,4 @@
 /*=================================================================BUTTONS==================================================*/
-
 .adm-workarea .adm-btn:hover,
 .adm-workarea input[type="button"]:hover,
 .adm-workarea input[type="reset"]:hover,
@@ -328,10 +327,13 @@
 #bx-admin-prefix .add-file-popup-btn {
 	height:18px;
 	width:15px;
+	box-sizing: content-box;
+	-moz-box-sizing: content-box;
+	-webkit-box-sizing: content-box;
 }
 
 #bx-admin-prefix .add-file-popup-btn:before {
-	background:url("images/bx-admin-sprite-big.png") no-repeat 0 -1548px;
+	background:url("images/bx-admin-sprite-big1.png") no-repeat 0 -1548px;
 	content:"";
 	left:10px;
 	top:9px;
@@ -995,12 +997,12 @@
 
 #bx-admin-prefix .bx-core-popup-menu-angle {
 	top: -9px;
-	background: url("images/popup_menu_sprite_1.png") no-repeat left -1480px;
+	background: url("images/popup_menu_sprite_2.png") no-repeat left -1480px;
 }
 
 #bx-admin-prefix .bx-core-popup-menu-angle-bottom {
 	bottom: -9px;
-	background: url("images/popup_menu_sprite_1.png") no-repeat left -1460px;
+	background: url("images/popup_menu_sprite_2.png") no-repeat left -1460px;
 }
 
 #bx-admin-prefix .bx-core-popup-menu-item
@@ -1022,7 +1024,7 @@
 
 #bx-admin-prefix .bx-core-popup-menu-item-icon {
 	width: 46px;
-	background: url("images/popup_menu_sprite_1.png") no-repeat 6px -1080px;
+	background: url("images/popup_menu_sprite_2.png") no-repeat 6px -1080px;
 }
 
 
@@ -1054,12 +1056,12 @@
 #bx-admin-prefix .bx-core-popup-menu-item-opener:hover .bx-core-popup-menu-item-text,
 #bx-admin-prefix .bx-core-popup-menu-item-opened .bx-core-popup-menu-item-text
 {
-	background: url("images/popup_menu_sprite_1.png") no-repeat right -270px;
+	background: url("images/popup_menu_sprite_2.png") no-repeat right -270px;
 }
 
 #bx-admin-prefix .bx-core-popup-menu-item-checked .bx-core-popup-menu-item-text
 {
-	background: url("images/popup_menu_sprite_1.png") no-repeat left -600px;
+	background: url("images/popup_menu_sprite_2.png") no-repeat left -600px;
 }
 
 #bx-admin-prefix .adm-menu-edit{background-position: 6px -630px;}
@@ -1794,7 +1796,7 @@
 
 #bx-admin-prefix .adm-info-message-icon-progress {
 	float: left;
-	background: url("images/bx-admin-sprite-big.png") no-repeat scroll 0 -1394px transparent;
+	background: url("images/bx-admin-sprite-big1.png") no-repeat scroll 0 -1394px transparent;
 	height: 35px;
 	width: 40px;
 }
@@ -1854,6 +1856,9 @@
 }
 
 #bx-admin-prefix .adm-info-message-gray .adm-info-message-buttons {padding-top: 15px;}
+.adm-workarea .adm-info-message-buttons input[type="button"]:first-child {
+	margin-right: 15px;
+}
 
 .bx-ie8 #bx-admin-prefix .adm-info-message-green .adm-info-message,
 .bx-ie9 #bx-admin-prefix .adm-info-message-green .adm-info-message {
@@ -1874,7 +1879,7 @@
 }
 
 #bx-admin-prefix .adm-info-message-icon:before {
-	background:url("images/bx-admin-sprite-big.png") no-repeat 0 -1394px;
+	background:url("images/bx-admin-sprite-big1.png") no-repeat 0 -1394px;
 	content:"";
 	height:33px;
 	margin-top:-16px;

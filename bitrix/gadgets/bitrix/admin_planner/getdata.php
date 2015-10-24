@@ -6,7 +6,6 @@ require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_befo
 
 global $USER;
 $rnd = $_REQUEST["rnd"];
-$userId = $USER->GetId();
 
 __IncludeLang(dirname(__FILE__)."/lang/".LANGUAGE_ID."/getdata.php");
 
@@ -28,6 +27,7 @@ CSocServAuthManager::SetUniqueKey();
 $clientId = $arGadgetParams["APP_ID"];
 $clientSecret = $arGadgetParams["APP_SECRET"];
 $domain = $portalURI = $arGadgetParams["PORTAL_URI"];
+
 ?>
 <div class="bx-gadgets-planner">
 	<?
@@ -39,30 +39,33 @@ if($clientId == '' || $clientSecret == '' || $portalURI == '')
 $needAuthorize = false;
 $accessToken = '';
 $redirectURI = CSocServUtil::ServerName().'/bitrix/tools/oauth/bitrix24.php';
-$savedPortalURI = CUserOptions::GetOption('socialservices', 'bitrix24_task_planer_gadget_portal', '', $userId);
-$requestCode = CUserOptions::GetOption('socialservices', 'bitrix24_task_planer_gadget_code', '', $userId);
+$savedPortalURI = CUserOptions::GetOption('socialservices', 'bitrix24_task_planer_gadget_portal', '');
+$requestCode = CUserOptions::GetOption('socialservices', 'bitrix24_task_planer_gadget_code', '');
 
 if($savedPortalURI !== $portalURI || $savedPortalURI == '')
 {
 	$needAuthorize = true;
-	CUserOptions::SetOption('socialservices', 'bitrix24_task_planer_gadget_portal', $portalURI, false, $userId);
+	CUserOptions::SetOption('socialservices', 'bitrix24_task_planer_gadget_portal', $portalURI, false);
 }
 if(!preg_match('|^http[s]?|', $portalURI))
 	$portalURI = 'https://'.$portalURI;
-$objBitrixOAuth = new CSocServBitrixOAuth($clientId, $clientSecret, $portalURI, $redirectURI, $userId);
+$objBitrixOAuth = new CSocServBitrixOAuth($clientId, $clientSecret, $portalURI, $redirectURI, $USER->GetID());
 $objBitrixOAuth->addScope(array('task', 'calendar'));
 
 $arTasks = $arEvents = array();
 if($requestCode <> '')
 {
 	$accessToken = $objBitrixOAuth->getAccessToken($requestCode);
+	$objBitrixOAuth->getEntityOAuth()->saveDataDB();
 
-	CUserOptions::SetOption('socialservices', 'bitrix24_task_planer_gadget_code', '', false, $userId);
+	CUserOptions::SetOption('socialservices', 'bitrix24_task_planer_gadget_code', '', false);
 }
 else
 {
 	$accessToken = $objBitrixOAuth->getStorageToken();
 }
+AddMessage2Log($accessToken);
+
 if($accessToken != '' && $domain != '' && !$needAuthorize)
 {
 	$obApp = new CBitrixPHPAppTransport($accessToken, $portalURI);
@@ -148,11 +151,9 @@ if($accessToken != '' && $domain != '' && !$needAuthorize)
 				var url = protocol + d.replace(/http[s]?:\/\//, '')
 					+ '/oauth/authorize/?client_id=<?=$clientId?>'
 					+ '&response_type=code'
-					+ '&redirect_uri=' + encodeURIComponent(
-					'<?=$redirectURI.'?scope=user,entity,task,calendar&uid='.$userId.'&check_key='.$_SESSION["UNIQUE_KEY"]?>&domain='
-						+ protocol + encodeURIComponent(d.replace(/http[s]?:\/\//, ''))
-				) + '&_=' + Math.random();
-
+					+ '&redirect_uri=' + encodeURIComponent('<?=$redirectURI?>')
+					+ '&state=' + encodeURIComponent('<?='check_key='.$_SESSION["UNIQUE_KEY"]?>')
+					+ '&_=' + Math.random();
 				window.open(url);
 			}
 

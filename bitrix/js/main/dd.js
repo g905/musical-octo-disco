@@ -82,7 +82,17 @@ jsDD = {
 
 		jsDD.arObjects[obNode.__bxddid] = obNode;
 	},
+	unregisterObject: function(obNode)
+	{
+		if(typeof(obNode["__bxddid"]) === "undefined")
+		{
+			return;
+		}
 
+		delete jsDD.arObjects[obNode.__bxddid];
+		delete obNode.__bxddid;
+		delete obNode.onmousedown;
+	},
 	registerDest: function (obDest, priority)
 	{
 		if (!priority)
@@ -99,10 +109,22 @@ jsDD = {
 
 		jsDD.refreshDestArea(obDest.__bxddeid);
 	},
+	unregisterDest: function(obDest)
+	{
+		if(typeof(obDest["__bxddeid"]) === "undefined")
+		{
+			return;
+		}
 
+		delete jsDD.arDestinations[obDest.__bxddeid];
+		delete obDest.__bxddeid;
+		delete obDest.__bxddpriority;
+
+		jsDD.refreshDestArea();
+	},
 	disableDest: function(obDest)
 	{
-		if (obDest.__bxddeid)
+		if (typeof(obDest.__bxddeid) !== "undefined")
 		{
 			obDest.__bxdddisabled = true;
 		}
@@ -110,7 +132,7 @@ jsDD = {
 
 	enableDest: function(obDest)
 	{
-		if (obDest.__bxddeid)
+		if (typeof(obDest.__bxddeid) !== "undefined")
 		{
 			obDest.__bxdddisabled = false;
 		}
@@ -348,7 +370,7 @@ jsDD = {
 
 		for (var i = 0, cnt = jsDD.arDestinations.length; i < cnt; i++)
 		{
-			if (jsDD.arDestinations[i].onbxdestdragstart)
+			if (jsDD.arDestinations[i] && jsDD.arDestinations[i].onbxdestdragstart)
 				jsDD.arDestinations[i].onbxdestdragstart(jsDD.current_node);
 		}
 
@@ -477,14 +499,14 @@ jsDD = {
 			{
 				for (var i = 0, cnt = jsDD.arDestinations.length; i < cnt; i++)
 				{
-					if (i != dest_index && null != jsDD.arDestinations[i].onbxdestdragrelease)
+					if (i != dest_index && jsDD.arDestinations[i] && null != jsDD.arDestinations[i].onbxdestdragrelease)
 						jsDD.arDestinations[i].onbxdestdragrelease(jsDD.current_node, jsDD.x, jsDD.y);
 				}
 			}
 
 			for (var i = 0, cnt = jsDD.arDestinations.length; i < cnt; i++)
 			{
-				if (null != jsDD.arDestinations[i].onbxdestdragstop)
+				if (jsDD.arDestinations[i] && null != jsDD.arDestinations[i].onbxdestdragstop)
 					jsDD.arDestinations[i].onbxdestdragstop(jsDD.current_node, jsDD.x, jsDD.y);
 			}
 		}
@@ -501,6 +523,7 @@ jsDD = {
 		document.body.style.cursor = '';
 
 		jsDD.current_node = null;
+		jsDD.current_dest_index = false;
 
 		if (jsDD.bScrollWindow)
 		{

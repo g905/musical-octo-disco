@@ -471,3 +471,35 @@ div.notes a.control:hover {text-decoration:underline;}
 img.bxfm-linked, img.bxfm-unlinked{border-width: 0!important; cursor:pointer!important; height:21px!important; margin:0 0 -5px!important;width:12px!important; padding:0!important;}
 img.bxfm-linked{background: url(/bitrix/themes/.default/icons/fileman/link.gif) no-repeat transparent center center!important;}
 img.bxfm-unlinked{background: url(/bitrix/themes/.default/icons/fileman/unlink.gif) no-repeat transparent center center!important;}
+
+
+/* bootstrap fixes */
+.adm-workarea * {
+     box-sizing:     content-box; 
+    -moz-box-sizing: content-box;
+     -webkit-box-sizing: content-box; 
+}
+.adm-workarea .adm-select,
+.adm-workarea .form-button,
+.adm-workarea .adm-btn,
+.adm-workarea input[type=button], 
+.adm-workarea input[type=submit], 
+.adm-workarea input[type=reset], 
+.adm-workarea input[type=file]::-webkit-file-upload-button, 
+.adm-workarea button, 
+.adm-workarea select, 
+.adm-workarea textarea { 
+    box-sizing: border-box; 
+    -moz-box-sizing: border-box; 
+    -webkit-box-sizing: border-box; 
+}
+.adm-workarea .adm-btn:hover,
+.adm-workarea input[type="button"]:hover,
+.adm-workarea input[type="reset"]:hover,
+.adm-workarea input[type="submit"]:hover {
+    text-decoration: none;
+}
+.adm-workarea label { 
+    font-weight: normal; 
+    margin-bottom: 0px; 
+}

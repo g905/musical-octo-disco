@@ -714,3 +714,4 @@ function JCSpinner(name)
 		top.jsUtils.removeEvent(document, "mouseup", _this.MouseUp);
 	}
 }
+

@@ -474,7 +474,6 @@ BXHTMLEditor.prototype.OnLoad = function()
 	if (!SETTINGS[this.name].arToolbarSettings)
 		SETTINGS[this.name].arToolbarSettings = arToolbarSettings_default;
 	var arToolbarSettings = SETTINGS[this.name].arToolbarSettings;
-
 	if (lightMode)
 	{
 		var
@@ -483,11 +482,28 @@ BXHTMLEditor.prototype.OnLoad = function()
 
 		if (this.arConfig.toolbarConfig)
 		{
+			var _handledButtons = {}, _val;
 			for(var j = 0, n = this.arConfig.toolbarConfig.length; j < n ; j++)
 			{
 				val = this.arConfig.toolbarConfig[j];
 				if (val.indexOf("-") === -1 && val == parseInt(val) && arGlobalToolbar[val])
+				{
 					arSourceToolbar.push(arGlobalToolbar[val]);
+				}
+
+				_val = val.replace("-", '');
+				if (arGlobalToolbar[_val])
+				{
+					_handledButtons[arGlobalToolbar[_val][1].id] = true;
+				}
+			}
+
+			for(j = 0; j < arGlobalToolbar.length ; j++)
+			{
+				if (!_handledButtons[arGlobalToolbar[j][1].id])
+				{
+					arSourceToolbar.push(arGlobalToolbar[j]);
+				}
 			}
 		}
 		else

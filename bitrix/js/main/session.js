@@ -70,8 +70,21 @@ function CBXSession()
 				{
 					_this.notifier = document.body.appendChild(BX.create('DIV', {
 						props: {className: 'bx-session-message'},
-						style: {top: '0px'},
-						html: '<a class="bx-session-message-close" href="javascript:bxSession.Close()"></a>'+_this.mess.messSessExpired
+						style: {
+							top: '0px',
+							backgroundColor: '#FFEB41',
+							border: '1px solid #EDDA3C',
+							width: '630px',
+							fontFamily: 'Arial,Helvetica,sans-serif',
+							fontSize: '13px',
+							fontWeight: 'bold',
+							textAlign: 'center',
+							color: 'black',
+							position: 'absolute',
+							zIndex: '10000',
+							padding: '10px'
+						},
+						html: '<a class="bx-session-message-close" style="display:block; width:12px; height:12px; background:url(/bitrix/js/main/core/images/close.gif) center no-repeat; float:right;" href="javascript:bxSession.Close()"></a>'+_this.mess.messSessExpired
 					}));
 
 					var windowScroll = BX.GetWindowScrollPos();

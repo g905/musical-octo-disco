@@ -43,8 +43,8 @@ if(!BXHotKeys)
 		this.MesChooseFile="";
 		this.uid="";
 		this.deleting = false;
-
-
+		this.keyStrokes = {};
+		this.keyStrokesInit = false;
 
 		this.Init = function()
 		{
@@ -55,21 +55,26 @@ if(!BXHotKeys)
 		this.UpdateKS = function(codeId, keysString)
 		{
 			for(var i=0; i<this.ArrHKCode.length; i++)
-				if(this.ArrHKCode[i][idxCodeId]==codeId)
+			{
+				if(this.ArrHKCode[i][idxCodeId] == codeId)
 				{
-					this.ArrHKCode[i][idxKS]=keysString;
+					this.ArrHKCode[i][idxKS] = keysString;
+					this.keyStrokesInit = false;
 					return true;
 				}
+			}
 		};
 
 		this.UpdateHk = function(codeId, hkId)
 		{
 			for(var i=0; i<this.ArrHKCode.length; i++)
-				if(this.ArrHKCode[i][idxCodeId]==codeId)
+			{
+				if(this.ArrHKCode[i][idxCodeId] == codeId)
 				{
-					this.ArrHKCode[i][idxHKId]=hkId;
+					this.ArrHKCode[i][idxHKId] = hkId;
 					return i;
 				}
+			}
 
 			return (-1);
 		};
@@ -77,25 +82,47 @@ if(!BXHotKeys)
 		this.Add = function(keysString, execCode, codeId, name, hkId)
 		{
 			for(var i=0; i<this.ArrHKCode.length; i++)
-				if(this.ArrHKCode[i][idxCodeId]==codeId)
+				if(this.ArrHKCode[i][idxCodeId] == codeId)
 					return false;
 
-			return this.ArrHKCode.push([String(keysString),String(execCode),codeId,String(name),hkId]);
+			this.keyStrokesInit = false;
+
+			return this.ArrHKCode.push([String(keysString), String(execCode), codeId, String(name), hkId]);
 		};
 
 		// keysString: Ctrl+Alt+Shift+KeyCode
 		this.GetExCode = function(keysString)
 		{
-			var ret="";
+			var ret = "";
 			if(keysString)
-				for(var i=0; i<this.ArrHKCode.length; i++)
-					if (this.ArrHKCode[i][idxKS]==keysString)
+			{
+				if(this.keyStrokesInit == false)
+				{
+					this.keyStrokes = {};
+					this.keyStrokesInit = true;
+					for (var i = 0; i < this.ArrHKCode.length; i++)
 					{
-						if(ret)
-							ret+=" ";
-
-						ret+=this.ArrHKCode[i][idxCode];
+						var ks = this.ArrHKCode[i][idxKS];
+						if(ks != '')
+						{
+							if(!this.keyStrokes[ks])
+							{
+								this.keyStrokes[ks] = '';
+							}
+							else
+							{
+								this.keyStrokes[ks] += ' ';
+							}
+							this.keyStrokes[ks] += this.ArrHKCode[i][idxCode];
+						}
 					}
+				}
+
+				if(this.keyStrokes[keysString])
+				{
+					ret = this.keyStrokes[keysString];
+				}
+			}
 
 			return ret;
 		};
@@ -113,29 +140,28 @@ if(!BXHotKeys)
 
 		this.ShowMenu = function()
 		{
-			var menu = 	'<table class="bx-hk-settings-toolbar" cellspacing="0" cellpadding="0" border="0">'+
-						'<tr><td class="bx-left"><div class="bx-hk-settings-empty"></div></td>'+
-						'<td class="bx-content">'+
-						'<a class="bx-context-button" hidefocus="true" href="javascript:void(0)" onclick="BXHotKeys.Import();">'+
-						'<span class="bx-context-button-icon btn-import"></span>'+
-						'<span class="bx-context-button-text">'+this.MesImport+'</span>'+
-						'</a>'+
-						'<a class="bx-context-button" hidefocus="true" href="javascript:void(0)" onclick="BXHotKeys.Export();">'+
-						'<span class="bx-context-button-icon btn-export"></span>'+
-						'<span class="bx-context-button-text">'+this.MesExport+'</span>'+
-						'</a>'+
-						'<a class="bx-context-button" hidefocus="true" href="javascript:void(0)" onclick="if(confirm(BXHotKeys.MesDelConfirm)) BXHotKeys.DelAll();">'+
-						'<span class="bx-context-button-icon btn-delall"></span>'+
-						'<span class="bx-context-button-text">'+this.MesDelAll+'</span>'+
-						'</a>'+
-						'<a class="bx-context-button" hidefocus="true" href="javascript:void(0)" onclick="if(confirm(BXHotKeys.MesDefaultConfirm)) { BXHotKeys.DelAll(); BXHotKeys.SetDefault(); }">'+
-						'<span class="bx-context-button-icon btn-default"></span>'+
-						'<span class="bx-context-button-text">'+this.MesDefault+'</span>'+
-						'</a></td>'+
-						'<td class="bx-right"><div class="bx-hk-settings-empty"></div></td></tr>'+
-						'</table>';
-			return menu;
-		}
+			return '<table class="bx-hk-settings-toolbar" cellspacing="0" cellpadding="0" border="0">'+
+				'<tr><td class="bx-left"><div class="bx-hk-settings-empty"></div></td>'+
+				'<td class="bx-content">'+
+				'<a class="bx-context-button" hidefocus="true" href="javascript:void(0)" onclick="BXHotKeys.Import();">'+
+				'<span class="bx-context-button-icon btn-import"></span>'+
+				'<span class="bx-context-button-text">'+this.MesImport+'</span>'+
+				'</a>'+
+				'<a class="bx-context-button" hidefocus="true" href="javascript:void(0)" onclick="BXHotKeys.Export();">'+
+				'<span class="bx-context-button-icon btn-export"></span>'+
+				'<span class="bx-context-button-text">'+this.MesExport+'</span>'+
+				'</a>'+
+				'<a class="bx-context-button" hidefocus="true" href="javascript:void(0)" onclick="if(confirm(BXHotKeys.MesDelConfirm)) BXHotKeys.DelAll();">'+
+				'<span class="bx-context-button-icon btn-delall"></span>'+
+				'<span class="bx-context-button-text">'+this.MesDelAll+'</span>'+
+				'</a>'+
+				'<a class="bx-context-button" hidefocus="true" href="javascript:void(0)" onclick="if(confirm(BXHotKeys.MesDefaultConfirm)) { BXHotKeys.DelAll(); BXHotKeys.SetDefault(); }">'+
+				'<span class="bx-context-button-icon btn-default"></span>'+
+				'<span class="bx-context-button-text">'+this.MesDefault+'</span>'+
+				'</a></td>'+
+				'<td class="bx-right"><div class="bx-hk-settings-empty"></div></td></tr>'+
+				'</table>';
+		};
 
 		this.ShowSettings = function()
 		{
@@ -207,21 +233,21 @@ if(!BXHotKeys)
 
 		this.hk_getElementsByClass = function(className, node, tag)
 		{
-			var node = node || document,
-			tag = tag || '*',
-			list = node.getElementsByTagName(tag),
+			node = node || document;
+			tag = tag || '*';
+			var list = node.getElementsByTagName(tag),
 			length = list.length,
-			result = [], i,j;
+			result = [], i;
 			for(i = 0; i < length; i++)
 			{
 				if(list[i].className == className)
 				{
-					result.push(list[i])
+					result.push(list[i]);
 					break;
 				}
 			}
 			return result
-		}
+		};
 
 		this.DelAll = function()
 		{
@@ -241,10 +267,10 @@ if(!BXHotKeys)
 			request.Action = function (result)
 			{
 				_this.deleting = false;
-			}
+			};
 
 			request.Post(options_url, sParam);
-		}
+		};
 
 		this.Register = function()
 		{
@@ -257,13 +283,13 @@ if(!BXHotKeys)
 			{
 				//nothing
 			}
-		}
+		};
 
 		this.Unregister = function()
 		{
 			jsUtils.removeEvent(document, 'keypress', _this.KeyPressHandler);
 			jsUtils.removeEvent(document, 'keydown', _this.KeyDownHandler);
-		}
+		};
 
 		this.SetDefault = function()
 		{
@@ -294,7 +320,7 @@ if(!BXHotKeys)
 						}
 					}
 				}
-			}
+			};
 
 			//waiting while deleting hot-keys
 			waiter =
@@ -307,9 +333,9 @@ if(!BXHotKeys)
 							clearInterval(intervalID);
 						}
 					}
-				}
+				};
 			intervalID = window.setInterval(function(){ waiter.func.call(waiter) }, 1000);
-		}
+		};
 
 		this.IsKeysBusy = function(strKeyString,code_id)
 		{
@@ -318,7 +344,7 @@ if(!BXHotKeys)
 					return true;
 
 			return false;
-		}
+		};
 
 		this.SubstInput = function(code_id, hk_id, keysString)
 		{
@@ -366,7 +392,7 @@ if(!BXHotKeys)
 				_this.SubstAnch(code_id, hk_id, inpKString.value);
 
 				CloseWaitWindow();
-			}
+			};
 
 			inpHKString.focus();
 
@@ -374,21 +400,21 @@ if(!BXHotKeys)
 			{
 				_this.SubstAnch(code_id, hk_id, keysString);
 			}
-		}
+		};
 
 		this.SubstAnch = function(code_id, hk_id, keysString)
 		{
 			var td = document.getElementById('hotkeys-float-form-'+code_id);
 			if(td)
 				td.innerHTML = "<a href='javascript:void(0)' onclick='BXHotKeys.SubstInput("+code_id+", "+hk_id+", \""+keysString+"\");' title='"+this.MesClToChange+"' class='bx-hk-settings'>"+(keysString ? this.PrintKSAsChar(keysString) : this.MesNotAssign)+"</a>";
-		}
+		};
 
 		this.SubstDel = function(code_id, hk_id)
 		{
 			var td = document.getElementById('hotkeys-float-form-del-'+code_id);
 			if (td)
 				td.innerHTML = "<a href='javascript:void(0)' onclick='BXHotKeys.DeleteBase("+code_id+","+hk_id+");' class='hk-delete-icon' title='"+this.MesDelete+"'></a>";
-		}
+		};
 
 
 		this.AddBase = function(code_id,keysString)
@@ -407,14 +433,14 @@ if(!BXHotKeys)
 						_this.SubstDel(code_id, hk_id);
 					}
 				}
-			}
+			};
 			request.Post(options_url, sParam);
-		}
+		};
 
 		this.Export = function()
 		{
 			window.open("/bitrix/admin/hot_keys_act.php?hkaction=export&sessid="+phpVars.bitrix_sessid);
-		}
+		};
 
 		this.OnFileInputChange = function(ob)
 		{
@@ -426,7 +452,7 @@ if(!BXHotKeys)
 				ob.parentNode.childNodes[0].textContent = fileName;
 			else
 				ob.parentNode.childNodes[0].innerText = fileName;
-		}
+		};
 
 		this.Import = function()
 		{
@@ -468,7 +494,7 @@ if(!BXHotKeys)
 
 			impWnd.Show();
 
-		}
+		};
 
 		this.OnImportResponse = function(hkNum)
 		{
@@ -478,7 +504,7 @@ if(!BXHotKeys)
 				alert(_this.MesImpFalse);
 
 			BX.reload();
-		}
+		};
 
 		this.UpdateBase = function(hk_id, keysString)
 		{
@@ -486,7 +512,7 @@ if(!BXHotKeys)
 			var options_url = '/bitrix/admin/hot_keys_act.php?hkaction=update';
 			var sParam = "&KEYS_STRING="+encodeURIComponent(keysString)+"&ID="+hk_id+"&sessid="+phpVars.bitrix_sessid;
 			request.Post(options_url, sParam);
-		}
+		};
 
 		this.DeleteBase = function(code_id, hk_id)
 		{
@@ -501,7 +527,7 @@ if(!BXHotKeys)
 				_this.SubstAnch(code_id, 0,"");
 				_this.SubstDel(code_id,0);
 			}
-		}
+		};
 
 		this.PrintKSAsChar = function(strKeysString)
 		{
@@ -518,8 +544,8 @@ if(!BXHotKeys)
 			}
 			else
 			{
-				var charCode = strKeysString;
-				var preChar = "";
+				charCode = strKeysString;
+				preChar = "";
 			}
 
 			var codeSymb=arServSymb[charCode];
@@ -527,7 +553,7 @@ if(!BXHotKeys)
 				codeSymb = String.fromCharCode(charCode);
 
 			return preChar+codeSymb;
-		}
+		};
 
 		this.SetInput = function(e)
 		{
@@ -550,7 +576,7 @@ if(!BXHotKeys)
 			document.getElementById("KeysString").value = inputDopString + _this.bxHotKeyCode;
 			document.getElementById("HKeysString").value = _this.PrintKSAsChar(document.getElementById("KeysString").value);
 			return false;
-		}
+		};
 
 		//Key-handlers
 		this.KeyPressHandler = function(e)
@@ -564,7 +590,7 @@ if(!BXHotKeys)
 				if (ExCode)
 					eval(ExCode);
 			}
-		}
+		};
 
 		this.KeyDownHandler = function(e)
 		{
@@ -581,3 +607,4 @@ if(!BXHotKeys)
 	BXHotKeys.Init();
 	window.BXHotKeys = BXHotKeys;
 }
+

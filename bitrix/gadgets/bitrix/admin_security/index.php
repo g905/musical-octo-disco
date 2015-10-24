@@ -64,6 +64,8 @@ if(!$bSecurityFilter || !$isScanNeeded || !isset($lastResult["results"]) || !emp
 } else {
 	$shieldClassColor = "blue";
 }
+$eventLogUrl = '/bitrix/admin/event_log.php?set_filter=Y&find_type=audit_type_id&find_audit_type[]=SECURITY_VIRUS&find_audit_type[]=SECURITY_FILTER_SQL&find_audit_type[]=SECURITY_FILTER_XSS&find_audit_type[]=SECURITY_FILTER_XSS2&find_audit_type[]=SECURITY_FILTER_PHP&find_audit_type[]=SECURITY_REDIRECT&find_audit_type[]=SECURITY_HOST_RESTRICTION&mod=security&lang='.LANGUAGE_ID;
+$securityScannerUrl = '/bitrix/admin/security_scanner.php?lang='.LANGUAGE_ID;
 ?><table class="bx-gadgets-content-layout"><?
 	?><tr><?
 		?><td><div class="bx-gadgets-title"><?=GetMessage("GD_SECURITY_SCANNER_TITLE")?></div></td><?
@@ -87,9 +89,10 @@ if(!$bSecurityFilter || !$isScanNeeded || !isset($lastResult["results"]) || !emp
 			?><td class="bx-gadgets-colourful-cell"><?
 			if($isShowScanButton) {
 			?>
-				<a class="bx-gadget-button bx-gadget-button-clickable<?=(!$isScanNeeded ? " bx-gadget-button-active" : "")?>" href="/bitrix/admin/security_scanner.php?lang=<?=LANGUAGE_ID?>">
+				<a class="bx-gadget-button bx-gadget-button-clickable<?=(!$isScanNeeded ? " bx-gadget-button-active" : "")?>"
+				   href="<?=($securityEventsCount ? $eventLogUrl : $securityScannerUrl)?>">
 					<div class="bx-gadget-button-lamp"></div>
-					<div class="bx-gadget-button-text"><?=($isScanNeeded ? GetMessage("GD_SECURITY_SCANNER_RUN") : GetMessage("GD_SECURITY_SCANNER_VIEW"))?></div>
+					<div class="bx-gadget-button-text"><?=($securityEventsCount ? GetMessage("GD_SECURITY_SCANNER_VIEW") : GetMessage("GD_SECURITY_SCANNER_RUN"))?></div>
 				</a><?
 			} else {
 				?><div class="bx-gadget-desc"><?=$scannerMessage?></div><?

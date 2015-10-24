@@ -154,8 +154,6 @@ BXSticker.prototype = {
 			oSt.pShadow.style.display = "none";
 
 			//Hide marker if it exist
-			//if (oSt.pMarkerNode)
-			//	BX.removeClass(oSt.pMarkerNode, 'bxst-sicked');
 			if (oSt.pMarker)
 				oSt.pMarker.style.display = "none";
 		}
@@ -669,11 +667,7 @@ BXSticker.prototype = {
 			}
 
 			// Save color with some delay for fast clicking colot controll
-			// this.arStickers[ind]._colTimeout = setTimeout(function()
-			// {
-				//_this.arStickers[ind]._colTimeout = null;
-				_this.SaveSticker(ind);
-			//}, 800);
+			_this.SaveSticker(ind);
 		}
 	},
 
@@ -708,17 +702,6 @@ BXSticker.prototype = {
 	{
 		this.arStickers[ind].obj.completed = bChecked;
 		this.arStickers[ind].pCheck.checked = bChecked;
-
-		if (bChecked)
-		{
-			//BX.addClass(this.arStickers[ind].pWin.Get(), "bxst-completed");
-			//this.arStickers[ind].pShadow.style.display = 'none';
-		}
-		else
-		{
-			//BX.removeClass(this.arStickers[ind].pWin.Get(), "bxst-completed");
-			//this.arStickers[ind].pShadow.style.display = 'block';
-		}
 
 		if (this.arStickers[ind].obj.id && bSave)
 			this.SaveSticker(ind);
@@ -1104,15 +1087,7 @@ BXSticker.prototype = {
 
 	GetNewStickerContent: function()
 	{
-		var zeroInt = function(x)
-		{
-			x = parseInt(x);
-			if (isNaN(x))
-				x = 0;
-			return x < 10 ? '0' + x.toString() : x.toString();
-		}
-		var oDate = new Date();
-		var strDate = this.Params.strDate + " " + zeroInt(oDate.getHours()) + ':' + zeroInt(oDate.getMinutes());
+		var strDate = BX.date.format(BX.date.convertBitrixFormat(BX.message('FORMAT_DATETIME')));
 		return "[ST_TITLE]" + BX.util.htmlspecialchars(this.Params.curUserName) + ' ' + strDate + "[/ST_TITLE]\n";
 	},
 
@@ -1639,31 +1614,16 @@ BXSticker.prototype = {
 		if (!this.magicNodes)
 		{
 			var arLinks = document.getElementsByTagName('A');
-			// var arImgs = document.getElementsByTagName('IMG');
-			// var arDivs = document.getElementsByTagName('DIV');
-
-
 			var i, len, el, nodes = [], w, h, t, l;
 
-			//
 			len = arLinks.length;
 
 			for (i = 0; i < len; i++)
 			{
-				//w = arLinks[i].offsetWidth;
-				//h = arLinks[i].offsetHeight;
-				// t = arLinks[i].offsetTop;
-				// l = arLinks[i].offsetLeft;
-
-				//console.info(w, h, t, l);
-
-				//if (w > 0 && h > 0 && t > 0 && l > 0)
 				if (arLinks[i].offsetWidth > 0)
 				{
 					var pos = BX.pos(arLinks[i]);
 					nodes.push({el: arLinks[i], pos: pos});
-
-					//nodes.push({el: arLinks[i], w: w, h: h, t: t, l: l, r: l + w, b: t + h});
 				}
 			}
 
@@ -1687,21 +1647,8 @@ BXSticker.prototype = {
 		for (i = 0; i < len; i++)
 		{
 			node = this.magicNodes.nodes[i];
-			// if (node.el.id == 'ch1')
-				// console.dir(node);
 
-			if (node.pos.top >= mTop && node.pos.left >= mLeft && node.pos.right <= mRight && node.pos.bottom <= mBottom)
-			{
-				//console.info(node.el);
-			}
 		}
-
-		// oSt.obj.marker = {
-			// top: oMarker.top,
-			// left: oMarker.left,
-			// width: oMarker.width,
-			// height: oMarker.height
-		// };
 	},
 
 	GetNodeAdjustInfo: function(node)
@@ -2133,21 +2080,10 @@ BXSticker.prototype = {
 			x0 = Math.round(win_w / 2),
 			y0 = Math.round(win_h / 2);
 
-		// console.info('x0 = ', x0, 'y0 = ', y0);
-		// console.info('st_x = ', st_x, 'st_y = ', st_y);
-
 		// A * x + B * y + C = 0
 		var A = y0 - st_y;
 		var B = st_x - x0;
 		var C = (x0 * st_y) - (y0 * st_x);
-
-		//console.info('A = ', A, 'B = ', B, 'C = ', C);
-
-		//var start_x = win_w;
-		//var start_y = - (C + A * start_x) / B;
-		//console.info(start_x, start_y);
-		//var k = st_x / st_y;
-		//console.info(k);
 
 		//Center
 		var div = document.body.appendChild(BX.create("DIV", {style: {background: "#00f", position: "absolute", width: "5px", height: "5px", zIndex: 2000}}));
@@ -2159,45 +2095,12 @@ BXSticker.prototype = {
 		div.style.left = st_x + "px";
 		div.style.top = st_y + "px";
 
-		//return;
-		// var x = x0;
-		// for (var i = 0; i < 200; i++)
-		// {
-			// var div = document.body.appendChild(BX.create("DIV", {style: {background: "red", position: "absolute", width: "2px", height: "2px", zIndex: 2000}}));
-
-			// var start_x = x;
-			// var start_y = - (C + A * start_x) / B;
-
-			// div.style.left = Math.round(start_x) + "px";
-			// div.style.top = Math.round(start_y) + "px";
-
-			// x += 10;
-			// //console.info(div);
-		// }
-
-		// var start_x = win_w;
-		// var start_y = - (C + A * start_x) / B;
-
 		var start_y = 0;
 		var start_x = - (C + B * start_y) / A;
 
 		var div = document.body.appendChild(BX.create("DIV", {style: {background: "red", position: "absolute", width: "10px", height: "10px", zIndex: 2000}}));
 		div.style.left = start_x + "px";
 		div.style.top = start_y + "px";
-		//console.info(div);
-
-		return;
-		//var start_x = Math.round((win_w + st_w) / 2  + win_w / 2);
-		var start_x = win_w;
-		var start_y = Math.round(start_x / k - win_h / 2);
-
-		var start_left = Math.round(start_x + st_w / 2);
-		var start_top = Math.round(start_y - st_h / 2);
-
-		var div = document.body.appendChild(BX.create("DIV", {style: {background: "#ffff80", position: "absolute", width: st_w + "px", height: st_h + "px", zIndex: 2000}}));
-
-		div.style.left = start_left + "px";
-		div.style.top = start_top + "px";
 	},
 
 	Hightlight: function(ind, bOver)
@@ -2353,7 +2256,7 @@ BXStickerList.prototype = {
 			return;
 
 		var Config = {
-			content_url: '/bitrix/admin/fileman_stickers.php?sticker_action=show_list&' + this.BXSticker.sessid_get + '&cur_page=' + this.BXSticker.Params.pageUrl + '&type=' + type + '&site_id=' + this.BXSticker.Params.site_id,
+			content_url: '/bitrix/admin/fileman_stickers.php?sticker_action=show_list&' + this.BXSticker.sessid_get + '&cur_page=' + encodeURIComponent(this.BXSticker.Params.pageUrl) + '&type=' + type + '&site_id=' + this.BXSticker.Params.site_id,
 			title : this.MESS.StickerListTitle,
 			width: this.BXSticker.Params.listWidth,
 			height: this.BXSticker.Params.listHeight,
@@ -2378,8 +2281,6 @@ BXStickerList.prototype = {
 			if (_this.bRefreshPage)
 				window.location = window.location;
 		});
-		//BX.addCustomEvent(this.oDialog, 'onWindowResize', function(){_this.AdjustToSize();});
-
 		// Adjust Navi size
 		BX.addCustomEvent(this.oDialog, 'onWindowResizeFinished', function(){_this.AdjustNaviSize();});
 		BX.addCustomEvent(this.oDialog, 'onWindowExpand', function(){_this.AdjustNaviSize();});
@@ -2593,30 +2494,6 @@ BXStickerList.prototype = {
 	AdjustToSize: function(w, h)
 	{
 		return;
-		// if (typeof w == 'undefined' || typeof h == 'undefined')
-		// {
-			// w = parseInt(this.oDialog.GetContent().style.width);
-			// h = parseInt(this.oDialog.GetContent().style.height);
-		// }
-
-		// var
-			// idW = 25, // ID
-			// dateW = 150, // Date
-			// colorW = 52, // Color
-			// authorW = 120, // Author
-			// actionW = 30, // Author
-			// textW = titleW = Math.round((w - 20 - idW - dateW - colorW - authorW - actionW) / 2);
-
-		// var tr = this.pItemsTable.rows[0];
-		// tr.cells[0].style.width = idW + 'px';
-		// tr.cells[1].style.width = titleW + 'px'
-		// tr.cells[2].style.width = dateW + 'px';
-		// tr.cells[3].style.width = textW + 'px';
-		// tr.cells[4].style.width = colorW + 'px';
-		// tr.cells[5].style.width = authorW + 'px';
-		// tr.cells[6].style.width = actionW + 'px';
-
-		//this.pItemsTableCnt.style.height = (h - 80 /* header */ - 80 /* footer */) + "px";
 	},
 
 	AdjustNaviSize: function()

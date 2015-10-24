@@ -20,8 +20,8 @@ BXFMSearch.prototype = {
 		this.arLastPathes = Params.arLastPathes;
 		this.sessid_get = Params.sessid_get;
 		this.bUseLastValues = true;
-		this.viewFilePath = Params.viewFilePath;
-		this.viewFolderPath = Params.viewFolderPath;
+        this.viewMsFilePath = Params.viewMsFilePath;
+		this.viewMsFolderPath = Params.viewMsFolderPath;
 		this.dateFormat = Params.dateFormat;
 		this.pForm = document.forms['bx_search_form'];
 		this.pSearchResultCont = BX('bx_search_res_cont');
@@ -80,6 +80,7 @@ BXFMSearch.prototype = {
 					oDate = new Date(),
 					month = oDate.getMonth(),
 					year = oDate.getFullYear(),
+                    date = oDate.getDate(),
 					hours = oDate.getHours(),
 					min = oDate.getMinutes();
 
@@ -380,7 +381,7 @@ BXFMSearch.prototype = {
 				// window.fmsResult = [];
 			// }
 
-			var i, l = window.fmsResult.length, r, c, el;
+			var i, l = window.fmsResult.length, r, c, el, href;
 
 			// Files or folders was found - display esult div, enable "Show result button"
 			if (l > 0 && _this.arSearchResult.length == 0)
@@ -409,7 +410,8 @@ BXFMSearch.prototype = {
 				//path
 				c = r.insertCell(-1);
 				c.style.textAlign = 'left';
-				c.appendChild(BX.create('A', {props: {href: (el.b_dir ? _this.viewFolderPath : _this.viewFilePath).replace('#PATH#', BX.util.urlencode(el.path)),	target: '_blank'}, text: el.path}));
+                href = ((el.b_dir ? _this.viewMsFolderPath : _this.viewMsFilePath) + _this.oSiteSel.value).replace('#PATH#', BX.util.urlencode(el.path));
+                c.appendChild(BX.create('A', {props: {href: href,	target: '_blank'}, text: el.path}));
 
 				if (_this.pSearchPhrase.value != "")
 					c.appendChild(BX.create('SPAN', {props: {className: 'bxfm-search-cnt', title: FM_MESS.SearchInFileTitle}, html: ' (<span>' + parseInt(el.repl_count) + '</span>)'}));
@@ -655,7 +657,8 @@ BXFMSearch.prototype = {
 				//path
 				c = r.insertCell(-1);
 				c.style.textAlign = 'left';
-				c.appendChild(BX.create('A', {props: {	href: (el.b_dir ? _this.viewFolderPath : _this.viewFilePath).replace('#PATH#', BX.util.urlencode(el.path)),	target: '_blank'}, text: el.path}));
+				href = ((el.b_dir ? _this.viewMsFolderPath : _this.viewMsFilePath) + _this.oSiteSel.value).replace('#PATH#', BX.util.urlencode(el.path));
+                c.appendChild(BX.create('A', {props: {href: href,	target: '_blank'}, text: el.path}));
 
 				c.appendChild(BX.create('SPAN', {props: {className: 'bxfm-rep-cnt', title: FM_MESS.ReplInFileTitle}, html: ' (<span>' + parseInt(el.repl_count) + '</span>)'}));
 
@@ -1261,8 +1264,8 @@ BXFMCopy.prototype = {
 		this.sessid_get = Params.sessid_get;
 		BX('bx_copy_dialog').style.display = "block";
 
-		this.viewFilePath = Params.viewFilePath;
-		this.viewFolderPath = Params.viewFolderPath;
+		this.viewMsFilePath = Params.viewMsFilePath;
+		this.viewMsFolderPath = Params.viewMsFolderPath;
 
 		this.oSiteSel = new BXFMSiteSel({
 			id: 'site_sel_copy',
@@ -1358,7 +1361,7 @@ BXFMCopy.prototype = {
 
 		for (i = 0; i < l; i++)
 		{
-			this.pFilelist.appendChild(BX.create("A", {props: {href: this.GetViewUrl(this.arFiles[i]), target: '_blank'}, text: this.GetFileName(this.arFiles[i])}));
+			this.pFilelist.appendChild(BX.create("A", {props: {href: this.GetViewUrl(this.arFiles[i]), target: '_blank'}, text: this.GetFileName(this.arFiles[i].path)}));
 
 			if (i == 1 && l > 3)
 			{
@@ -1448,8 +1451,8 @@ BXFMCopy.prototype = {
 					else
 					{
 						// Files was moved and we have to refresh current dir
-						if (!_this.bCopy)
-							window.location = _this.bSearch ? window.location : _this.viewFolderPath.replace('#PATH#', _this.curPath);
+						if (!_this.bCopy || _this.pCopyTo.value === _this.curPath)
+                            window.location = _this.bSearch ? window.location : (_this.viewMsFolderPath + _this.site).replace('#PATH#', BX.util.urlencode(_this.curPath));
 
 						_this.oCopyDialog.Close();
 					}
@@ -1486,13 +1489,13 @@ BXFMCopy.prototype = {
 		return name;
 	},
 
-	GetViewUrl: function(path)
+	GetViewUrl: function(file, multisite)
 	{
-		var
-			name = this.GetFileName(path),
-			bDir = name.indexOf(".") === -1;
+		var multisite = multisite || [false, ''];
+        if (multisite[0])
+            return ((!!file.isDir ? this.viewMsFolderPath : this.viewMsFilePath) + multisite[1]).replace('#PATH#', BX.util.urlencode(file.path));
 
-		return (bDir ? this.viewFolderPath : this.viewFilePath).replace('#PATH#', BX.util.urlencode(path));
+		return ((!!file.isDir ? this.viewMsFolderPath : this.viewMsFilePath) + this.site).replace('#PATH#', BX.util.urlencode(file.path));
 	},
 
 	SaveConfig: function()
@@ -1634,13 +1637,22 @@ BXFMCopy.prototype = {
 			BX('bx_copy_ask_to_all').disabled = !!(_this.arFiles.length <= 1);
 		}, 200);
 
+        var multisite = [false, ''];
+        if (Params.fileNew.site && Params.fileOld.site && Params.fileNew.site !== Params.fileOld.site)
+            multisite = [true, Params.fileOld.site];
 		this.pAskFileName.innerHTML = Params.fileNew.name;
 		this.pAskFolderName.innerHTML = this.pCopyTo.value;
 		this.pAskFileOld.pName.innerHTML = this.pAskFileOld.pName.title = Params.fileOld.name;
-		this.pAskFileOld.pName.href = this.GetViewUrl(Params.fileOld.path);
+		this.pAskFileOld.pName.href = this.GetViewUrl({
+            'isDir' : Params.fileOld.bDir,
+            'path' : Params.fileOld.path
+        }, multisite);
 		this.pAskFileOld.pDate.innerHTML = Params.fileOld.date;
 		this.pAskFileNew.pName.innerHTML = this.pAskFileNew.pName.title = Params.fileNew.name;
-		this.pAskFileNew.pName.href = this.GetViewUrl(Params.fileNew.path);
+		this.pAskFileNew.pName.href = this.GetViewUrl({
+            'isDir' : Params.fileNew.bDir,
+            'path' : Params.fileNew.path
+        });
 		this.pAskFileNew.pDate.innerHTML = Params.fileNew.date;
 		this.oAskUserDialog.newFilePath = Params.fileNew.path;
 
@@ -1838,8 +1850,8 @@ BXFMPack.prototype =
 		this.sessid_get = Params.sessid_get;
 		BX('bx_pack_dialog').style.display = "block";
 
-		this.viewFilePath = Params.viewFilePath;
-		this.viewFolderPath = Params.viewFolderPath;
+        this.viewMsFilePath = Params.viewMsFilePath;
+        this.viewMsFolderPath = Params.viewMsFolderPath;
 
 		//archive type selector
 		this.oArcTypeSel = new BXFMArcTypeSel({
@@ -1855,6 +1867,12 @@ BXFMPack.prototype =
 			pInput : this.pPackTo,
 			Items: this.arLastPathes
 		});
+
+        this.oSiteSel = new BXFMSiteSel({
+            id: 'site_sel_pack',
+            pDiv: BX('bx_pack_site_sel'),
+            sites: Params.arSites
+        });
 
 		this.caseOption = 'skip';
 		BX.removeClass(_this.pCopyTbl, 'bx-pack-cont-tbl-add-hide');
@@ -1917,6 +1935,9 @@ BXFMPack.prototype =
 		if (typeof Params.arFiles == 'object')
 			this.arFiles = Params.arFiles;
 
+        if (Params.arFiles[0] && Params.arFiles[0] == 'action_target')
+			this.arFiles = [{'path' : Params.path, 'isDir' : '1'}];
+
 		//cancel button
 		var cancelBut = this.oPackDialog.PARAMS.buttons[1];
 		cancelBut.btn.value = FM_MESS.PackCancel;
@@ -1976,7 +1997,7 @@ BXFMPack.prototype =
 
 		for (i = 0; i < l; i++)
 		{
-			this.pFilelist.appendChild(BX.create("A", {props: {href: this.GetViewUrl(this.arFiles[i]), target: '_blank'}, text: this.GetFileName(this.arFiles[i])}));
+			this.pFilelist.appendChild(BX.create("A", {props: {href: this.GetViewUrl(this.arFiles[i], this.site), target: '_blank'}, text: this.GetFileName(this.arFiles[i])}));
 
 			if (i == 1 && l > 3)
 			{
@@ -2038,6 +2059,7 @@ BXFMPack.prototype =
 				case_option: this.caseOption,
 				files: this.arFiles,
 				packTo: this.pPackTo.value,
+                siteTo: this.oSiteSel.value,
 				startFile: '',
 				quickPath: BX('quick_path').value,
 				arcType: this.oArcTypeSel.value,
@@ -2134,7 +2156,8 @@ BXFMPack.prototype =
 									_this.oPackDialog.Close();
 
 									var redirectPath = _this.GetFolderPath(postParams.packTo);
-									window.location = _this.viewFolderPath.replace('#PATH#', redirectPath);
+                                    redirectPath = (redirectPath.length == (redirectPath.lastIndexOf('/') + 1) && redirectPath.length !== 1) ? redirectPath.substr(0, redirectPath.length - 1) : redirectPath;
+                                    window.location = (_this.viewMsFolderPath + _this.oSiteSel.value).replace('#PATH#', BX.util.urlencode(redirectPath));
 
 									return;
 								}
@@ -2162,7 +2185,10 @@ BXFMPack.prototype =
 							{
 								_this.forceClose = true;
 								_this.oPackDialog.Close();
-								window.location = _this.viewFolderPath.replace('#PATH#', postParams.packTo);
+
+                                var redirectPath = _this.GetFolderPath(postParams.packTo);
+                                redirectPath = (redirectPath.length == (redirectPath.lastIndexOf('/') + 1) && redirectPath.length !== 1) ? redirectPath.substr(0, redirectPath.length - 1) : redirectPath;
+								window.location = (_this.viewMsFolderPath + postParams.siteTo).replace('#PATH#', BX.util.urlencode(redirectPath));
 								return;
 							}
 							else
@@ -2210,14 +2236,16 @@ BXFMPack.prototype =
 		return tmpPath;
 	},
 
-	GetFileName: function(path)
+	GetFileName: function(filePath)
 	{
+        if (typeof filePath == 'object')
+            filePath = filePath.path;
 		var
-			name = path,
-			i = path.lastIndexOf("/");
+			name = filePath,
+			i = filePath.lastIndexOf("/");
 
-		if (i !== -1)
-			name = path.substr(i + 1);
+		if (i !== -1 && filePath.length !== 1)
+			name = filePath.substr(i + 1);
 
 		return name;
 	},
@@ -2259,13 +2287,25 @@ BXFMPack.prototype =
 		return tmp;
 	},
 
+    MakeFolderArchiveName: function (str)
+	{
+		//get only the last part of the name
+		var tmp = str.substr(str.lastIndexOf('/') + 1);
+
+		return tmp;
+	},
+
 	GeneratePath: function(bpack, files, ext)
 	{
+        if (bpack && files.length == 1 && !!files[0].isDir == true)
+        {
+            return this.GetFolderPath(files[0].path) + this.MakeFolderArchiveName(files[0].path) + ext;
+        }
 		//returns /path/name.ext
 		if (bpack && files.length > 0)
 		{
-			var tmpname = files.length == 1 ? files[0] : "archive";
-			return this.GetFolderPath(this.arFiles[0]) + this.MakeArchiveName(tmpname) + ext;
+			var tmpname = files.length == 1 ? files[0].path : "archive";
+			return this.GetFolderPath(this.arFiles[0].path) + this.MakeArchiveName(tmpname) + ext;
 		}
 
 		if (!bpack)
@@ -2290,13 +2330,11 @@ BXFMPack.prototype =
 
 	},
 
-	GetViewUrl: function(path)
+	GetViewUrl: function(file, site)
 	{
-		var
-			name = this.GetFileName(path),
-			bDir = name.indexOf(".") === -1;
-
-		return (bDir ? this.viewFolderPath : this.viewFilePath).replace('#PATH#', BX.util.urlencode(path));
+        if (typeof file == 'object')
+		    return ((file.isDir ? this.viewMsFolderPath : this.viewMsFilePath) + site).replace('#PATH#', BX.util.urlencode(file.path));
+        return (this.viewMsFilePath + site).replace('#PATH#', BX.util.urlencode(file));
 	},
 
 	//packing
@@ -2410,7 +2448,7 @@ BXFMPack.prototype =
 		this.pAskFileName.innerHTML = Params.fileOld.name;
 		this.pAskFolderName.innerHTML = _this.GetFolderPath(this.pPackTo.value);
 		this.pAskFileOld.pName.innerHTML = this.pAskFileOld.pName.title = Params.fileOld.name;
-		this.pAskFileOld.pName.href = this.GetViewUrl(Params.fileOld.path);
+		this.pAskFileOld.pName.href = this.GetViewUrl(Params.fileOld.path, Params.fileOld.site);
 		this.pAskFileOld.pDate.innerHTML = Params.fileOld.date;
 		this.pAskFileOld.pSize.innerHTML = Params.fileOld.size;
 	},
@@ -2618,8 +2656,6 @@ BXFMInpSel.prototype = {
 
 			if (this.selItemInd)
 			{
-				this.curInd = this.selItemInd;
-				this.pInput.value = this.Items[this.selItemInd].name;
 				this.bCheckValue = false;
 
 				this.OnChange();
@@ -2792,6 +2828,8 @@ BXFMSiteSel.prototype = {
 		this.value = site.id;
 		this.curSiteInd = ind;
 
+        BX('bx_copy_to').value = site['dir'];
+        BX('bx_copy_to').focus();
 		if (this.bOne)
 			return;
 

@@ -8,9 +8,8 @@ var Errors = {
 
 function JsTc(oHandler, arSites, sParser)
 {
-	var
-		t = this,
-		tmp = 0;
+	var t = this;
+	var tmp = 0;
 
 	t.oObj = typeof oHandler == 'object' ? oHandler : document.getElementById("TAGS");
 	t.arSites = arSites;
@@ -28,14 +27,32 @@ function JsTc(oHandler, arSites, sParser)
 	t.oEl = {"start":false, "end":false};
 	t.oUnfinedWords = {};
 	// Flags
-	t.bReady = true, t.eFocus = true;
+	t.bReady = true;
+	t.eFocus = true;
 	// Array with results & it`s showing
-	t.aDiv = null, t.oDiv = null;
+	t.aDiv = null;
+	t.oDiv = null;
 	// Pointers
-	t.oActive = null, t.oPointer = Array(), t.oPointer_default = Array(), t.oPointer_this = 'input_field';
+	t.oActive = null;
+	t.oPointer = Array();
+	t.oPointer_default = Array();
+	t.oPointer_this = 'input_field';
 
-	t.oObj.onblur = function(){t.eFocus = false;}
-	t.oObj.onfocus = function(){if (!t.eFocus){t.eFocus = true; setTimeout(function(){t.CheckModif('focus')}, 500);}}
+	t.oObj.onblur = function()
+	{
+		t.eFocus = false;
+	};
+	t.oObj.onfocus = function(){
+		if (!t.eFocus)
+		{
+			t.eFocus = true;
+			setTimeout(
+				function()
+				{
+					t.CheckModif('focus');
+				}, 500);
+		}
+	};
 
 	t.CHttpRequest = new JCHttpRequest();
 
@@ -94,7 +111,7 @@ function JsTc(oHandler, arSites, sParser)
 			}
 		}
 		setTimeout(function(){t.CheckModif('this')}, 500);
-	},
+	};
 
 	t.Send = function(sSearch)
 	{
@@ -157,7 +174,7 @@ function JsTc(oHandler, arSites, sParser)
 			}
 		} catch (e) {}
 		t.CHttpRequest.Send(queryString);
-	},
+	};
 
 	t.Show = function(result)
 	{
@@ -180,7 +197,7 @@ function JsTc(oHandler, arSites, sParser)
 
 		BX.bind(document, "click", t.CheckMouse);
 		BX.bind(document, "keydown", t.CheckKeyword);
-	},
+	};
 
 	t.Print = function(aArr, aColumn)
 	{
@@ -223,7 +240,7 @@ function JsTc(oHandler, arSites, sParser)
 		t.oPointer_default = t.oPointer;
 		t.oDiv.innerHTML = str;
 		return aResult;
-	},
+	};
 
 	t.Destroy = function()
 	{
@@ -235,12 +252,16 @@ function JsTc(oHandler, arSites, sParser)
 		catch(e)
 		{}
 
-		t.oPointer = Array(), t.oPointer_default = Array(), t.oPointer_this = 'input_field';
-		t.oDiv = null, t.aDiv = null, t.oActive = null;
+		t.oPointer = Array();
+		t.oPointer_default = Array();
+		t.oPointer_this = 'input_field';
+		t.oDiv = null;
+		t.aDiv = null;
+		t.oActive = null;
 
 		BX.unbind(document, "click", t.CheckMouse);
 		BX.unbind(document, "keydown", t.CheckKeyword);
-	},
+	};
 
 	t.Replace = function()
 	{
@@ -263,7 +284,7 @@ function JsTc(oHandler, arSites, sParser)
 			TCJsUtils.setCursorPosition(t.oObj, start + tmp1.length);
 		}
 		return;
-	},
+	};
 
 	t.Init = function()
 	{
@@ -271,7 +292,7 @@ function JsTc(oHandler, arSites, sParser)
 		t.oPointer = t.oPointer_default;
 		t.Clear();
 		t.oPointer_this = 'input_pointer';
-	},
+	};
 
 	t.Clear = function()
 	{
@@ -281,21 +302,24 @@ function JsTc(oHandler, arSites, sParser)
 		{
 			for (ii in oEl)
 			{
-				var oE = oEl[ii];
-				if (oE.name == (t.oDiv.id + '_table') || (t.aDiv[oE.id]))
+				if (oEl.hasOwnProperty(ii))
 				{
-					oE.className = "popupitem";
+					var oE = oEl[ii];
+					if (oE.name == (t.oDiv.id + '_table') || (t.aDiv[oE.id]))
+					{
+						oE.className = "popupitem";
+					}
 				}
 			}
 		}
 		return;
-	},
+	};
 
 	t.CheckMouse = function()
 	{
 		t.Replace();
 		t.Destroy();
-	},
+	};
 
 	t.CheckKeyword = function(e)
 	{
@@ -374,7 +398,7 @@ function JsTc(oHandler, arSites, sParser)
 			t.Destroy();
 		}
 		return true;
-	}
+	};
 }
 var TCJsUtils =
 {
@@ -463,8 +487,11 @@ var TCJsUtils =
 		{
 			for (var i in oObj)
 			{
-				result = false;
-				break;
+				if (oObj.hasOwnProperty(i))
+				{
+					result = false;
+					break;
+				}
 			}
 		}
 		return result;
@@ -475,7 +502,6 @@ var TCJsUtils =
 		var res = str.replace(/&amp;/g, '&amp;amp;').replace(/&lt;/g, '&amp;lt;').replace(/&gt;/g, '&amp;gt;').replace(/&quot;/g, '&amp;quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 		return res;
 	},
-
 
 	htmlspecialcharsback: function(str)
 	{

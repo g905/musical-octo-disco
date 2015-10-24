@@ -1,6 +1,5 @@
 .bxcompprop-dialog .bx-core-adm-dialog-buttons{
 	background-color: #edf3f4 !important;
-
 }
 
 .bxcompprop-outer-wrap{
@@ -322,7 +321,7 @@
 .bxcompprop-ok-btn {
 	width: 30px !important;
 	vertical-align: middle !important;
-	margin: -3px 0 0 3px !important;
+	margin: 1px 0 0 3px !important;
 	padding: 1px 0 3px !important;
 }
 
@@ -353,8 +352,12 @@
 
 
 .bxcompprop-params-search .bxcompprop-prop-tr,
+.bxcompprop-params-search .bxcompprop-prop-tr-hidden,
 .bxcompprop-groups-search .bxcompprop-item
 {display: none;}
+
+.bxcompprop-prop-tr-hidden {position: absolute!important; top: -1000px; visibility: hidden;}
+.bxcompprop-prop-tr-hidden td{height: 0!important; overflow: hidden; line-height: 1px!important;}
 
 .bxcompprop-params-search .bxcompprop-tr-search-res{display: table-row!important;}
 .bxcompprop-groups-search .bxcompprop-item-search-res{display: block!important;}
@@ -455,3 +458,26 @@
 /* END *********** styles for input ************ END */
 
 div.bx-panel-tooltip{z-index: 3500 !important;}
+
+
+.bxcompprop-wrap-public{
+	overflow: visible !important;
+	position: absolute !important;
+	top: 50px !important;
+	left: 2px !important;
+}
+
+.bxcompprop-adm-dialog
+{
+	padding: 0 !important;
+}
+
+.bxcompprop-adm-dialog-content .bx-core-adm-dialog-content-wrap-inner {
+	padding: 0 !important;
+}
+
+.bxcompprop-adm-dialog .bx-core-adm-dialog-buttons{
+	background-color: #edf3f4 !important;
+	padding: 14px !important;
+}
+

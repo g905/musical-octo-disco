@@ -12,7 +12,7 @@ if(isset($_REQUEST["state"]) && is_string($_REQUEST["state"]))
 	$arState = array();
 	parse_str($_REQUEST["state"], $arState);
 
-	if(isset($arState['site_id']))
+	if(isset($arState['site_id']) && is_string($arState['site_id']))
 	{
 		$site = substr(preg_replace("/[^a-z0-9_]/i", "", $arState['site_id']), 0, 2);
 		define("SITE_ID", $site);

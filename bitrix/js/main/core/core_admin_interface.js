@@ -423,7 +423,7 @@ BX.adminFormTools = {
 
 	modifyFile: function(el)
 	{
-		if (!BX.hasClass(el, 'adm-designed-file'))
+		if (!BX.hasClass(el, 'adm-designed-file') && !el.hasAttribute('data-fileinput'))
 		{
 			var wrap = BX.create('SPAN', {
 				props: {className: 'adm-input-file'},
@@ -1326,7 +1326,7 @@ BX.adminFav = {
 	lastId: null,
 	add: function(nameToSave,urlToSave,menu_id,module_id,callback)
 	{
-		var urlToSend = BX.adminFav.url + "?act=add",
+		var urlToSend = BX.adminFav.url + "?act=add&lang="+BX.message('LANGUAGE_ID'),
 			data = {
 				sessid: BX.bitrix_sessid(),
 				name: nameToSave
@@ -2188,13 +2188,16 @@ BX.adminTabControl.prototype.PreInit = function(bSkipInit)
 		var tbl = BX(this.aTabs[tab]["DIV"]+'_edit_table');
 		if (!!tbl)
 		{
-			var n = tbl.tBodies[0].rows.length;
-			for(var i=0; i<n; i++)
-			{
-				if(tbl.tBodies[0].rows[i].cells.length > 1)
+			for(var k = 0; k < tbl.tBodies.length; k++)
+			 {
+				var n = tbl.tBodies[k].rows.length;
+				for (var i = 0; i < n; i++)
 				{
-					BX.addClass(tbl.rows[i].cells[0], 'adm-detail-content-cell-l');
-					BX.addClass(tbl.rows[i].cells[1], 'adm-detail-content-cell-r');
+					if (tbl.tBodies[k].rows[i].cells.length > 1)
+					{
+						BX.addClass(tbl.tBodies[k].rows[i].cells[0], 'adm-detail-content-cell-l');
+						BX.addClass(tbl.tBodies[k].rows[i].cells[1], 'adm-detail-content-cell-r');
+					}
 				}
 			}
 
@@ -3526,6 +3529,7 @@ BX.AdminFilter = function(filter_id, aRows)
 		this.ChangeViewDependVisible();
 
 		BX.addCustomEvent(window, "onAdminListLoaded", BX.proxy(this.onAdminListLoaded, this));
+		BX.onCustomEvent(window, "onAdminFilterInited", [{filterId: this.filter_id}]);
 	};
 
 	this.InitFirst = function()
@@ -4046,7 +4050,7 @@ BX.AdminFilter = function(filter_id, aRows)
 					else
 						common = false;
 
-					_this.SaveToBase(formOpts.filter_name.value, common, fields, true, empty);
+					_this.SaveToBase(formOpts.save_filter_name.value, common, fields, true, empty);
 
 					if(_this.state.folded)
 						_this.SetFoldedView();
@@ -4065,20 +4069,20 @@ BX.AdminFilter = function(filter_id, aRows)
 
 		if(this.curID != "0" && !empty)
 		{
-			formOpts.filter_name.value = (this.oOptions[this.curID]["NAME"] ? this.oOptions[this.curID]["NAME"] : '');
+			formOpts.save_filter_name.value = (this.oOptions[this.curID]["NAME"] ? this.oOptions[this.curID]["NAME"] : '');
 
 			if(formOpts.common)
 				formOpts.common.checked = (this.oOptions[this.curID]["COMMON"] == 'Y');
 		}
 		else
 		{
-			formOpts.filter_name.value = BX.message('JSADM_FLT_NEW_NAME');
+			formOpts.save_filter_name.value = BX.message('JSADM_FLT_NEW_NAME');
 
 			if(formOpts.common)
 				formOpts.common.checked = false;
 		}
 
-		formOpts.filter_name.focus();
+		formOpts.save_filter_name.focus();
 	};
 
 	this.SaveOptsWndKeyPress = function(event)
@@ -4396,7 +4400,6 @@ BX.AdminFilter = function(filter_id, aRows)
 				continue;
 			}
 
-
 			switch(el.type.toLowerCase())
 			{
 				case 'select-one':
@@ -4444,8 +4447,7 @@ BX.AdminFilter = function(filter_id, aRows)
 					break;
 			}
 
-			if(el.onchange)
-				el.onchange();
+			BX.fireEvent(el, 'change');
 
 			if(fields[elName]['hidden'] ==  'true' && this.IsAllRowElementsHidden(this.GetRowByElement(el).id, fields))
 				this.ToggleFilterRow(this.GetRowByElement(el).id, false, false, true);
@@ -4501,6 +4503,9 @@ BX.AdminFilter = function(filter_id, aRows)
 		for(var i=0, n = this.form.elements.length; i<n; i++)
 		{
 			var el = this.form.elements[i];
+
+			if(!el.name)
+				continue;
 
 			if(el.type == 'select-multiple')
 			{
@@ -5504,6 +5509,7 @@ BX.adminChain = {
 
 BX.InitializeAdmin = function()
 {
+	BX.browser.addGlobalFeatures(["boxShadow", "borderRadius", "flexWrap", "boxDirection", "transition", "transform"]);
 	BX.adminPanel = new BX.adminPanel();
 	BX.adminMenu = new BX.adminMenu();
 

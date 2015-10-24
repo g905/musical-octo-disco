@@ -3,7 +3,7 @@
 	 * Date: 24.04.13
 	 * Time: 4:23
 	 */
-	(function() {
+	(function(window) {
 		var __BXHtmlEditorParserRules;
 
 	function BXEditor(config)
@@ -29,7 +29,6 @@
 		this.BLOCK_TAGS = ["H1", "H2", "H3", "H4", "H5", "H6", "P", "BLOCKQUOTE", "DIV", "SECTION", "PRE"];
 		this.NESTED_BLOCK_TAGS = ["BLOCKQUOTE", "DIV"];
 		this.TABLE_TAGS = ["TD", "TR", "TH", "TABLE", "TBODY", "CAPTION", "COL", "COLGROUP", "TFOOT", "THEAD"];
-
 		this.BBCODE_TAGS = ['U', 'TABLE', 'TR', 'TD', 'TH', 'IMG', 'A', 'CENTER', 'LEFT', 'RIGHT', 'JUSTIFY'];
 		//this.BBCODE_TAGS = ['P', 'U', 'DIV', 'TABLE', 'TR', 'TD', 'TH', 'IMG', 'A', 'CENTER', 'LEFT', 'RIGHT', 'JUSTIFY'];
 
@@ -62,7 +61,9 @@
 			'ctrl': 17,
 			'alt': 18,
 			'cmd': 91, // 93, 224, 17 Browser dependent
-			'cmdRight': 93 // 93, 224, 17 Browser dependent?
+			'cmdRight': 93, // 93, 224, 17 Browser dependent?
+			'pageUp': 33,
+			'pageDown': 34
 		};
 		this.INVISIBLE_SPACE = "\uFEFF";
 		this.INVISIBLE_CURSOR = "\u2060";
@@ -74,11 +75,126 @@
 		this.MAX_HANDLED_FORMAT_TIME = 500;
 		this.iframeCssText = ''; // Here some controls can add additional css
 
-		this.Init(this.CheckConfig(config));
+		this.InitConfig(this.CheckConfig(config));
+
+		if (!config.lazyLoad)
+		{
+			this.Init();
+		}
 	}
 
 	BXEditor.prototype = {
-		Init: function(config)
+		Init: function()
+		{
+			if (this.inited)
+				return;
+
+			// Parser
+			this.parser = new BXHtmlEditor.BXEditorParser(this);
+
+			this.On("OnEditorInitedBefore", [this]);
+
+			this.BuildSceleton();
+			this.HTMLStyler = HTMLStyler;
+
+			// Textarea
+			this.dom.textarea = this.dom.textareaCont.appendChild(BX.create("TEXTAREA", {props: {className: "bxhtmled-textarea"}}));
+			this.dom.pValueInput = BX('bxed_' + this.id);
+			if (!this.dom.pValueInput)
+			{
+				this.dom.pValueInput = this.dom.cont.appendChild(BX.create("INPUT", {props: {type: "hidden", id: 'bxed_' + this.id, name: this.config.inputName}}));
+			}
+			this.dom.pValueInput.value = this.config.content;
+
+			this.dom.form = this.dom.textarea.form || false;
+			this.document = null;
+
+			// Protected iframe for wysiwyg
+			this.sandbox = this.CreateIframeSandBox();
+			var iframe = this.sandbox.GetIframe();
+
+			iframe.style.width = '100%';
+			// TODO: height in pixels
+			iframe.style.height = '100%';
+
+			// Views:
+			// 1. TextareaView
+			this.textareaView = new BXEditorTextareaView(this, this.dom.textarea, this.dom.textareaCont);
+			// 2. IframeView
+			this.iframeView = new BXEditorIframeView(this, this.dom.textarea, this.dom.iframeCont);
+			// 3. Syncronizer
+			this.synchro = new BXEditorViewsSynchro(this, this.textareaView, this.iframeView);
+
+			if (this.bbCode)
+			{
+				this.bbParser = new BXHtmlEditor.BXEditorBbCodeParser(this);
+			}
+
+			// Php parser
+			this.phpParser = new BXHtmlEditor.BXEditorPhpParser(this);
+			this.components = new BXHtmlEditor.BXEditorComponents(this);
+
+			this.styles = new BXStyles(this);
+
+			// Toolbar
+			this.overlay = new BXHtmlEditor.Overlay(this);
+			this.BuildToolbar();
+
+			// Taskbars
+			if (this.showTaskbars)
+			{
+				this.taskbarManager = new BXHtmlEditor.TaskbarManager(this, true);
+
+				// Components
+				if (this.showComponents)
+				{
+					this.componentsTaskbar = new BXHtmlEditor.ComponentsControl(this);
+					this.taskbarManager.AddTaskbar(this.componentsTaskbar);
+				}
+				// Snippets
+				if (this.showSnippets)
+				{
+					this.snippets = new BXHtmlEditor.BXEditorSnippets(this);
+					this.snippetsTaskbar = new BXHtmlEditor.SnippetsControl(this, this.taskbarManager);
+					this.taskbarManager.AddTaskbar(this.snippetsTaskbar);
+				}
+				this.taskbarManager.ShowTaskbar(this.showComponents ? this.componentsTaskbar.GetId() : this.snippetsTaskbar.GetId());
+			}
+			else
+			{
+				this.dom.taskbarCont.style.display = 'none';
+			}
+			// Context menu
+			this.contextMenu = new BXHtmlEditor.ContextMenu(this);
+
+			if (this.config.showNodeNavi)
+			{
+				this.nodeNavi = new BXHtmlEditor.NodeNavigator(this);
+				this.nodeNavi.Show();
+			}
+
+			this.InitEventHandlers();
+			this.ResizeSceleton();
+
+			// Restore taskbar mode from user settings
+			if (this.showTaskbars && this.config.taskbarShown)
+			{
+				this.taskbarManager.Show(false);
+			}
+			this.inited = true;
+			this.On("OnEditorInitedAfter", [this]);
+
+			if (!this.CheckBrowserCompatibility())
+			{
+				this.dom.cont.parentNode.insertBefore(BX.create("DIV", {props: {className: "bxhtmled-warning"}, text: BX.message('BXEdInvalidBrowser')}), this.dom.cont);
+			}
+
+			this.Show();
+
+			BX.onCustomEvent(BXHtmlEditor, 'OnEditorCreated', [this]);
+		},
+
+		InitConfig: function(config)
 		{
 			this.config = config;
 			this.id = this.config.id;
@@ -93,6 +209,7 @@
 			this.config.setFocusAfterShow = this.config.setFocusAfterShow !== false;
 			this.cssCounter = 0;
 			this.iframeCssText = this.config.iframeCss;
+			this.fileDialogsLoaded = this.bbCode || this.config.useFileDialogs === false;
 
 			if (this.config.bbCodeTags && this.bbCode)
 			{
@@ -103,8 +220,10 @@
 				this.MIN_WIDTH = parseInt(this.config.minBodyWidth);
 			if (this.config.minBodyHeight)
 				this.MIN_HEIGHT = parseInt(this.config.minBodyHeight);
+
 			if (this.config.normalBodyWidth)
 				this.NORMAL_WIDTH = parseInt(this.config.normalBodyWidth);
+			this.normalWidth = this.NORMAL_WIDTH;
 
 			if (this.config.smiles)
 			{
@@ -138,114 +257,13 @@
 			// Limited Php Access - when user can only move or delete php code or change component params
 			this.lpa = !this.config.allowPhp && this.config.limitPhpAccess;
 			this.templateId = this.config.templateId;
+			this.componentFilter = this.config.componentFilter;
 			this.showSnippets = this.config.showSnippets !== false;
 			this.showComponents = this.config.showComponents !== false && (this.allowPhp || this.lpa);
 			this.showTaskbars = this.config.showTaskbars !== false && (this.showSnippets || this.showComponents);
 
 			this.templates = {};
 			this.templates[this.templateId] = this.config.templateParams;
-
-			// Parser
-			this.parser = new BXHtmlEditor.BXEditorParser(this);
-
-			this.On("OnEditorInitedBefore", [this]);
-
-			this.BuildSceleton();
-			this.HTMLStyler = HTMLStyler;
-
-			// Textarea
-			this.dom.textarea = this.dom.textareaCont.appendChild(BX.create("TEXTAREA", {props: {className: "bxhtmled-textarea"}}));
-			this.dom.pValueInput = BX('bxed_' + this.id);
-			if (!this.dom.pValueInput)
-			{
-				this.dom.pValueInput = this.dom.cont.appendChild(BX.create("INPUT", {props: {type: "hidden", id: 'bxed_' + this.id, name: this.config.inputName}}));
-			}
-			this.dom.pValueInput.value = this.config.content;
-
-			this.dom.form = this.dom.textarea.form || false;
-			this.document = null;
-			// Protected iframe for wysiwyg
-
-			this.sandbox = this.CreateIframeSandBox();
-			var iframe = this.sandbox.GetIframe();
-
-			iframe.style.width = '100%';
-			iframe.style.height = '100%';
-
-			// Views:
-			// 1. TextareaView
-			this.textareaView = new BXEditorTextareaView(this, this.dom.textarea, this.dom.textareaCont);
-			// 2. IframeView
-			this.iframeView = new BXEditorIframeView(this, this.dom.textarea, this.dom.iframeCont);
-			// 3. Syncronizer
-			this.synchro = new BXEditorViewsSynchro(this, this.textareaView, this.iframeView);
-
-			if (this.bbCode)
-			{
-				this.bbParser = new BXHtmlEditor.BXEditorBbCodeParser(this);
-			}
-
-			// Php parser
-			this.phpParser = new BXHtmlEditor.BXEditorPhpParser(this);
-			this.components = new BXHtmlEditor.BXEditorComponents(this);
-
-			// Toolbar
-			this.overlay = new BXHtmlEditor.Overlay(this);
-			this.BuildToolbar();
-
-			// Taskbars
-			if (this.showTaskbars)
-			{
-				this.taskbarManager = new BXHtmlEditor.TaskbarManager(this, true);
-
-				// Components
-				if (this.showComponents)
-				{
-					this.componentsTaskbar = new BXHtmlEditor.ComponentsControl(this);
-					this.taskbarManager.AddTaskbar(this.componentsTaskbar);
-				}
-
-				// Snippets
-				if (this.showSnippets)
-				{
-					this.snippets = new BXHtmlEditor.BXEditorSnippets(this);
-					this.snippetsTaskbar = new BXHtmlEditor.SnippetsControl(this, this.taskbarManager);
-					this.taskbarManager.AddTaskbar(this.snippetsTaskbar);
-				}
-				this.taskbarManager.ShowTaskbar(this.showComponents ? this.componentsTaskbar.GetId() : this.snippetsTaskbar.GetId());
-			}
-			else
-			{
-				this.dom.taskbarCont.style.display = 'none';
-			}
-
-			// Context menu
-			this.contextMenu = new BXHtmlEditor.ContextMenu(this);
-
-			if (this.config.showNodeNavi)
-			{
-				this.nodeNavi = new BXHtmlEditor.NodeNavigator(this);
-				this.nodeNavi.Show();
-			}
-
-			this.styles = new BXStyles(this);
-
-			this.InitEventHandlers();
-			this.ResizeSceleton();
-
-			// Restore taskbar mode from user settings
-			if (this.showTaskbars && this.config.taskbarShown)
-			{
-				this.taskbarManager.Show(false);
-			}
-
-			this.inited = true;
-			this.On("OnEditorInitedAfter", [this]);
-
-			if (!this.CheckBrowserCompatibility())
-			{
-				this.dom.cont.parentNode.insertBefore(BX.create("DIV", {props: {className: "bxhtmled-warning"}, text: BX.message('BXEdInvalidBrowser')}), this.dom.cont);
-			}
 		},
 
 		InitEventHandlers: function()
@@ -269,7 +287,6 @@
 				}
 				_this.statusInterval = setInterval(BX.proxy(_this.CheckCurrentStatus, _this), 500);
 			});
-
 			BX.addCustomEvent(this, "OnIframeBlur", function()
 			{
 				_this.bookmark = null;
@@ -308,6 +325,18 @@
 			if (this.dom.form)
 			{
 				BX.bind(this.dom.form, 'submit', BX.proxy(this.OnSubmit, this));
+
+				// Autosave
+				if (this.config.initAutosave !== false)
+				{
+					setTimeout(function()
+					{
+						if (_this.dom.form.BXAUTOSAVE)
+						{
+							_this.InitAutosaveHandlers();
+						}
+					}, 100);
+				}
 			}
 
 			BX.addCustomEvent(this, "OnSpecialcharInserted", function(entity)
@@ -372,6 +401,8 @@
 
 			// Node navigation at the bottom
 			this.dom.navCont = BX('bx-html-editor-nav-cnt-' + this.id);
+
+			this.dom.fileDialogsWrap = BX('bx-html-editor-file-dialogs-' + this.id)
 		},
 
 		ResizeSceleton: function(width, height, params)
@@ -447,7 +478,7 @@
 				h = Math.max(height, this.MIN_HEIGHT),
 				toolbarHeight = this.toolbar.GetHeight(),
 				taskbarWidth = this.showTaskbars ? (this.taskbarManager.GetWidth(true, w * 0.8)) : 0,
-				areaH = h - toolbarHeight - (this.config.showNodeNavi ? this.nodeNavi.GetHeight() : 0),
+				areaH = h - toolbarHeight - (this.config.showNodeNavi && this.nodeNavi ? this.nodeNavi.GetHeight() : 0),
 				areaW = w - taskbarWidth;
 
 			this.dom.areaCont.style.top = toolbarHeight ? toolbarHeight + 'px' : 0;
@@ -462,7 +493,6 @@
 			{
 				this.taskbarManager.Resize(taskbarWidth, areaH);
 			}
-
 			this.toolbar.AdaptControls(width);
 		},
 
@@ -482,7 +512,7 @@
 					{
 						setTimeout(BX.proxy(this.CheckBodyHeight, this), 300);
 					}
-					else if (minHeight > doc.body.offsetHeight)
+					else if (this.config.autoResize || minHeight > doc.body.offsetHeight)
 					{
 						doc.body.style.minHeight = minHeight + 'px';
 					}
@@ -500,13 +530,13 @@
 
 		AutoResizeSceleton: function()
 		{
-			if (this.expanded)
+			if (this.expanded || !this.IsShown() || this.iframeView.IsEmpty())
 				return;
 
 			var
 				maxHeight = parseInt(this.config.autoResizeMaxHeight || 0),
 				minHeight = parseInt(this.config.autoResizeMinHeight || 50),
-				size = this.GetSceletonSize(),
+				areaHeight = this.dom.areaCont.offsetHeight,
 				newHeight,
 				_this = this;
 
@@ -518,7 +548,7 @@
 			this.autoResizeTimeout = setTimeout(function()
 			{
 				newHeight = _this.GetHeightByContent();
-				if (newHeight > parseInt(size.height))
+				if (newHeight > areaHeight)
 				{
 					if (BX.browser.IsIOS())
 					{
@@ -531,7 +561,6 @@
 
 					newHeight = Math.min(newHeight, maxHeight);
 					newHeight = Math.max(newHeight, minHeight);
-
 					_this.SmoothResizeSceleton(newHeight);
 				}
 			}, 300);
@@ -542,6 +571,7 @@
 			var
 				heightOffset = parseInt(this.config.autoResizeOffset || 80),
 				contentHeight;
+
 			if (this.GetViewMode() == 'wysiwyg')
 			{
 				var
@@ -550,7 +580,6 @@
 					offsetTop = false;
 
 				contentHeight = body.offsetHeight;
-
 				while (true)
 				{
 					if (!node)
@@ -743,9 +772,7 @@
 		OnCreateIframe: function()
 		{
 			this.On('OnCreateIframeBefore');
-
 			this.iframeView.OnCreateIframe();
-
 			this.selection = new BXEditorSelection(this);
 			this.action = new BXEditorActions(this);
 
@@ -765,8 +792,12 @@
 
 			this.SetView(this.config.view, false);
 			if (this.config.setFocusAfterShow !== false)
+			{
 				this.Focus(false);
-			this.On('OnCreateIframeAfter');
+			}
+
+			this.sandbox.inited = true;
+			this.On('OnCreateIframeAfter', [this]);
 		},
 
 		GetDialog: function(dialogName, params)
@@ -789,7 +820,7 @@
 
 		IsShown: function()
 		{
-			return this.dom.cont.style.display !== 'none' && BX.isNodeInDom(this.dom.cont);
+			return this.inited && this.dom.cont.style.display !== 'none' && this.dom.cont.offsetWidth > 0 && BX.isNodeInDom(this.dom.cont);
 		},
 
 		SetView: function(view, saveValue)
@@ -812,6 +843,7 @@
 				{
 					this.iframeView.Hide();
 					this.textareaView.Show();
+					this.CheckCurrentStatus(false);
 					this.dom.splitResizer.style.display = 'none';
 				}
 				else if (view == 'split')
@@ -1076,7 +1108,11 @@
 			this.synchro.FromTextareaToIframe(true);
 			this.synchro.StartSync();
 			this.iframeView.ReInit();
-			this.Focus();
+			this.selection.lastCheckedRange = null;
+			if (this.config.setFocusAfterShow !== false)
+			{
+				this.Focus();
+			}
 		},
 
 		CheckAndReInit: function(content)
@@ -1087,11 +1123,15 @@
 				if (win)
 				{
 					var doc = this.sandbox.GetDocument();
-					if (doc !== this.iframeView.document)
+					if (doc !== this.iframeView.document || !doc.head || doc.head.innerHTML == '')
 					{
 						this.iframeView.document = doc;
 						this.iframeView.element = doc.body;
 						this.ReInitIframe();
+					}
+					else if(doc.body)
+					{
+						doc.body.style.minHeight = '';
 					}
 				}
 				else
@@ -1103,7 +1143,6 @@
 			if (content !== undefined)
 			{
 				this.SetContent(content, true);
-				this.Focus(true);
 			}
 		},
 
@@ -1191,6 +1230,13 @@
 				result = innerHTML === "<p></p><div></div>" || innerHTML === "<p><div></div></p>";
 
 				_this.util.AutoCloseTagSupported = function(){return result;};
+				return result;
+			};
+
+			this.util.FirstLetterSupported = function()
+			{
+				var result = !BX.browser.IsChrome() && !BX.browser.IsSafari();
+				_this.util.FirstLetterSupported = function(){return result;};
 				return result;
 			};
 
@@ -1569,25 +1615,26 @@
 
 			this.util.RgbToHex = function(str)
 			{
-				var res;
-				if (str.search("rgb") == -1)
+				if (!str)
+					str = '';
+
+				if (str.search("rgb") !== -1)
 				{
-					res = str;
-				}
-				else if (str == 'rgba(0, 0, 0, 0)')
-				{
-					res = 'transparent';
-				}
-				else
-				{
-					str = str.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d\.]+))?\)$/);
 					function hex(x)
 					{
 						return ("0" + parseInt(x).toString(16)).slice(-2);
 					}
-					res = "#" + hex(str[1]) + hex(str[2]) + hex(str[3]);
+
+					str = str.replace(/rgba\(0,\s*0,\s*0,\s*0\)/ig, 'transparent');
+					str = str.replace(/rgba?\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})(?:,\s*([\d\.]{1,3}))?\)/ig,
+						function(s, s1, s2, s3, s4)
+						{
+							return "#" + hex(s1) + hex(s2) + hex(s3);
+						}
+					);
 				}
-				return res;
+
+				return str;
 			};
 
 			this.util.CheckCss = function(node, arCss, bMatch)
@@ -1678,30 +1725,53 @@
 				}
 				return false;
 			};
+
+			this.util.FindParentEx = function(obj, params, maxParent)
+			{
+				if (BX.checkNode && BX.checkNode(obj, params))
+					return obj;
+				return BX.findParent(obj, params, maxParent);
+			};
+
+			this.util.IsEmptyObject = function(obj)
+			{
+				for (var i in obj)
+				{
+					if (obj.hasOwnProperty(i))
+					{
+						return false;
+					}
+				}
+				return true;
+			};
 		},
 
 		Parse: function(content, bParseBxNodes, bFormat)
 		{
 			bParseBxNodes = !!bParseBxNodes;
+			this.content = content;
 			this.On("OnParse", [bParseBxNodes]);
+			content = this.content;
 
 			if (bParseBxNodes)
 			{
-				content = this.parser.Parse(content, this.GetParseRules(), this.GetIframeDoc(), true, bParseBxNodes);
+				this.content = this.parser.Parse(this.content, this.GetParseRules(), this.GetIframeDoc(), true, bParseBxNodes);
 				if ((bFormat === true || this.textareaView.IsShown()) && !this.bbCode)
 				{
-					content = this.FormatHtml(content);
+					this.content = this.FormatHtml(this.content);
 				}
 
-				content = this.phpParser.ParseBxNodes(content);
+				this.content = this.phpParser.ParseBxNodes(this.content);
 			}
 			else
 			{
-				content = this.phpParser.ParsePhp(content);
-				content = this.parser.Parse(content, this.GetParseRules(), this.GetIframeDoc(), true, bParseBxNodes);
+				this.content = this.phpParser.ParsePhp(this.content);
+				this.content = this.parser.Parse(this.content, this.GetParseRules(), this.GetIframeDoc(), true, bParseBxNodes);
 			}
 
-			return content;
+			this.On("OnAfterParse", [bParseBxNodes]);
+
+			return this.content;
 		},
 
 		On: function(eventName, arEventParams)
@@ -1973,18 +2043,18 @@
 
 		GetRequestRes: function(key)
 		{
-			if (top.BXHtmlEditor && top.BXHtmlEditor.ajaxResponse[key] != undefined)
-				return top.BXHtmlEditor.ajaxResponse[key];
+			if (top.BXHtmlEditorAjaxResponse[key] != undefined)
+				return top.BXHtmlEditorAjaxResponse[key];
 
 			return {};
 		},
 
 		ClearRequestRes: function(key)
 		{
-			if (top.BXHtmlEditor.ajaxResponse)
+			if (top.BXHtmlEditorAjaxResponse)
 			{
-				top.BXHtmlEditor.ajaxResponse[key] = null;
-				delete top.BXHtmlEditor.ajaxResponse[key];
+				top.BXHtmlEditorAjaxResponse[key] = null;
+				delete top.BXHtmlEditorAjaxResponse[key];
 			}
 		},
 
@@ -2003,6 +2073,11 @@
 		GetTemplateId: function()
 		{
 			return this.templateId;
+		},
+
+		GetComponentFilter: function()
+		{
+			return this.componentFilter;
 		},
 
 		GetTemplateParams: function()
@@ -2024,10 +2099,12 @@
 				{
 					this.templateId = templateId;
 					var
+						templ = this.templates[templateId],
 						i,
 						doc = this.sandbox.GetDocument(),
 						head = doc.head || doc.getElementsByTagName('HEAD')[0],
-						styles = head.getElementsByTagName('STYLE');
+						styles = head.getElementsByTagName('STYLE'),
+						links = head.getElementsByTagName('LINK');
 
 					// Clean old template styles
 					for (i = 0; i < styles.length; i++)
@@ -2036,10 +2113,32 @@
 							BX.cleanNode(styles[i], true);
 					}
 
-					// Add new node in the iframe head
-					if (this.templates[templateId]['STYLES'])
+					// Clean links with template styles
+					i = 0;
+					while (i < links.length)
 					{
-						head.appendChild(BX.create('STYLE', {props: {type: 'text/css'}, text: this.templates[templateId]['STYLES']}, doc)).setAttribute('data-bx-template-style', 'Y');
+						if (links[i].getAttribute('data-bx-template-style') == 'Y')
+						{
+							BX.remove(links[i], true);
+						}
+						else
+						{
+							i++;
+						}
+					}
+
+					// Add new node in the iframe head
+					if (templ['STYLES'])
+					{
+						head.appendChild(BX.create('STYLE', {props: {type: 'text/css'}, text: templ['STYLES']}, doc)).setAttribute('data-bx-template-style', 'Y');
+					}
+
+					if (templ && templ['EDITOR_STYLES'])
+					{
+						for (i = 0; i < templ['EDITOR_STYLES'].length; i++)
+						{
+							head.appendChild(BX.create('link', {props: {rel: 'stylesheet', href: templ['EDITOR_STYLES'][i] + '_' + this.cssCounter++}}, doc)).setAttribute('data-bx-template-style', 'Y');
+						}
 					}
 
 					this.On("OnApplySiteTemplate", [templateId]);
@@ -2100,34 +2199,28 @@
 			return this.fontFamilyList;
 		},
 
-		GetStyleList: function()
+		CheckCurrentStatus: function(status)
 		{
-			if (!this.styleList)
-			{
-				this.styleList = [
-					{value: 'H1', tagName: 'H1', name: BX.message('StyleH1')},
-					{value: 'H2', tagName: 'H2', name: BX.message('StyleH2')},
-					{value: 'H3', tagName: 'H3', name: BX.message('StyleH3')},
-					{value: 'H4', tagName: 'H4', name: BX.message('StyleH4')},
-					{value: 'H5', tagName: 'H5', name: BX.message('StyleH5')},
-					{value: 'H6', tagName: 'H6', name: BX.message('StyleH6')},
-					{value: 'P', name: BX.message('StyleParagraph')},
-					{value: 'DIV', name: BX.message('StyleDiv')}
-				];
-				this.On("GetStyleList", [this.styleList]);
-			}
-			return this.styleList;
-		},
+			var
+				arAction, action, actionState, value,
+				actionList = this.GetActiveActions();
 
-		CheckCurrentStatus: function()
-		{
+			if (status === false)
+			{
+				for (action in actionList)
+				{
+					if (actionList.hasOwnProperty(action) && this.action.IsSupported(action))
+					{
+						arAction = actionList[action];
+						arAction.control.SetValue(false, null, action);
+					}
+				}
+			}
+
 			if (!this.iframeView.IsFocused())
 				return this.On("OnIframeBlur");
 
-			var
-				arAction, action, actionState, value,
-				actionList = this.GetActiveActions(),
-				range = this.selection.GetRange();
+			var range = this.selection.GetRange();
 
 			if (!range || !range.isValid())
 				return this.On("OnIframeBlur");
@@ -2172,7 +2265,19 @@
 
 		GetCurrentCssClasses: function(filterTag)
 		{
-			return this.styles.GetCSS(this.templateId, this.templates[this.templateId].STYLES, this.templates[this.templateId].PATH || '', filterTag);
+			return this.styles.GetCSS(this.templateId, this.templates[this.templateId].STYLES, this.templates[this.templateId].PATH || '', filterTag || false);
+		},
+
+		GetStylesDescription: function(templateId)
+		{
+			if (!templateId)
+				templateId = this.templateId;
+			var res = {};
+			if (templateId && this.templates[templateId])
+			{
+				res = this.templates[templateId].STYLES_TITLE || {};
+			}
+			return res;
 		},
 
 		IsInited: function()
@@ -2196,7 +2301,7 @@
 
 		OnSubmit: function()
 		{
-			if (!this.isSubmited)
+			if (!this.isSubmited && this.dom.cont.style.display !== 'none')
 			{
 				this.RemoveCursorNode();
 				this.isSubmited = true;
@@ -2251,7 +2356,8 @@
 
 		GetIframeElement: function(id)
 		{
-			return this.GetIframeDoc().getElementById(id);
+			var doc = this.GetIframeDoc();
+			return doc ? doc.getElementById(id) : null;
 		},
 
 		RegisterDialog: function(id, dialog)
@@ -2271,7 +2377,7 @@
 
 		CheckBrowserCompatibility: function()
 		{
-			return !(BX.browser.IsOpera() || BX.browser.IsIE8() || BX.browser.IsIE7() || BX.browser.IsIE6());
+			return !(BX.browser.IsOpera() || BX.browser.IsIE8() || BX.browser.IsIE7() || BX.browser.IsIE6() || !document.querySelectorAll);
 		},
 
 		GetCursorHtml: function()
@@ -2289,15 +2395,11 @@
 
 		RestoreCursor: function()
 		{
-			var doc = this.GetIframeDoc();
-			if (doc)
+			var cursor = this.GetIframeElement('bx-cursor-node');
+			if (cursor)
 			{
-				var cursor = doc.getElementById('bx-cursor-node');
-				if (cursor)
-				{
-					this.selection.SetAfter(cursor);
-					BX.remove(cursor);
-				}
+				this.selection.SetAfter(cursor);
+				BX.remove(cursor);
 			}
 		},
 
@@ -2309,15 +2411,11 @@
 			}
 			else
 			{
-				var doc = this.GetIframeDoc();
-				if (doc)
+				var cursor = this.GetIframeElement('bx-cursor-node');
+				if (cursor)
 				{
-					var cursor = doc.getElementById('bx-cursor-node');
-					if (cursor)
-					{
-						this.selection.SetAfter(cursor);
-						BX.remove(cursor);
-					}
+					this.selection.SetAfter(cursor);
+					BX.remove(cursor);
 				}
 			}
 		},
@@ -2325,7 +2423,7 @@
 		AddButton: function(params)
 		{
 			if (params.compact == undefined)
-				params.compact = true;
+				params.compact = false;
 			if (params.toolbarSort == undefined)
 				params.toolbarSort = 301;
 			if (params.hidden == undefined)
@@ -2368,14 +2466,24 @@
 					id: params.id,
 					compact: params.compact,
 					hidden: params.hidden,
-					sort: params.toolbarSort
+					sort: params.toolbarSort,
+					checkWidth: params.checkWidth == undefined ? true : !!params.checkWidth,
+					offsetWidth: (params.offsetWidth || 32)
 				});
 			});
 		},
 
 		AddCustomParser: function(parser)
 		{
-			this.phpParser.AddCustomParser(parser);
+			if (this.phpParser && this.phpParser.AddCustomParser)
+			{
+				this.phpParser.AddCustomParser(parser);
+			}
+			else
+			{
+				var _this = this;
+				BX.addCustomEvent("OnEditorInitedAfter", function(){_this.phpParser.AddCustomParser(parser);});
+			}
 		},
 
 		AddParser: function(parser)
@@ -2415,10 +2523,59 @@
 				content = this.Parse(content, true, true);
 			}
 			return content;
+		},
+
+		LoadFileDialogs: function(callback)
+		{
+			var _this = this;
+
+			this.Request({
+				getData: this.GetReqData('load_file_dialogs',
+					{
+						editor_id: this.id
+					}
+				),
+				handler: function(res, html)
+				{
+					html = BX.util.trim(html);
+					_this.dom.fileDialogsWrap.innerHTML = html;
+					_this.fileDialogsLoaded = true;
+					setTimeout(callback, 100);
+				}
+			});
+		},
+
+		InitAutosaveHandlers: function()
+		{
+			var
+				editor = this,
+				form = this.dom.form;
+
+			try{
+				BX.addCustomEvent(this, 'OnSubmit', function(){form.BXAUTOSAVE.Init();});
+				BX.addCustomEvent(this, 'OnContentChanged', function(){form.BXAUTOSAVE.Init();});
+
+				BX.addCustomEvent(form, 'onAutoSave', function (ob, data)
+				{
+					if (editor.IsShown() && !editor.IsSubmited())
+					{
+						// Get it from textarea and put to form_data to saving
+						data[editor.config.inputName] = editor.GetContent();
+					}
+				});
+
+				BX.addCustomEvent(form, 'onAutoSaveRestore', function (ob, data)
+				{
+					if (editor.IsShown())
+					{
+						editor.SetContent(data[editor.config.inputName], true);
+					}
+				});
+			}catch(e){}
 		}
 	};
-	window.BXEditor = BXEditor;
 
+	window.BXEditor = BXEditor;
 
 	function Sandbox(callBack, config)
 	{
@@ -2478,6 +2635,7 @@
 						height: 0,
 						marginwidth: 0,
 						marginheight: 0
+						//scrolling: 'no'
 					}
 				});
 
@@ -2513,20 +2671,12 @@
 
 				this.InitIframe(iframe);
 
-				// Catch js errors and pass them to the parent's onerror event
-				// addEventListener("error") doesn't work properly in some browsers
 				iframeWindow.onerror = function(errorMessage, fileName, lineNumber) {
 					throw new Error("Sandbox: " + errorMessage, fileName, lineNumber);
 				};
 
 				if (this.bSandbox)
 				{
-					// Unset a bunch of sensitive variables
-					// Please note: This isn't hack safe!
-					// It more or less just takes care of basic attacks and prevents accidental theft of sensitive information
-					// IE is secure though, which is the most important thing, since IE is the only browser, who
-					// takes over scripts & styles into contentEditable elements when copied from external websites
-					// or applications (Microsoft Word, ...)
 					var i, length;
 					for (i = 0, length = this.windowProperties.length; i < length; i++)
 					{
@@ -2543,13 +2693,10 @@
 						this._unset(iframeDocument, this.documentProperties[i]);
 					}
 
-					// This doesn't work in Safari 5
-					// See http://stackoverflow.com/questions/992461/is-it-possible-to-override-document-cookie-in-webkit
 					this._unset(iframeDocument, "cookie", "", true);
 				}
 
 				this.loaded = true;
-
 				// Trigger the callback
 				setTimeout(function()
 				{
@@ -2560,8 +2707,8 @@
 
 		InitIframe: function(iframe)
 		{
+			iframe = this.iframe || iframe;
 			var
-				iframe = this.iframe || iframe,
 				iframeDocument = iframe.contentWindow.document,
 				iframeHtml = this.GetHtml(this.config.stylesheets, this.editor.GetTemplateStyles());
 
@@ -2578,7 +2725,7 @@
 			{
 				return iframe.contentWindow.document;
 			};
-			this.inited = true;
+
 			this.editor.On("OnIframeInit");
 		},
 
@@ -2589,13 +2736,6 @@
 				headHtml = "",
 				i;
 
-			css = typeof css === "string" ? [css] : css;
-			if (css)
-			{
-				for (i = 0; i < css.length; i++)
-					headHtml += '<link rel="stylesheet" href="' + css[i] + '">';
-			}
-
 			if (this.editor.config.bodyClass)
 			{
 				bodyParams += ' class="' + this.editor.config.bodyClass + '"';
@@ -2604,6 +2744,26 @@
 			{
 				bodyParams += ' id="' + this.editor.config.bodyId + '"';
 			}
+
+			var templ = this.editor.GetTemplateParams();
+			if (templ && templ['EDITOR_STYLES'])
+			{
+				for (i = 0; i < templ['EDITOR_STYLES'].length; i++)
+				{
+					headHtml += '<link data-bx-template-style="Y" rel="stylesheet" href="' + templ['EDITOR_STYLES'][i] + '_' + this.editor.cssCounter++ + '">';
+				}
+			}
+
+			css = typeof css === "string" ? [css] : css;
+			if (css)
+			{
+				for (i = 0; i < css.length; i++)
+				{
+					headHtml += '<link rel="stylesheet" href="' + css[i] + '">';
+				}
+			}
+
+			headHtml += '<link rel="stylesheet" href="' + this.editor.config.cssIframePath + '_' + this.editor.cssCounter++ + '">';
 
 			if (typeof cssText === "string")
 			{
@@ -2614,8 +2774,6 @@
 			{
 				headHtml += '<style type="text/css">' + this.editor.iframeCssText + '</style>';
 			}
-
-			headHtml += '<link id="bx-iframe-link" rel="stylesheet" href="' + this.editor.config.cssIframePath + '_' + this.editor.cssCounter++ + '">';
 
 			return '<!DOCTYPE html><html><head>' + headHtml + '</head><body' + bodyParams + '></body></html>';
 		},
@@ -2664,7 +2822,7 @@
 		// Get the current selection as a bookmark to be able to later restore it
 		GetBookmark: function()
 		{
-			if (this.editor.currentViewName !== 'code')
+			if (!this.editor.synchro.IsFocusedOnTextarea())
 			{
 				var range = this.GetRange();
 				return range && range.cloneRange();
@@ -2884,18 +3042,21 @@
 				setTimeout(function() { throw e3; }, 0);
 			}
 
-			var caretPlaceholder = this.document.querySelector("." + className);
-			if (caretPlaceholder)
+			if (document.querySelector)
 			{
-				newRange = rangy.createRange(this.document);
-				newRange.selectNode(caretPlaceholder);
-				newRange.deleteContents();
-				this.SetSelection(newRange);
-			}
-			else
-			{
-				// fallback for when all hell breaks loose
-				body.focus();
+				var caretPlaceholder = this.document.querySelector("." + className);
+				if (caretPlaceholder)
+				{
+					newRange = rangy.createRange(this.document);
+					newRange.selectNode(caretPlaceholder);
+					newRange.deleteContents();
+					this.SetSelection(newRange);
+				}
+				else
+				{
+					// fallback for when all hell breaks loose
+					body.focus();
+				}
 			}
 
 			if (restoreScrollPosition)
@@ -2906,7 +3067,7 @@
 
 			// Remove it again, just to make sure that the placeholder is definitely out of the dom tree
 			try {
-				if (caretPlaceholder.parentNode)
+				if (caretPlaceholder && caretPlaceholder.parentNode)
 					caretPlaceholder.parentNode.removeChild(caretPlaceholder);
 			} catch(e4) {}
 		},
@@ -2988,7 +3149,7 @@
 		 */
 		InsertNode: function(node, range)
 		{
-			if (!range)
+			if (!range || !range.isValid || !range.isValid())
 				range = this.GetRange();
 
 			if (range)
@@ -3189,13 +3350,29 @@
 				return [];
 		},
 
-		GetRange: function(selection)
+		GetRange: function(selection, bSetFocus)
 		{
 			if (!selection)
 			{
-				if (!this.editor.iframeView.IsFocused())
+				if (!this.editor.iframeView.IsFocused() && bSetFocus !== false)
 				{
+					var
+						doc = this.editor.GetIframeDoc(),
+						originalScrollTop = doc.documentElement.scrollTop || doc.body.scrollTop,
+						originalScrollLeft = doc.documentElement.scrollLeft || doc.body.scrollLeft;
+
 					this.editor.iframeView.Focus();
+
+					var
+						newScrollTop = doc.documentElement.scrollTop || doc.body.scrollTop,
+						newScrollLeft = doc.documentElement.scrollLeft || doc.body.scrollLeft;
+
+					if (newScrollTop !== originalScrollTop || newScrollLeft !== originalScrollLeft)
+					{
+						var win = this.editor.sandbox.GetWindow();
+						if (win)
+							win.scrollTo(originalScrollLeft, originalScrollTop);
+					}
 				}
 
 				selection = this.GetSelection();
@@ -3357,10 +3534,10 @@
 			this.SetInvisibleTextAfterNode(node);
 		},
 
-		SaveRange: function()
+		SaveRange: function(bSetFocus)
 		{
-			var range = this.GetRange();
-			this.lastCheckedRange = {endOffset: range.endOffset, endContainer: range.endContainer};
+			var range = this.GetRange(false, bSetFocus);
+			this.lastCheckedRange = {endOffset: range.endOffset, endContainer: range.endContainer, range: range};
 		},
 
 		CheckLastRange: function(range)
@@ -3420,16 +3597,26 @@
 	{
 		this.isElementMerge = (firstNode.nodeType == 1);
 		this.firstTextNode = this.isElementMerge ? firstNode.lastChild : firstNode;
+		this.firstNode = firstNode;
 		this.textNodes = [this.firstTextNode];
 	}
 
 	NodeMerge.prototype = {
 		DoMerge: function()
 		{
-			var textBits = [], textNode, parent, text;
-			for (var i = 0, len = this.textNodes.length; i < len; ++i)
+			var
+				onlyTextNodes = true,
+				i, len = this.textNodes.length,
+				textBits = [], textNode, parent, text;
+
+			for (i = 0; i < len; ++i)
 			{
 				textNode = this.textNodes[i];
+				if (this.textNodes[i].nodeType !== 3)
+				{
+					return false;
+				}
+
 				parent = textNode.parentNode;
 				textBits[i] = textNode.data;
 				if (i)
@@ -3440,6 +3627,7 @@
 				}
 			}
 			this.firstTextNode.data = text = textBits.join("");
+
 			return text;
 		},
 
@@ -4072,7 +4260,7 @@
 
 		Keydown: function(e, keyCode, command, selectedNode)
 		{
-			if (e.ctrlKey || e.metaKey)
+			if ((e.ctrlKey || e.metaKey) && !e.altKey)
 			{
 				var
 					isUndo = keyCode === this.editor.KEY_CODES['z'] && !e.shiftKey,
@@ -4166,6 +4354,15 @@
 	}
 
 	BXStyles.prototype = {
+		GetIframe: function(styles)
+		{
+			if (!this.cssIframe)
+			{
+				this.cssIframe = this.CreateIframe(styles);
+			}
+			return this.cssIframe;
+		},
+
 		CreateIframe: function(styles)
 		{
 			this.cssIframe = document.body.appendChild(BX.create("IFRAME", {props: {className: "bx-editor-css-iframe"}}));
@@ -4173,6 +4370,7 @@
 			this.iframeDocument.open("text/html", "replace");
 			this.iframeDocument.write('<!DOCTYPE html><html><head><style type="text/css" data-bx-template-style="Y">' + styles + '</style></head><body></body></html>');
 			this.iframeDocument.close();
+			return this.cssIframe;
 		},
 
 		GetCSS: function(templateId, styles, templatePath, filter)
@@ -4204,11 +4402,11 @@
 						head.appendChild(BX.create('STYLE', {props: {type: 'text/css'}, text: styles}, doc)).setAttribute('data-bx-template-style', 'Y');
 					}
 				}
-
 				this.arStyles[templateId] = this.ParseCss();
 			}
 
 			var res = this.arStyles[templateId];
+
 			if (filter)
 			{
 				var filteredRes = [], tag;
@@ -4246,7 +4444,10 @@
 				return result;
 			}
 
-			var x1 = doc.styleSheets;
+			var
+				x1 = doc.styleSheets,
+				stylesDescription = this.editor.GetStylesDescription();
+
 			for(i = 0, l1 = x1.length; i < l1; i++)
 			{
 				rules = (x1[i].rules ? x1[i].rules : x1[i].cssRules);
@@ -4283,7 +4484,13 @@
 							{
 								result[t2] = [];
 							}
-							result[t2].push({className: t1, original: arTags[k], cssText: rules[j].style.cssText});
+
+							result[t2].push({
+								className: t1,
+								classTitle: stylesDescription[t1] || null,
+								original: arTags[k],
+								cssText: rules[j].style.cssText
+							});
 						}
 					}
 				}
@@ -4365,11 +4572,6 @@
 			"figure": {},
 			"figcaption": {},
 			"fieldset": {},
-			"address": {},
-			"nav": {},
-			"aside": {},
-			"article": {},
-			"main": {},
 
 			// Lists
 			"menu": {rename_tag: "ul"}, // ??
@@ -4380,49 +4582,26 @@
 
 			// Table
 			"table": {},
-			"tr": {
-				"add_class": {
-					"align": "align_text"
-				}
-			},
+			"tr": {},
 			"td": {
 				"check_attributes": {
 					"rowspan": "numbers",
 					"colspan": "numbers"
-				},
-				"add_class": {
-					"align": "align_text"
 				}
 			},
-			"tbody": {
-				"add_class": {
-					"align": "align_text"
-				}
-			},
-			"tfoot": {
-				"add_class": {
-					"align": "align_text"
-				}
-			},
-			"thead": {
-				"add_class": {
-					"align": "align_text"
-				}
-			},
+			"tbody": {},
+			"tfoot": {},
+			"thead": {},
 			"th": {
 				"check_attributes": {
 					"rowspan": "numbers",
 					"colspan": "numbers"
-				},
-				"add_class": {
-					"align": "align_text"
 				}
 			},
-			"caption": {
-				"add_class": {
-					"align": "align_text"
-				}
-			},
+			"caption": {},
+			"col": {},
+			"colgroup": {},
+
 			// Definitions //  <dl>, <dt>, <dd>
 			"dl": {rename_tag: ""},
 			"dd": {rename_tag: ""},
@@ -4431,7 +4610,15 @@
 			"iframe": {},
 			"noindex": {},
 
-			"font": {replace_with_children: 1},
+			"font": {
+				rename_tag: "span",
+				convert_attributes: {
+					face: 'fontFamily',
+					size: 'fontSize',
+					color: 'color'
+				},
+				replace_with_children: 1
+			},
 
 			"embed": {},
 			"noembed": {},
@@ -4440,6 +4627,22 @@
 
 			"sup": {},
 			"sub": {},
+
+			"address": {},
+			"nav": {},
+			"aside": {},
+			"article": {},
+			"main": {},
+			"acronym": {},
+			"abbr": {},
+			"label": {},
+			"time": {},
+
+			"small": {},
+			"big": {},
+
+			"details": {},
+			"summary": {},
 
 			// tags to remove
 			"title": {remove: 1},
@@ -4468,16 +4671,13 @@
 			"xml": {remove: 1},
 			"nextid": {remove: 1},
 			"audio": {remove: 1},
-			"col": {remove: 1},
 			"link": {remove: 1},
 			"script": {remove: 1},
-			"colgroup": {remove: 1},
 			"comment": {remove: 1},
 			"frameset": {remove: 1},
 
 			// Tags to rename
 			// to DIV
-			"details": {rename_tag: "div"},
 			"multicol": {rename_tag: "div"},
 			"footer": {rename_tag: "div"},
 			"map": {rename_tag: "div"},
@@ -4488,27 +4688,21 @@
 			"header": {rename_tag: "div"},
 			// to SPAN
 			"rt": {rename_tag: "span"},
-			"acronym": {rename_tag: "span"},
 			"xmp": {rename_tag: "span"},
-			"small": {rename_tag: "span"},
-			"big": {rename_tag: "span"},
-			"time": {rename_tag: "span"},
 			"bdi": {rename_tag: "span"},
 			"progress": {rename_tag: "span"},
 			"dfn": {rename_tag: "span"},
 			"rb": {rename_tag: "span"},
-			"abbr": {rename_tag: "span"},
 			"mark": {rename_tag: "span"},
 			"output": {rename_tag: "span"},
 			"marquee": {rename_tag: "span"},
 			"rp": {rename_tag: "span"},
-			"summary": {rename_tag: "span"},
+
 			"var": {rename_tag: "span"},
 			"tt": {rename_tag: "span"},
 			"blink": {rename_tag: "span"},
 			"plaintext": {rename_tag: "span"},
 			"legend": {rename_tag: "span"},
-			"label": {rename_tag: "span"},
 			"kbd": {rename_tag: "span"},
 			"meter": {rename_tag: "span"},
 			"datalist": {rename_tag: "span"},
@@ -4559,4 +4753,5 @@
 			"cite": {}
 		}
 	};
-})();
+
+})(window);

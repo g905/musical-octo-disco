@@ -830,7 +830,7 @@ input.adm-header-search::-ms-clear {
 }
 
 .adm-main-menu-item-icon {
-	background:url("images/bx-admin-sprite-big.png") no-repeat -100px -100px;
+	background:url("images/bx-admin-sprite-big1.png") no-repeat -100px -100px;
 	height:45px;
 	position:relative;
 	z-index:2;
@@ -844,6 +844,7 @@ input.adm-header-search::-ms-clear {
 .adm-analytics .adm-main-menu-item-icon {background-position: center -437px; height:49px;}
 .adm-marketPlace .adm-main-menu-item-icon {background-position: center -555px; height:44px;}
 .adm-settings .adm-main-menu-item-icon {background-position: center -657px; height:49px;}
+.adm-marketing .adm-main-menu-item-icon {background-position: center -1698px; height:48px;}
 
 .adm-default:hover .adm-main-menu-item-icon {background-position: center -1638px; height:47px;}
 .adm-desktop:hover .adm-main-menu-item-icon {background-position: center -46px; height:46px;}
@@ -853,6 +854,7 @@ input.adm-header-search::-ms-clear {
 .adm-analytics:hover .adm-main-menu-item-icon {background-position: center -495px; height:49px;}
 .adm-marketPlace:hover .adm-main-menu-item-icon {background-position: center -606px; height:44px;}
 .adm-settings:hover .adm-main-menu-item-icon {background-position: center -713px; height:49px;}
+.adm-marketing:hover .adm-main-menu-item-icon {background-position: center -1752px; height:48px;}
 
 .adm-main-menu-item-active.adm-default .adm-main-menu-item-icon {background-position: center -1638px; height:47px;}
 .adm-main-menu-item-active.adm-desktop .adm-main-menu-item-icon {background-position: center -46px; height:46px;}
@@ -862,6 +864,7 @@ input.adm-header-search::-ms-clear {
 .adm-main-menu-item-active.adm-analytics .adm-main-menu-item-icon {background-position: center -495px; height:49px;}
 .adm-main-menu-item-active.adm-marketPlace .adm-main-menu-item-icon {background-position: center -606px; height:44px;}
 .adm-main-menu-item-active.adm-settings .adm-main-menu-item-icon {background-position: center -713px; height:49px;}
+.adm-main-menu-item-active.adm-marketing .adm-main-menu-item-icon {background-position: center -1752px; height:48px;}
 
 .adm-main-menu-item-text {
 	font-size:11px;
@@ -1149,7 +1152,7 @@ input.adm-header-search::-ms-clear {
 }
 
 .adm-submenu-add-desktop-icon {
-	background:url("images/bx-admin-sprite-big.png") no-repeat 9px -783px;
+	background:url("images/bx-admin-sprite-big1.png") no-repeat 9px -783px;
 	display:inline-block;
 	cursor:pointer;
 	height:28px;
@@ -1753,7 +1756,7 @@ a.adm-nav-page:hover,
 .adm-table-item-edit-wrap {display:inline-block; vertical-align:middle; margin:0 0 0 16px;}
 .adm-table-btn-edit,
 .adm-table-btn-delete {
-	background:url("images/bx-admin-sprite-big.png") no-repeat 0 -948px;
+	background:url("images/bx-admin-sprite-big1.png") no-repeat 0 -948px;
 	cursor:pointer;
 	height:32px;
 	width:32px;
@@ -3103,7 +3106,7 @@ it's made to prevent appearing of artefacts from old admin button icons.
 /*======================================================MENU ICONS=========================================*/
 
 .adm-submenu-item-link-icon {
-	background:url("images/icons-sprite-6.png") no-repeat center -1512px;
+	background:url("images/icons-sprite-12.png") no-repeat center -1512px;
 }
 .fav_menu_icon {background-position:center -1540px;}
 .iblock_menu_icon_iblocks {background-position:center -56px;}
@@ -3123,6 +3126,7 @@ it's made to prevent appearing of artefacts from old admin button icons.
 .sale_menu_icon_statistic {background-position: center -1316px;}
 .sale_menu_icon_buyers {background-position: center -1148px;}
 .sale_menu_icon_store {background-position: center -1979px;}
+.sale_menu_icon_bigdata {background-position: center -2139px;}
 .update_menu_icon_partner {background-position: center -1428px;}
 .update_menu_icon {background-position: center -1484px;}
 .user_menu_icon {background-position: center -448px;}
@@ -3184,7 +3188,14 @@ it's made to prevent appearing of artefacts from old admin button icons.
 
 .seo_menu_icon {background-position: center -2037px;}
 .scale_menu_icon {background-position: center -2099px;}
+.sender_menu_icon {background-position: center -2243px;}
+.sender_trig_menu_icon {background-position: center -2367px;}
 .mobile_menu_icon { background: url("images/ic-mob.png") no-repeat center 1px; }
+.seo_adv_menu_icon {background-position: center -2211px;}
+.abtest_menu_icon {background-position: center -2270px; }
+.conversion_pulse_menu_icon {background-position: center -2305px; }
+.conversion_model_menu_icon {background-position: center -2335px; }
+.security_menu_ddos_icon {background-position: center -2398px;}
 
 /*======================================================END MENU ICONS=========================================*/
 
@@ -3734,3 +3745,119 @@ it's made to prevent appearing of artefacts from old admin button icons.
 	margin-top: 20px;
 }
 /*====================================================SECURITY SITE CHECKER==================================*/
+
+/*====================================================ADMIN TAB CONTROL DRAGGABLE============================*/
+.adm-container-draggable.hidden .adm-bus-component-content-container{
+	height: 0;
+	padding: 0;
+	overflow: hidden;
+}
+
+.adm-container-draggable.hidden .adm-bus-component-title-icon-turn{
+	background:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAFBAMAAACOSmBbAAAABGdBTUEAALGPC/xhBQAAACFQTFRFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAbdFIwQAAAAp0Uk5Th45qcP53jIJ8ANZzCbQAAAAmSURBVAjXY+hatcprOcOMVatWVTLMjFq1YCbDzMlemUBypuLMmQDUxw2yp/UhOAAAAABJRU5ErkJggg==') no-repeat scroll center transparent;
+}
+
+.adm-container-draggable{
+	padding-bottom: 15px;
+}
+
+.adm-bus-statusorder{
+	margin-bottom: 0;
+}
+
+.adm-bus-component-container{
+	border:1px solid #e0eaf0;
+}
+
+.adm-bus-component-container.close .adm-bus-component-content-container{
+	overflow:hidden;
+	height:0;
+	padding:0;
+}
+
+.adm-bus-component-container.close .adm-bus-component-title-icon-turn{
+	background:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAFBAMAAACOSmBbAAAABGdBTUEAALGPC/xhBQAAACFQTFRFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAbdFIwQAAAAp0Uk5Th45qcP53jIJ8ANZzCbQAAAAmSURBVAjXY+hatcprOcOMVatWVTLMjFq1YCbDzMlemUBypuLMmQDUxw2yp/UhOAAAAABJRU5ErkJggg==') no-repeat scroll center transparent;
+}
+
+.adm-bus-component-title-container{
+	position:relative;
+	padding:10px;
+	background:#e7f2f2;
+}
+
+.adm-bus-component-title-container.draggable{
+	cursor:move;
+}
+
+.adm-bus-component-title-icon{
+	line-height:16px;
+	display:inline-block;
+	width:17px;
+	height:16px;
+	margin-right:10px;
+	vertical-align:middle;
+	background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAAQCAYAAADwMZRfAAAApklEQVQ4y62TWxKAIAhFWV+5CfqR/W+g0kRe4ZfN3AFvCXYoOK96sMpFXd47h1dMlBy04cVFdWG95hxkk+0WRb9Fm+DecLWTLPV2fSPN+In92g4BYuDYiG497vMmv+5FPCR5XzsBD9cwyUabgsYIHPJO61Nob/d0SAGTfHpYDVwGzGBNIfuwTKH85LOIZUABbA5e7sH6U48ge0QHNo41/4eyZlum8wCk2+4DSY0a1QAAAABJRU5ErkJggg==) no-repeat center;
+}
+.adm-bus-component-title-icon-close{
+	position:absolute;
+	top:50%;
+	right:10px;
+	width:16px;
+	height:16px;
+	margin-top:-8px;
+	cursor:pointer;
+	-webkit-transition:opacity .5s ease 0s;
+	-moz-transition:opacity .5s ease 0s;
+	transition:opacity .5s ease 0s;
+	opacity:.3;
+	background:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoV2luZG93cykiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6OUQ2NzExOTQ1Mzk0MTFFNDkyMDJDQTlERTU3RTUwQzAiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6OUQ2NzExOTU1Mzk0MTFFNDkyMDJDQTlERTU3RTUwQzAiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo5RDY3MTE5MjUzOTQxMUU0OTIwMkNBOURFNTdFNTBDMCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo5RDY3MTE5MzUzOTQxMUU0OTIwMkNBOURFNTdFNTBDMCIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Pp7uvk4AAABxSURBVHjadM87DoAgEEXRFxMtdDnWwybYgPu2NtoIjT0+kikmA5jcwuGEDwAc7GWC9hNdqwYXK+xzWHRW1GBn2eDgUFKDHu6iHm7QZODGZvO/sNXvFsxx2V1DRmjXksfP4OIW33UQ2dl7nc7qWvwFGADg0TAjoMm+PAAAAABJRU5ErkJggg==') no-repeat scroll center center transparent;
+}
+.adm-bus-component-title-icon-turn{
+	position:absolute;
+	top:50%;
+	right:15px;
+	width:16px;
+	height:16px;
+	margin-top:-8px;
+	cursor:pointer;
+	-webkit-transition:opacity .5s ease 0s;
+	-moz-transition:opacity .5s ease 0s;
+	transition:opacity .5s ease 0s;
+	opacity:.3;
+	background:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAFBAMAAACOSmBbAAAABGdBTUEAALGPC/xhBQAAACFQTFRFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAbdFIwQAAAAp0Uk5Th45qcP53jIJ8ANZzCbQAAAAlSURBVAjXY5g5U3HmTIaZk70ygWTUqgUzGWasWrWqkqELSC4HAMeDDhKiLcNqAAAAAElFTkSuQmCC') no-repeat scroll center transparent;
+}
+.adm-bus-component-title-icon-turn:hover,
+.adm-bus-component-title-icon-close:hover{
+	opacity:.6;
+}
+
+.adm-bus-component-title{
+	font-size:15px;
+	font-weight:bold;
+	line-height:16px;
+	display:inline-block;
+	vertical-align:middle;
+	color:#3a4649;
+	text-shadow:0 1px 0 #fff;
+}
+
+.adm-bus-component-content-container{
+	padding:5px;
+	background:#f7fafa;
+}
+
+.adm-bus-table-container{
+	margin-bottom:10px;
+	padding:5px;
+}
+
+.adm-bus-table-container.caption{
+	position:relative;
+}
+
+.adm-bus-table-container.border{
+	border:1px solid #dadee1;
+	border-radius:3px;
+}
+
+/*====================================================ADMIN TAB CONTROL DRAGGABLE============================*/

@@ -300,3 +300,4 @@ function JCAdminTitleSearch(arParams)
 
 	BX.ready(function (){_this.Init(arParams)});
 }
+

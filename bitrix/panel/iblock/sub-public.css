@@ -162,6 +162,19 @@
 
 
 /*=================================================================TABLE LIST==================================================*/
+.bx-core-adm-dialog .adm-sublist,
+.bx-core-adm-dialog .adm-sublist *
+{
+	-webkit-box-sizing: content-box;
+	-moz-box-sizing: content-box;
+	box-sizing: content-box;
+}
+.bx-core-adm-dialog .adm-sublist .adm-select
+{
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+}
 .bx-core-adm-dialog .adm-sublist .adm-list-table-top
 {
 	background:url("../main/images/bx-admin-sprite-small-1.png") repeat-x 0 -551px;
@@ -180,6 +193,9 @@
 .bx-core-adm-dialog .adm-sublist .adm-list-table-top input[type='button']
 {
 	margin-right:12px;
+	-webkit-box-sizing: content-box;
+	-moz-box-sizing: content-box;
+	box-sizing: content-box;
 }
 
 .bx-core-adm-dialog .adm-sublist .adm-list-table-top a,
@@ -189,6 +205,7 @@
 .bx-core-adm-dialog .adm-sublist .adm-list-table-top a:active
 {
 	color: #3F4B54;
+	text-decoration: none;
 }
 
 .bx-core-adm-dialog .adm-sublist .adm-table-setting
@@ -588,7 +605,7 @@
 .bx-core-adm-dialog .adm-sublist .adm-table-btn-edit,
 .bx-core-adm-dialog .adm-sublist .adm-table-btn-delete
 {
-	background: transparent url("../main/images/bx-admin-sprite-big.png") no-repeat scroll 0 -948px;
+	background: transparent url("../main/images/bx-admin-sprite-big1.png") no-repeat scroll 0 -948px;
 	cursor:pointer;
 	height:32px;
 	width:32px;
@@ -598,27 +615,27 @@
 
 .bx-core-adm-dialog .adm-sublist .adm-table-btn-edit:hover
 {
-	background: transparent url("../main/images/bx-admin-sprite-big.png") no-repeat scroll 0 -1022px;
+	background: transparent url("../main/images/bx-admin-sprite-big1.png") no-repeat scroll 0 -1022px;
 }
 
 .bx-core-adm-dialog .adm-sublist .adm-table-btn-edit:active
 {
-	background: transparent url("../main/images/bx-admin-sprite-big.png") no-repeat scroll 0 -1101px;
+	background: transparent url("../main/images/bx-admin-sprite-big1.png") no-repeat scroll 0 -1101px;
 }
 
 .bx-core-adm-dialog .adm-sublist .adm-table-btn-delete
 {
-	background: transparent url("../main/images/bx-admin-sprite-big.png") no-repeat scroll 0 -985px;
+	background: transparent url("../main/images/bx-admin-sprite-big1.png") no-repeat scroll 0 -985px;
 }
 
 .bx-core-adm-dialog .adm-sublist .adm-table-btn-delete:hover
 {
-	background: transparent url("../main/images/bx-admin-sprite-big.png") no-repeat scroll 0 -1061px;
+	background: transparent url("../main/images/bx-admin-sprite-big1.png") no-repeat scroll 0 -1061px;
 }
 
 .bx-core-adm-dialog .adm-sublist .adm-table-btn-delete:active
 {
-	background: transparent url("../main/images/bx-admin-sprite-big.png") no-repeat scroll 0 -1141px;
+	background: transparent url("../main/images/bx-admin-sprite-big1.png") no-repeat scroll 0 -1141px;
 }
 
 .bx-core-adm-dialog .adm-sublist .adm-table-btn-edit .adm-edit-disable
@@ -635,6 +652,11 @@
 .bx-core-adm-dialog .adm-sublist .adm-list-table-footer input[type="submit"]
 {
 	margin:0 0 0 11px!important; vertical-align:middle;
+}
+
+.bx-core-adm-dialog .adm-sublist .adm-list-table-footer .adm-select-wrap
+{
+	display: inline-block;
 }
 
 .bx-core-adm-dialog .adm-sublist .adm-list-table-footer .adm-btn

@@ -105,8 +105,10 @@ function _viewerElementBind(div, isTarget, groupBy, obElementViewer)
 						src: elementNodeList[i].getAttribute('data-bx-src'),
 						isFromUserLib: !!elementNodeList[i].getAttribute('data-bx-isFromUserLib'),
 						externalId: elementNodeList[i].getAttribute('data-bx-externalId'),
+						objectId: elementNodeList[i].getAttribute('bx-attach-file-id'),
 						relativePath: elementNodeList[i].getAttribute('data-bx-relativePath'),
 						editUrl: elementNodeList[i].getAttribute('data-bx-edit'),
+						fakeEditUrl: elementNodeList[i].getAttribute('data-bx-fakeEdit'),
 						owner: elementNodeList[i].getAttribute('data-bx-owner'),
 						size: elementNodeList[i].getAttribute('data-bx-size'),
 						dateModify: elementNodeList[i].getAttribute('data-bx-dateModify'),
@@ -184,14 +186,16 @@ BX.CViewCoreElement = function(params)
 
 	this.isFromUserLib = params.isFromUserLib || false;
 	this.externalId = params.externalId || false;
+	this.objectId = params.objectId || false;
 	this.relativePath = params.relativePath || false;
 	this.editUrl = params.editUrl || false;
-}
+	this.fakeEditUrl = params.fakeEditUrl || false;
+};
 
 BX.CViewCoreElement.prototype.getDataForCommit = function()
 {
 	return {};
-}
+};
 
 BX.CViewCoreElement.prototype.setContentWrap = function(contentWrap){
 	this.contentWrap = contentWrap;
@@ -216,15 +220,39 @@ BX.CViewCoreElement.prototype.runAction = function(action, params){
 			{
 				return false;
 			}
-			this.localEditProcess(params.obElementViewer);
+
+			//BX.is_subclass_of(currentElement, BX.CViewImageElement) doesn't work ^(
+			if(
+				BX.CViewer.enableInVersionDisk(2) &&
+				!this.hasOwnProperty('image')
+			)
+			{
+				//first run. We have to show setting window.
+				if(!BX.message('disk_document_service'))
+				{
+					params.obElementViewer.openWindowForSelectDocumentService({viewInUf: !!BX.message('disk_render_uf')});
+					return;
+				}
+			}
+
+
+			this.localEditProcess(params.obElementViewer, params);
+			break;
+		case 'localview':
+			if(!params.obElementViewer)
+			{
+				return false;
+			}
+			this.localViewProcess(params.obElementViewer);
 			break;
 	}
 
 	return;
 };
 
-BX.CViewCoreElement.prototype.localEditProcess = function(obElementViewer)
+BX.CViewCoreElement.prototype.localEditProcess = function(obElementViewer, params)
 {
+	params = params || {};
 	var editUrl = this.editUrl;
 	if(BX.CViewer.isEnableLocalEditInDesktop())
 	{
@@ -236,17 +264,59 @@ BX.CViewCoreElement.prototype.localEditProcess = function(obElementViewer)
 			}
 			//editUrl = this.addToLinkParam(editUrl, 'action', 'start');
 			editUrl = CViewerUrlHelper.getUrlEditFile(editUrl, 'l');
-			location.href = 'bx://editFile/url/' + encodeURIComponent(editUrl) + '/name/' + encodeURIComponent(this.title);
+			if(!!params.isCreate)
+			{
+				BX.CViewer.goToBx('bx://createFile/url/' + encodeURIComponent(editUrl) + '/name/' + encodeURIComponent(this.title))
+			}
+			else
+			{
+				BX.CViewer.goToBx('bx://editFile'
+					+ '/externalId/' + (this.externalId? encodeURIComponent(this.externalId) : '0')
+					+ '/objectId/' + (this.objectId? encodeURIComponent(this.objectId) : '0')
+					+ '/url/' + encodeURIComponent(editUrl)
+					+ '/name/' + encodeURIComponent(this.title))
+				;
+			}
 		}
 		else if(this.relativePath && this.externalId)
 		{
-			location.href = 'bx://openFile/externalId/' + encodeURIComponent(this.externalId);
+			BX.CViewer.goToBx('bx://openFile/externalId/' + encodeURIComponent(this.externalId));
 		}
 		obElementViewer.close();
 		return;
 	}
 	return;
-}
+};
+
+BX.CViewCoreElement.prototype.localViewProcess = function(obElementViewer)
+{
+	var downloadUrl = this.downloadUrl;
+	if(BX.CViewer.isEnableLocalEditInDesktop())
+	{
+		if(!this.isFromUserLib && downloadUrl)
+		{
+			if (downloadUrl.indexOf(window.location.hostname) === -1) {
+				window.location.origin = window.location.origin || (window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port: ''));
+				downloadUrl = window.location.origin + downloadUrl;
+			}
+			//editUrl = this.addToLinkParam(editUrl, 'action', 'start');
+			downloadUrl = CViewerUrlHelper.getUrlEditFile(downloadUrl, 'l');
+			BX.CViewer.goToBx('bx://viewFile'
+				+ '/externalId/' + (this.externalId? encodeURIComponent(this.externalId) : '0')
+				+ '/objectId/' + (this.objectId? encodeURIComponent(this.objectId) : '0')
+				+ '/url/' + encodeURIComponent(downloadUrl)
+				+ '/name/' + encodeURIComponent(this.title))
+			;
+		}
+		else if(this.relativePath && this.externalId)
+		{
+			BX.CViewer.goToBx('bx://openFile/externalId/' + encodeURIComponent(this.externalId));
+		}
+		obElementViewer.close();
+		return;
+	}
+	return;
+};
 
 BX.CViewCoreElement.prototype.getTextForSave = function(){
 	return '';
@@ -343,58 +413,7 @@ BX.CViewCoreElement.prototype.getComplexEditButton = function(selfViewer, params
 									}
 									else
 									{
-										var helpDiskDialog = BX.create('div', {
-											props: {
-												className: 'bx-viewer-confirm'
-											},
-											children: [
-												BX.create('div', {
-													props: {
-														className: 'bx-viewer-confirm-title'
-													},
-													text: BX.message('JS_CORE_VIEWER_EDIT_IN_LOCAL_SERVICE'),
-													children: []
-												}),
-												BX.create('div', {
-													props: {
-														className: 'bx-viewer-confirm-text-wrap'
-													},
-													children: [
-														BX.create('span', {
-															props: {
-																className: 'bx-viewer-confirm-text-alignment'
-															}
-														}),
-														BX.create('span', {
-															props: {
-																className: 'bx-viewer-confirm-text'
-															},
-															html: BX.message('JS_CORE_VIEWER_SERVICE_LOCAL_INSTALL_DESKTOP')
-														})
-													]
-												})
-											]
-										});
-
-										BX.CViewer.lockScroll();
-										selfViewer.openConfirm(helpDiskDialog, [
-											new BX.PopupWindowButton({
-											text : BX.message('JS_CORE_VIEWER_DOWNLOAD_B24_DESKTOP'),
-												className : "popup-window-button-accept",
-												events : { click : BX.delegate(function() {
-													document.location.href = (BX.browser.IsMac()? "http://dl.bitrix24.com/b24/bitrix24_desktop.dmg": "http://dl.bitrix24.com/b24/bitrix24_desktop.exe");
-													}, selfViewer
-												)}
-											}),
-											new BX.PopupWindowButton({
-												text : BX.message('JS_CORE_VIEWER_IFRAME_CANCEL'),
-												events : { click : BX.delegate(function() {
-														this.closeConfirm();
-										                BX.CViewer.unlockScroll();
-													}, selfViewer
-												)}
-											})
-										], true);
+										selfViewer.helpDiskDialog();
 									}
 									this.closeMenu();
 									return BX.PreventDefault(e);
@@ -492,7 +511,7 @@ BX.CViewCoreElement.prototype.getComplexSaveButton = function(selfViewer, params
 					var ele = event.srcElement || event.target;
 					selfViewer.openMenu('bx-viewer-popup-down', BX(ele), [
 						{text: BX.message('JS_CORE_VIEWER_SAVE_TO_OWN_FILES'), className: "bx-viewer-popup-item item-b24", href: '#', onclick: BX.delegate(function(e){
-							var link = this.addToLinkParam(this.src, 'saveToDisk', 1);
+							var link = this.addToLinkParam(BX.CViewer.enableInVersionDisk(2)? downloadUrl : this.src, 'saveToDisk', 1);
 							link = this.addToLinkParam(link, 'toWDController', 1);
 							link = BX.util.remove_url_param(link, 'showInViewer');
 							link = BX.util.remove_url_param(link, 'document_action');
@@ -815,6 +834,7 @@ BX.CViewEditableElement = function(params)
 	BX.CViewEditableElement.superclass.constructor.apply(this, arguments);
 	this.askConvert = !!params.askConvert;
 	this.editUrl = params.editUrl? this.addToLinkSessid(params.editUrl) : '';
+	this.fakeEditUrl = params.fakeEditUrl || false;
 	this.historyPageUrl = params.historyPageUrl || '';
 	this.downloadUrl = params.downloadUrl || '';
 	this.dataForCommit = {};
@@ -850,12 +870,35 @@ BX.CViewEditableElement.prototype.runAction = function(action, params){
 			{
 				return false;
 			}
+
+			//BX.is_subclass_of(currentElement, BX.CViewImageElement) doesn't work ^(
+			if(
+				BX.CViewer.enableInVersionDisk(2) &&
+				!this.hasOwnProperty('image')
+			)
+			{
+				//first run. We have to show setting window.
+				if(!BX.message('disk_document_service'))
+				{
+					//params.obElementViewer.openWindowForSelectDocumentService({viewInUf: !!BX.message('disk_render_uf')});
+					return;
+				}
+			}
+
+
 //			this.addTimeoutId(setTimeout(BX.delegate(function(){
 				this.editFile(params.obElementViewer);
 //			}, this), 100));
 			break;
 		case 'localedit':
-			this.localEditProcess(params.obElementViewer);
+			this.localEditProcess(params.obElementViewer, params);
+			break;
+		case 'localview':
+			if(!params.obElementViewer)
+			{
+				return false;
+			}
+			this.localViewProcess(params.obElementViewer);
 			break;
 		case 'commit':
 			this.commitFile(params);
@@ -864,6 +907,20 @@ BX.CViewEditableElement.prototype.runAction = function(action, params){
 			if(!params.obElementViewer)
 			{
 				return false;
+			}
+
+			//BX.is_subclass_of(currentElement, BX.CViewImageElement) doesn't work ^(
+			if(
+				BX.CViewer.enableInVersionDisk(2) &&
+				!this.hasOwnProperty('image')
+			)
+			{
+				//first run. We have to show setting window.
+				if(!BX.message('disk_document_service'))
+				{
+					params.obElementViewer.openWindowForSelectDocumentService({viewInUf: !!BX.message('disk_render_uf')});
+					return;
+				}
 			}
 
 			this.createFile(params.obElementViewer);
@@ -1156,7 +1213,7 @@ BX.CViewEditableElement.prototype.editFileProcess = function(obElementViewer)
 		editUrl = this.addToLinkParam(this.editUrl, 'editIn', BX.CViewer.temporaryServiceEditDoc);
 		if(/*this.isFromUserLib && */BX.CViewer.isLocalEditService(BX.CViewer.temporaryServiceEditDoc))
 		{
-			this.localEditProcess(obElementViewer);
+			this.localEditProcess(obElementViewer, {});
 			BX.CViewer.temporaryServiceEditDoc = '';
 			return false;
 		}
@@ -1165,7 +1222,7 @@ BX.CViewEditableElement.prototype.editFileProcess = function(obElementViewer)
 	}
 	else if(/*this.isFromUserLib && */BX.CViewer.isLocalEditService(obElementViewer.initEditService()))
 	{
-		this.localEditProcess(obElementViewer);
+		this.localEditProcess(obElementViewer, {});
 		return false;
 	}
 	else if(!this.isFromUserLib && BX.CViewer.isLocalEditService(obElementViewer.initEditService()))
@@ -1287,6 +1344,7 @@ BX.CViewBlankElement = function(params)
 	BX.CViewBlankElement.superclass.constructor.apply(this, arguments);
 	this.id = 'blank_file';
 	this.editUrl = params.editUrl;
+	this.fakeEditUrl = params.fakeEditUrl || false;
 	this.renameUrl = params.renameUrl;
 	this.docType = params.docType;
 	this.elementId = false;
@@ -1313,6 +1371,10 @@ BX.CViewBlankElement.prototype.discardFile = function(parameters)
 	else
 	{
 		uriToDoc = parameters.uriToDoc;
+		if(!uriToDoc)
+		{
+			return false;
+		}
 		uriToDoc = this.addToLinkParam(uriToDoc, 'createDoc', 1);
 		uriToDoc = this.addToLinkParam(uriToDoc, 'discard', 1);
 	}
@@ -1335,7 +1397,7 @@ BX.CViewBlankElement.prototype.discardFile = function(parameters)
 		},
 		onsuccess: function(){}
 	});
-}
+};
 
 BX.CViewBlankElement.prototype.submitAction = function(params)
 {
@@ -1389,7 +1451,7 @@ BX.CViewBlankElement.prototype.createFile = function(obElementViewer)
 
 					this.title = response.object.name;
 					this.editUrl = response.link;
-					obElementViewer.runActionByCurrentElement('localedit', {obElementViewer: obElementViewer});
+					obElementViewer.runActionByCurrentElement('localedit', {obElementViewer: obElementViewer, isCreate: true});
 					this.afterSuccessCreate(formattedResponse);
 
 				}, this)
@@ -1612,6 +1674,11 @@ BX.CViewBlankElement.prototype.saveFile = function(parameters)
 									newName: newName,
 									data: response,
 									success: BX.delegate(function (data, response) {
+										if(response && response.newName && response.newName != data.name)
+										{
+											data.name = response.newName;
+											data.nameWithoutExtension = response.newName.split('.').pop();
+										}
 										this.runActionByCurrentElement('pasteInForm', {response: data});
 										BX.CViewer.unlockScroll();
 										parameters.obElementViewer._unbindEvents();
@@ -1671,7 +1738,15 @@ BX.CViewBlankElement.prototype.renameFile = function(params)
 	}
 	else
 	{
-		uri = this.addToLinkParam(this.uriToDoc, 'action', 'rename');
+		if(this.uriToDoc)
+		{
+			uri = this.addToLinkParam(this.uriToDoc, 'action', 'rename');
+		}
+		else
+		{
+			uri = this.addToLinkParam(params.data.link, 'action', 'rename');
+		}
+		uri = this.addToLinkParam(uri, 'proccess', '1');
 		uri = this.addToLinkParam(uri, 'createDoc', '1');
 		uri = this.addToLinkParam(uri, 'createIn', this.docService);
 		uri = this.addToLinkParam(uri, 'elementId', this.elementId);
@@ -2539,6 +2614,7 @@ BX.CViewer = function(params)
 
 	this.list = this.params.list;
 	this._current = 0;
+	this._currentEl = null;
 	this.FULL_TITLE = null;
 	this.bVisible = false;
 	this.createDoc = this.params.createDoc || false;
@@ -2579,6 +2655,16 @@ BX.CViewer.defaultSettings = {
 	}
 };
 
+BX.CViewer.goToBx = function(link)
+{
+	if(!!BX.desktopUtils)
+	{
+		BX.desktopUtils.goToBx(link);
+		return;
+	}
+	location.href = link;
+};
+
 BX.CViewer.browserWithDeferredCheckIframeError = function()
 {
 	if(BX.browser.IsFirefox())
@@ -2595,14 +2681,30 @@ BX.CViewer.browserWithDeferredCheckIframeError = function()
 
 BX.CViewer.enableInVersionDesktop = function(version)
 {
-	return BXIM && !BXIM.desktop.ready() && BXIM.desktopVersion >= parseInt(version);
-}
+	return typeof(BXIM) !== "undefined" && !BXIM.desktop.ready() && BXIM.desktopVersion >= parseInt(version);
+};
+
+BX.CViewer.enableInVersionDisk = function(version)
+{
+	var revisionApi = BX.message('disk_revision_api');
+	if(!revisionApi)
+	{
+		revisionApi = 0;
+	}
+	revisionApi = parseInt(revisionApi, 10);
+	return revisionApi >= parseInt(version, 10);
+};
 
 BX.CViewer.isEnableLocalEditInDesktop = function()
 {
 	//desktop is installed and disk enabled.
-	return BX.CViewer.enableInVersionDesktop(21) && (!!BX.message('wd_desktop_disk_is_installed') || BXIM.desktopStatus);
-}
+	return BX.CViewer.enableInVersionDesktop(21) && (!!BX.message('wd_desktop_disk_is_installed') || (typeof(BXIM) !== "undefined" && BXIM.desktopStatus));
+};
+
+BX.CViewer.hasLockScroll = function()
+{
+	return BX.hasClass(document.body, 'bx-viewer-lock-scroll');
+};
 
 BX.CViewer.lockScroll = function()
 {
@@ -2762,7 +2864,7 @@ BX.CViewer.getWindowCopyToDisk = function(params)
 							props: {
 								className: 'bx-viewer-btn-link',
 								target: '_blank',
-								href: response.viewUrl + '#showInViewer'
+								href: response.runViewUrl? response.runViewUrl : (response.viewUrl + '#showInViewer')
 							},
 							text: BX.message('JS_CORE_VIEWER_EDIT')
 						}) : null)
@@ -3177,11 +3279,6 @@ BX.CViewer.prototype._adjustPosByElement = function()
 		if (left < this.params.minMargin + Math.min(70, this.PREV_LINK.offsetWidth))
 			left = this.params.minMargin + Math.min(70, this.PREV_LINK.offsetWidth);
 
-		if (this.params.showTitle && !!this.getCurrent().title)
-		{
-			top -= 20;
-		}
-
 		this.DIV.style.top = top + 'px';
 		this.DIV.style.left = left + 'px';
 	}
@@ -3472,6 +3569,42 @@ BX.CViewer.prototype.show = function(element, force)
 	{
 		//this is current not from list of elements
 		var currentElement = this.currentElement;
+	}
+	this._currentEl = currentElement;
+	//BX.is_subclass_of(currentElement, BX.CViewImageElement) doesn't work ^(
+	if(
+		BX.CViewer.enableInVersionDisk(2) &&
+		!currentElement.hasOwnProperty('image')
+	)
+	{
+		//first run. We have to show setting window.
+		if(!BX.message('disk_document_service'))
+		{
+			this.openWindowForSelectDocumentService({viewInUf: !!BX.message('disk_render_uf')});
+			return;
+		}
+		else
+		{
+			if(BX.CViewer.isLocalEditService(this.initEditService()))
+			{
+				if(!currentElement.editUrl && currentElement.fakeEditUrl)
+				{
+					currentElement.editUrl = currentElement.fakeEditUrl;
+				}
+				if(!currentElement.editUrl)
+				{
+					this.runActionByCurrentElement('localview', {obElementViewer: this});
+					//this.openWindowOnlyView(currentElement);
+				}
+				else
+				{
+					this.runActionByCurrentElement('forceedit', {obElementViewer: this});
+				}
+				return;
+			}
+			else
+			{}
+		}
 	}
 
 	this.params.topPadding = 0;
@@ -3856,13 +3989,26 @@ BX.CViewer.prototype.openMenu = function(id, bindElement, items, params)
 
 BX.CViewer.prototype.initEditService = function()
 {
-	var service = BX.message('wd_service_edit_doc_default');
+	var service;
+	if(BX.CViewer.enableInVersionDisk(2))
+	{
+		service = BX.message('disk_document_service');
+	}
+	else
+	{
+		service = BX.message('wd_service_edit_doc_default');
+	}
+
 	//now not set local (in browser) edit service, then we use global setting.
 	if(BX.CViewer.localChangeServiceEdit && BX.localStorage.get('wd_service_edit_doc_default'))
 	{
 		service = BX.localStorage.get('wd_service_edit_doc_default');
 	}
-	service = service || 'g';
+	//for webdav
+	if(!BX.CViewer.enableInVersionDisk(2))
+	{
+		service = service || 'g';
+	}
 	this.setEditService(service);
 	return service;
 }
@@ -3886,28 +4032,48 @@ BX.CViewer.prototype.getNameEditService = function(service)
 
 BX.CViewer.prototype.setEditService = function(service)
 {
-	service = CViewerUrlHelper.normalizeServiceName(service);
-	if(service)
+	if(service && BX.CViewer.enableInVersionDisk(2))
 	{
-		if(BX.CViewer.isLocalEditService(service) && !BX.CViewer.isEnableLocalEditInDesktop())
+		service = CViewerUrlHelper.normalizeServiceName(service);
+		if(service != BX.message('disk_document_service'))
 		{
-			service = 'g';
+			BX.userOptions.save('disk', 'doc_service', 'default', service);
 		}
-		BX.userOptions.save('webdav', 'user_settings', 'service_edit_doc_default', service);
-		BX.userOptions.save('disk', 'doc_service', 'default', CViewerUrlHelper.normalizeServiceName(service));
-		BX.localStorage.set('wd_service_edit_doc_default', service, 60*2);
-		BX.CViewer.localChangeServiceEdit = true;
-
-		BX.CViewer.temporaryServiceEditDoc = service;
+		BX.message({disk_document_service: service});
+		BX.userOptions.send(null);
 
 		if(BX('bx-viewer-edit-service-txt'))
 		{
 			BX.adjust(BX('bx-viewer-edit-service-txt'), {text: this.getNameEditService(service)});
 		}
-
+		BX.CViewer.temporaryServiceEditDoc = service;
 		return true;
 	}
+	else if(!BX.CViewer.enableInVersionDisk(2))
+	{
+		service = CViewerUrlHelper.normalizeServiceName(service);
+		if(service)
+		{
+			if(BX.CViewer.isLocalEditService(service) && !BX.CViewer.isEnableLocalEditInDesktop())
+			{
+				service = 'g';
+			}
+			BX.userOptions.save('webdav', 'user_settings', 'service_edit_doc_default', service);
+			BX.localStorage.set('wd_service_edit_doc_default', service, 60*2);
+			BX.CViewer.localChangeServiceEdit = true;
 
+			BX.CViewer.temporaryServiceEditDoc = service;
+
+			if(BX('bx-viewer-edit-service-txt'))
+			{
+				BX.adjust(BX('bx-viewer-edit-service-txt'), {text: this.getNameEditService(service)});
+			}
+
+			return true;
+		}
+
+		return false;
+	}
 	return false;
 };
 
@@ -3921,7 +4087,100 @@ BX.CViewer.isLocalEditService = function(service)
 			return true;
 	}
 	return false;
-}
+};
+
+BX.CViewer.prototype.openWindowForSelectDocumentService = function(params)
+{
+	if(!BX.Disk)
+	{
+		return;
+	}
+	BX.Disk.openWindowForSelectDocumentService({
+		viewInUf: params.viewInUf || false,
+		onSave: BX.delegate(function (service)
+			{
+
+				if (service == 'l') {
+					if (!BX.CViewer.isEnableLocalEditInDesktop()) {
+						this.helpDiskDialog();
+						return;
+					}
+					BX.message({disk_document_service: 'l'});
+				}
+				else {
+					BX.message({disk_document_service: 'gdrive'});
+				}
+				BX.userOptions.save('disk', 'doc_service', 'default', BX.message('disk_document_service'));
+				BX.userOptions.send(null);
+
+				BX.PopupWindowManager.getCurrentPopup().destroy()
+				BX.CViewer.unlockScroll();
+				if (this._currentEl) {
+					this.show(this._currentEl);
+				}
+			}, this
+		)
+	});
+};
+
+BX.CViewer.prototype.helpDiskDialog = function(){
+	var helpDiskDialog = BX.create('div', {
+		props: {
+			className: 'bx-viewer-confirm'
+		},
+		children: [
+			BX.create('div', {
+				props: {
+					className: 'bx-viewer-confirm-title'
+				},
+				text: BX.message('JS_CORE_VIEWER_EDIT_IN_LOCAL_SERVICE'),
+				children: []
+			}),
+			BX.create('div', {
+				props: {
+					className: 'bx-viewer-confirm-text-wrap'
+				},
+				children: [
+					BX.create('span', {
+						props: {
+							className: 'bx-viewer-confirm-text-alignment'
+						}
+					}),
+					BX.create('span', {
+						props: {
+							className: 'bx-viewer-confirm-text'
+						},
+						html: BX.message('JS_CORE_VIEWER_SERVICE_LOCAL_INSTALL_DESKTOP')
+					})
+				]
+			})
+		]
+	});
+
+	var hasLock = BX.CViewer.hasLockScroll();
+	BX.CViewer.lockScroll();
+	this.openConfirm(helpDiskDialog, [
+		new BX.PopupWindowButton({
+			text : BX.message('JS_CORE_VIEWER_DOWNLOAD_B24_DESKTOP'),
+			className : "popup-window-button-accept",
+			events : { click : BX.delegate(function() {
+					document.location.href = (BX.browser.IsMac()? "http://dl.bitrix24.com/b24/bitrix24_desktop.dmg": "http://dl.bitrix24.com/b24/bitrix24_desktop.exe");
+				}, this
+			)}
+		}),
+		new BX.PopupWindowButton({
+			text : BX.message('JS_CORE_VIEWER_IFRAME_CANCEL'),
+			events : { click : BX.delegate(function() {
+					this.closeConfirm();
+					if(!hasLock)
+					{
+						BX.CViewer.unlockScroll();
+					}
+				}, this
+			)}
+		})
+	], true);
+};
 
 BX.CViewer.prototype.createElementByType = function(element, params)
 {
@@ -3955,6 +4214,7 @@ BX.CViewer.prototype.createErrorIframeElementFromEditable = function(editableEle
 		isFromUserLib: editableElement.isFromUserLib,
 		relativePath: editableElement.relativePath,
 		externalId: editableElement.externalId,
+		objectId: editableElement.objectId,
 
 		editUrl: editableElement.editUrl,
 		urlToPost: editableElement.urlToPost,
@@ -3995,9 +4255,11 @@ BX.CViewer.prototype.createWithoutPreviewEditableElement = function(element, par
 
 		isFromUserLib: !!element.getAttribute('data-bx-isFromUserLib'),
 		externalId: element.getAttribute('data-bx-externalId'),
+		objectId: element.getAttribute('bx-attach-file-id'),
 		relativePath: element.getAttribute('data-bx-relativePath'),
 
 		editUrl: element.getAttribute('data-bx-edit'),
+		fakeEditUrl: element.getAttribute('data-bx-fakeEdit'),
 		urlToPost: element.getAttribute('data-bx-urlToPost'),
 		idToPost: element.getAttribute('data-bx-idToPost'),
 		downloadUrl: element.getAttribute('data-bx-download'),
@@ -4034,9 +4296,11 @@ BX.CViewer.prototype.createIframeElement = function(element, params)
 
 		isFromUserLib: !!element.getAttribute('data-bx-isFromUserLib'),
 		externalId: element.getAttribute('data-bx-externalId'),
+		objectId: element.getAttribute('bx-attach-file-id'),
 		relativePath: element.getAttribute('data-bx-relativePath'),
 
 		editUrl: element.getAttribute('data-bx-edit'),
+		fakeEditUrl: element.getAttribute('data-bx-fakeEdit'),
 		urlToPost: element.getAttribute('data-bx-urlToPost'),
 		idToPost: element.getAttribute('data-bx-idToPost'),
 		downloadUrl: element.getAttribute('data-bx-download'),

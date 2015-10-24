@@ -879,6 +879,7 @@
 			{
 				BX.unbind(window, "keydown", BX.proxy(_this.OnKeyDown, _this));
 				_this.dialogShownTimeout = setTimeout(function(){_this.editor.dialogShown = false;}, 300);
+				_this.RestoreWindowOverflow();
 			});
 		},
 
@@ -893,9 +894,16 @@
 			this.oDialog.Show();
 			this.oDialog.DIV.style.zIndex = this.zIndex;
 			this.oDialog.OVERLAY.style.zIndex = this.zIndex - 2;
-			var top = parseInt(this.oDialog.DIV.style.top) - 180;
-			this.oDialog.DIV.style.top = (top > 50 ? top : 50) + 'px';
+			var
+				top = parseInt(this.oDialog.DIV.style.top) - 180,
+				scrollPos = BX.GetWindowScrollPos(document),
+				scrollTop = scrollPos.scrollTop,
+				minTop = scrollTop + 50;
+
+			this.oDialog.DIV.style.top = (top > minTop ? top : minTop) + 'px';
 			BX.bind(window, "keydown", BX.proxy(this.OnKeyDown, this));
+
+			this.savedBodyOverflow = this.savedScrollLeft = this.savedScrollTop = false;
 
 			setTimeout(function()
 				{
@@ -906,7 +914,11 @@
 					_this.oDialog.__resizeOverlay();
 
 					if (_this.firstFocus)
+					{
 						BX.focus(_this.firstFocus);
+						if (_this.selectFirstFocus)
+							_this.firstFocus.select();
+					}
 				},
 				100
 			);
@@ -1063,13 +1075,67 @@
 		},
 
 		SetValues: BX.DoNothing,
-		GetValues: BX.DoNothing
+		GetValues: BX.DoNothing,
+
+		CheckSize: function(timeout)
+		{
+			var _this = this;
+
+			if (this.checkSizeTimeout)
+				this.checkSizeTimeout = clearTimeout(this.checkSizeTimeout);
+
+			if (timeout !== true)
+			{
+				this.checkSizeTimeout = setTimeout(function()
+				{
+					_this.CheckSize(true);
+				}, 50);
+				return;
+			}
+
+			var
+				innerSize = BX.GetWindowInnerSize(document),
+				dialogBottom = this.oDialog.DIV.offsetHeight + 50;
+
+			if (dialogBottom >= innerSize.innerHeight)
+			{
+				var scrollPos = BX.GetWindowScrollPos(document);
+				this.savedBodyOverflow = document.body.style.overflow;
+				this.savedScrollTop = scrollPos.scrollTop;
+				this.savedScrollLeft = scrollPos.scrollLeft;
+				document.body.style.overflow = "auto";
+
+				if (this.editor.expanded)
+					BX.unbind(window, "scroll", BX.proxy(this.editor.PreventScroll, this.editor));
+			}
+			else
+			{
+				this.RestoreWindowOverflow();
+			}
+		},
+
+		RestoreWindowOverflow: function()
+		{
+			if (this.savedBodyOverflow !== false)
+			{
+				document.body.style.overflow = this.savedBodyOverflow;
+				this.savedBodyOverflow = false;
+			}
+
+			if (this.savedScrollTop !== false)
+			{
+				window.scrollTo(this.savedScrollLeft, this.savedScrollTop);
+				this.savedScrollLeft = this.savedScrollTop = false;
+			}
+
+			if (this.editor.expanded)
+				BX.bind(window, "scroll", BX.proxy(this.editor.PreventScroll, this.editor));
+		}
 	};
 
 	function ContextMenu(editor)
 	{
 		this.editor = editor;
-		this.lastMenuId = null;
 		BX.addCustomEvent(this.editor, 'OnIframeContextMenu', BX.delegate(this.Show, this));
 		this.Init();
 	}
@@ -1080,8 +1146,8 @@
 			var
 			_this = this,
 			defaultItem = {
-				text: BX.message('ContMenuDefProps'),
-				onclick: function()
+				TEXT: BX.message('ContMenuDefProps'),
+				ACTION: function()
 				{
 					_this.editor.selection.SetBookmark(_this.savedRange);
 					_this.editor.GetDialog('Default').Show(false, _this.savedRange);
@@ -1097,8 +1163,8 @@
 				// Surrogates
 				'php' : [
 					{
-						text: BX.message('BXEdContMenuPhpCode'),
-						onclick: function()
+						TEXT: BX.message('BXEdContMenuPhpCode'),
+						ACTION: function()
 						{
 							var items = _this.GetTargetItem();
 							if (items && items.php)
@@ -1111,8 +1177,8 @@
 				],
 				'anchor' : [
 					{
-						text: BX.message('BXEdEditAnchor'),
-						onclick: function()
+						TEXT: BX.message('BXEdEditAnchor'),
+						ACTION: function()
 						{
 							var items = _this.GetTargetItem();
 							if (items && items.anchor)
@@ -1125,8 +1191,8 @@
 				],
 				'javascript' : [
 					{
-						text: BX.message('BXEdContMenuJavascript'),
-						onclick: function()
+						TEXT: BX.message('BXEdContMenuJavascript'),
+						ACTION: function()
 						{
 							var items = _this.GetTargetItem();
 							if (items && items.javascript)
@@ -1139,8 +1205,8 @@
 				],
 				'htmlcomment' : [
 					{
-						text: BX.message('BXEdContMenuHtmlComment'),
-						onclick: function()
+						TEXT: BX.message('BXEdContMenuHtmlComment'),
+						ACTION: function()
 						{
 							var items = _this.GetTargetItem();
 							if (items && items.htmlcomment)
@@ -1153,8 +1219,8 @@
 				],
 				'iframe' : [
 					{
-						text: BX.message('BXEdContMenuIframe'),
-						onclick: function()
+						TEXT: BX.message('BXEdContMenuIframe'),
+						ACTION: function()
 						{
 							var items = _this.GetTargetItem();
 							if (items && items.iframe)
@@ -1167,8 +1233,8 @@
 				],
 				'style' : [
 					{
-						text: BX.message('BXEdContMenuStyle'),
-						onclick: function()
+						TEXT: BX.message('BXEdContMenuStyle'),
+						ACTION: function()
 						{
 							var items = _this.GetTargetItem();
 							if (items && items.style)
@@ -1181,8 +1247,8 @@
 				],
 				'object' : [
 					{
-						text: BX.message('BXEdContMenuObject'),
-						onclick: function()
+						TEXT: BX.message('BXEdContMenuObject'),
+						ACTION: function()
 						{
 							var items = _this.GetTargetItem();
 							if (items && items.object)
@@ -1195,8 +1261,8 @@
 				],
 				'component' : [
 					{
-						text: BX.message('BXEdContMenuComponent'),
-						onclick: function()
+						TEXT: BX.message('BXEdContMenuComponent'),
+						ACTION: function()
 						{
 							var items = _this.GetTargetItem();
 							if (items && items.component)
@@ -1208,8 +1274,8 @@
 						}
 					},
 					{
-						text: BX.message('BXEdContMenuComponentRemove'),
-						onclick: function()
+						TEXT: BX.message('BXEdContMenuComponentRemove'),
+						ACTION: function()
 						{
 							var items = _this.GetTargetItem();
 							if (items && items.component)
@@ -1222,8 +1288,8 @@
 				],
 				'printbreak' : [
 					{
-						text: BX.message('NodeRemove'),
-						onclick: function(e)
+						TEXT: BX.message('NodeRemove'),
+						ACTION: function(e)
 						{
 							var node = _this.GetTargetItem('printbreak');
 							if (node && node.element)
@@ -1236,9 +1302,9 @@
 				],
 				'video': [
 					{
-						text: BX.message('BXEdVideoProps'),
+						TEXT: BX.message('BXEdVideoProps'),
 						bbMode: true,
-						onclick: function()
+						ACTION: function()
 						{
 							var node = _this.GetTargetItem('video');
 							if (node)
@@ -1249,9 +1315,9 @@
 						}
 					},
 					{
-						text: BX.message('BXEdVideoDel'),
+						TEXT: BX.message('BXEdVideoDel'),
 						bbMode: true,
-						onclick: function(e)
+						ACTION: function(e)
 						{
 							var node = _this.GetTargetItem('video');
 							if (node && node.element)
@@ -1267,9 +1333,9 @@
 				// Nodes
 				'A' : [
 					{
-						text: BX.message('ContMenuLinkEdit'),
+						TEXT: BX.message('ContMenuLinkEdit'),
 						bbMode: true,
-						onclick: function()
+						ACTION: function()
 						{
 							var node = _this.GetTargetItem('A');
 							if (node)
@@ -1280,9 +1346,9 @@
 						}
 					},
 					{
-						text: BX.message('ContMenuLinkDel'),
+						TEXT: BX.message('ContMenuLinkDel'),
 						bbMode: true,
-						onclick: function()
+						ACTION: function()
 						{
 							var link = _this.GetTargetItem('A');
 							if (link && _this.editor.action.IsSupported('removeLink'))
@@ -1295,22 +1361,22 @@
 				],
 				'IMG': [
 					{
-						text: BX.message('ContMenuImgEdit'),
+						TEXT: BX.message('ContMenuImgEdit'),
 						bbMode: true,
-						onclick: function()
+						ACTION: function()
 						{
 							var node = _this.GetTargetItem('IMG');
 							if (node)
 							{
-								_this.editor.GetDialog('Image').Show([node], this.savedRange);
+								_this.editor.GetDialog('Image').Show([node], _this.savedRange);
 							}
 							_this.Hide();
 						}
 					},
 					{
-						text: BX.message('ContMenuImgDel'),
+						TEXT: BX.message('ContMenuImgDel'),
 						bbMode: true,
-						onclick: function()
+						ACTION: function()
 						{
 							var node = _this.GetTargetItem('IMG');
 							if (node)
@@ -1323,9 +1389,9 @@
 				],
 				'DIV': [
 					{
-						text: BX.message('ContMenuCleanDiv'),
+						TEXT: BX.message('ContMenuCleanDiv'),
 						title: BX.message('ContMenuCleanDiv_Title'),
-						onclick: function()
+						ACTION: function()
 						{
 							var node = _this.GetTargetItem('DIV');
 							if (node)
@@ -1340,43 +1406,328 @@
 					defaultItem
 				],
 				'TABLE': [
-//					{
-//						text: BX.message('BXEdTableInsCell'),
-//						onclick: function()
-//						{
-//							_this.Hide();
-//						}
-//					},
-//					{
-//						text: BX.message('BXEdTableInsRow'),
-//						onclick: function()
-//						{
-//							_this.Hide();
-//						}
-//					},
-//					{
-//						text: BX.message('BXEdTableInsColumn'),
-//						onclick: function()
-//						{
-//							_this.Hide();
-//						}
-//					},
+
 					{
-						text: BX.message('BXEdTableTableProps'),
-						onclick: function()
+						TEXT: BX.message('BXEdTableInsertMenu'),
+						HIDE_ITEM: function()
+						{
+							var cells = _this.editor.action.actions.tableOperation.getSelectedCells(_this.savedRange, _this.GetTargetItem('TABLE'));
+							return !cells || cells.length != 1;
+						},
+						MENU: [
+							// Column
+							{
+								TEXT: BX.message('BXEdTableInsColLeft'),
+								ACTION: function()
+								{
+									_this.editor.action.Exec('tableOperation', {
+										actionType: 'insertColumnLeft',
+										tableNode: _this.GetTargetItem('TABLE'),
+										range: _this.savedRange
+									});
+									_this.Hide();
+								}
+							},
+							{
+								TEXT: BX.message('BXEdTableInsColRight'),
+								ACTION: function()
+								{
+									_this.editor.action.Exec('tableOperation', {
+										actionType: 'insertColumnRight',
+										tableNode: _this.GetTargetItem('TABLE'),
+										range: _this.savedRange
+									});
+									_this.Hide();
+								}
+							},
+							// Row
+							{
+								TEXT: BX.message('BXEdTableInsRowUpper'),
+								ACTION: function()
+								{
+									_this.editor.action.Exec('tableOperation', {
+										actionType: 'insertRowUpper',
+										tableNode: _this.GetTargetItem('TABLE'),
+										range: _this.savedRange
+									});
+									_this.Hide();
+								}
+							},
+							{
+								TEXT: BX.message('BXEdTableInsRowLower'),
+								ACTION: function()
+								{
+									_this.editor.action.Exec('tableOperation', {
+										actionType: 'insertRowLower',
+										tableNode: _this.GetTargetItem('TABLE'),
+										range: _this.savedRange
+									});
+									_this.Hide();
+								}
+							},
+							// Cell
+							{
+								TEXT: BX.message('BXEdTableInsCellBefore'),
+								ACTION: function()
+								{
+									_this.editor.action.Exec('tableOperation', {
+										actionType: 'insertCellLeft',
+										tableNode: _this.GetTargetItem('TABLE'),
+										range: _this.savedRange
+									});
+									_this.Hide();
+								}
+							},
+							{
+								TEXT: BX.message('BXEdTableInsCellAfter'),
+								ACTION: function()
+								{
+									_this.editor.action.Exec('tableOperation', {
+										actionType: 'insertCellRight',
+										tableNode: _this.GetTargetItem('TABLE'),
+										range: _this.savedRange
+									});
+									_this.Hide();
+								}
+							}
+						]
+					},
+					{
+						TEXT: BX.message('BXEdTableRemoveMenu'),
+						MENU: [
+							{
+								TEXT: BX.message('BXEdTableDelCol'),
+								ACTION: function()
+								{
+									_this.editor.action.Exec('tableOperation', {
+										actionType: 'removeColumn',
+										tableNode: _this.GetTargetItem('TABLE'),
+										range: _this.savedRange
+									});
+									_this.Hide();
+								},
+								HIDE_ITEM: function()
+								{
+									var cells = _this.editor.action.actions.tableOperation.getSelectedCells(_this.savedRange, _this.GetTargetItem('TABLE'));
+									return !cells || cells.length != 1;
+								}
+							},
+							{
+								TEXT: BX.message('BXEdTableDelRow'),
+								ACTION: function()
+								{
+									_this.editor.action.Exec('tableOperation', {
+										actionType: 'removeRow',
+										tableNode: _this.GetTargetItem('TABLE'),
+										range: _this.savedRange
+									});
+									_this.Hide();
+								},
+								HIDE_ITEM: function()
+								{
+									var cells = _this.editor.action.actions.tableOperation.getSelectedCells(_this.savedRange, _this.GetTargetItem('TABLE'));
+									return !cells || cells.length != 1;
+								}
+							},
+							{
+								TEXT: BX.message('BXEdTableDellCell'),
+								ACTION: function()
+								{
+									_this.editor.action.Exec('tableOperation', {
+										actionType: 'removeCell',
+										tableNode: _this.GetTargetItem('TABLE'),
+										range: _this.savedRange
+									});
+									_this.Hide();
+								},
+								HIDE_ITEM: function()
+								{
+									var cells = _this.editor.action.actions.tableOperation.getSelectedCells(_this.savedRange, _this.GetTargetItem('TABLE'));
+									return !cells || cells.length != 1;
+								}
+							},
+							{
+								TEXT: BX.message('BXEdTableDellSelectedCells'),
+								ACTION: function()
+								{
+									_this.editor.action.Exec('tableOperation', {
+										actionType: 'removeSelectedCells',
+										tableNode: _this.GetTargetItem('TABLE'),
+										range: _this.savedRange
+									});
+									_this.Hide();
+								},
+								HIDE_ITEM: function()
+								{
+									var cells = _this.editor.action.actions.tableOperation.getSelectedCells(_this.savedRange, _this.GetTargetItem('TABLE'));
+									return !cells || cells.length === 1;
+								}
+							}
+						]
+					},
+					{
+						TEXT: BX.message('BXEdTableMergeMenu'),
+						MENU: [
+							{
+								TEXT: BX.message('BXEdTableMergeSelectedCells'),
+								ACTION: function()
+								{
+									_this.editor.action.Exec('tableOperation', {
+										actionType: 'mergeSelectedCells',
+										tableNode: _this.GetTargetItem('TABLE'),
+										range: _this.savedRange
+									});
+									_this.Hide();
+								},
+								HIDE_ITEM: function()
+								{
+									if (!_this.savedRange.collapsed)
+									{
+										return !_this.editor.action.actions.tableOperation.canBeMerged(false, _this.savedRange, _this.GetTargetItem('TABLE'));
+									}
+
+									return true;
+								}
+							},
+							{
+								TEXT: BX.message('BXEdTableMergeRight'),
+								ACTION: function()
+								{
+									_this.editor.action.Exec('tableOperation', {
+										actionType: 'mergeRightCell',
+										tableNode: _this.GetTargetItem('TABLE'),
+										range: _this.savedRange
+									});
+									_this.Hide();
+								},
+								HIDE_ITEM: function()
+								{
+									return !_this.editor.action.actions.tableOperation.canBeMergedWithRight(_this.savedRange, _this.GetTargetItem('TABLE'));
+								}
+							},
+							{
+								TEXT: BX.message('BXEdTableMergeBottom'),
+								ACTION: function()
+								{
+									_this.editor.action.Exec('tableOperation', {
+										actionType: 'mergeBottomCell',
+										tableNode: _this.GetTargetItem('TABLE'),
+										range: _this.savedRange
+									});
+									_this.Hide();
+								},
+								HIDE_ITEM: function()
+								{
+									return !_this.editor.action.actions.tableOperation.canBeMergedWithBottom(_this.savedRange, _this.GetTargetItem('TABLE'));
+								}
+							},
+							{
+								TEXT: BX.message('BXEdTableMergeRowCells'),
+								ACTION: function()
+								{
+									_this.editor.action.Exec('tableOperation', {
+										actionType: 'mergeRow',
+										tableNode: _this.GetTargetItem('TABLE'),
+										range: _this.savedRange
+									});
+									_this.Hide();
+								},
+								HIDE_ITEM: function()
+								{
+									var cells = _this.editor.action.actions.tableOperation.getSelectedCells(_this.savedRange, _this.GetTargetItem('TABLE'));
+									return !cells || cells.length > 1;
+								}
+							},
+							{
+								TEXT: BX.message('BXEdTableMergeColCells'),
+								ACTION: function()
+								{
+									_this.editor.action.Exec('tableOperation', {
+										actionType: 'mergeColumn',
+										tableNode: _this.GetTargetItem('TABLE'),
+										range: _this.savedRange
+									});
+									_this.Hide();
+								},
+								HIDE_ITEM: function()
+								{
+									var cells = _this.editor.action.actions.tableOperation.getSelectedCells(_this.savedRange, _this.GetTargetItem('TABLE'));
+									return !cells || cells.length > 1;
+								}
+							}
+						]
+					},
+					{
+						TEXT: BX.message('BXEdTableSplitMenu'),
+						HIDE_ITEM: function()
+						{
+							var cells = _this.editor.action.actions.tableOperation.getSelectedCells(_this.savedRange, _this.GetTargetItem('TABLE'));
+							return !cells || cells.length != 1;
+						},
+						MENU: [
+							{
+								TEXT: BX.message('BXEdTableSplitCellHor'),
+								ACTION: function()
+								{
+									_this.editor.action.Exec('tableOperation', {
+										actionType: 'splitHorizontally',
+										tableNode: _this.GetTargetItem('TABLE'),
+										range: _this.savedRange
+									});
+									_this.Hide();
+								}
+							},
+							{
+								TEXT: BX.message('BXEdTableSplitCellVer'),
+								ACTION: function()
+								{
+									_this.editor.action.Exec('tableOperation', {
+										actionType: 'splitVertically',
+										tableNode: _this.GetTargetItem('TABLE'),
+										range: _this.savedRange
+									});
+									_this.Hide();
+								}
+							}
+						]
+					},
+					{SEPARATOR: true},
+
+					{
+						TEXT: BX.message('BXEdTableTableCellProps'),
+						ACTION: function()
 						{
 							var node = _this.GetTargetItem('TABLE');
 							if (node)
 							{
-								_this.editor.GetDialog('Table').Show([node], this.savedRange);
+								var cells = _this.editor.action.actions.tableOperation.getSelectedCells(_this.savedRange, _this.GetTargetItem('TABLE'));
+								_this.editor.GetDialog('Default').Show(cells, _this.savedRange);
+							}
+							_this.Hide();
+						},
+						HIDE_ITEM: function()
+						{
+							var cells = _this.editor.action.actions.tableOperation.getSelectedCells(_this.savedRange, _this.GetTargetItem('TABLE'));
+							return !cells || cells.length != 1;
+						}
+					},
+
+					{
+						TEXT: BX.message('BXEdTableTableProps'),
+						ACTION: function()
+						{
+							var node = _this.GetTargetItem('TABLE');
+							if (node)
+							{
+								_this.editor.GetDialog('Table').Show([node], _this.savedRange);
 							}
 							_this.Hide();
 						}
 					},
 					{
-						text: BX.message('BXEdTableDeleteTable'),
+						TEXT: BX.message('BXEdTableDeleteTable'),
 						bbMode: true,
-						onclick: function()
+						ACTION: function()
 						{
 							var node = _this.GetTargetItem('TABLE');
 							if (node)
@@ -1395,11 +1746,7 @@
 		Show: function(e, target)
 		{
 			this.savedRange = this.editor.selection.GetBookmark();
-
-			if (this.lastMenuId)
-			{
-				this.Hide();
-			}
+			this.Hide();
 
 			this.editor.contextMenuShown = true;
 			if (this.contextMenuShownTimeout)
@@ -1408,10 +1755,9 @@
 			}
 			this.nodes = [];
 			this.tagIndex = {};
-			this.lastMenuId = 'bx_context_menu_' + Math.round(Math.random() * 1000000000);
 			var
 				bxTag,
-				i, j,
+				i, j, k, menuItems, item, itemGr,
 				arItems = [],
 				maxIter = 20, iter = 0,
 				element = target,
@@ -1430,7 +1776,7 @@
 						{
 							var origTag = this.editor.GetBxTag(bxTag.params.origId);
 							element = this.editor.GetIframeElement(origTag.id);
-							this.targetItems[origTag.tag] = {element: element, bxTag: origTag};
+							this.PushTargetItem(origTag.tag, {element: element, bxTag: origTag});
 							this.nodes = [element];
 							this.tagIndex[origTag.tag] = 0;
 							iter = 0;
@@ -1440,7 +1786,7 @@
 						else if (bxTag && bxTag.tag && this.items[bxTag.tag])
 						{
 							this.nodes = [element];
-							this.targetItems[bxTag.tag] = {element: element, bxTag: bxTag.tag};
+							this.PushTargetItem(bxTag.tag, {element: element, bxTag: bxTag.tag});
 							this.nodes = [element];
 							this.tagIndex[bxTag.tag] = 0;
 							iter = 0;
@@ -1449,7 +1795,7 @@
 						}
 
 						label = element.nodeName;
-						this.targetItems[label] = element;
+						this.PushTargetItem(label, element);
 						this.nodes.push(element);
 						this.tagIndex[label] = this.nodes.length - 1;
 					}
@@ -1472,17 +1818,44 @@
 				{
 					if (arItems.length > 0)
 					{
-						arItems.push({separator : true});
+						arItems.push({SEPARATOR : true});
 					}
 
 					for (j = 0; j < this.items[i].length; j++)
 					{
-						if (this.editor.bbCode && !this.items[i][j].bbMode)
-						{
+						if (typeof this.items[i][j].HIDE_ITEM == 'function'  && this.items[i][j].HIDE_ITEM() === true)
 							continue;
+
+						if (this.editor.bbCode && !this.items[i][j].bbMode)
+							continue;
+
+						if (this.items[i][j].MENU)
+						{
+							itemGr = BX.clone(this.items[i][j]);
+							menuItems = [];
+							for (k = 0; k < itemGr.MENU.length; k++)
+							{
+								item = itemGr.MENU[k];
+								if (typeof item.HIDE_ITEM == 'function'  && item.HIDE_ITEM() === true)
+									continue;
+
+								if (this.editor.bbCode && !item.bbMode)
+									continue;
+
+								menuItems.push(item);
+							}
+
+							if (menuItems.length === 0)
+								continue;
+
+							itemGr.MENU = menuItems;
+
+							arItems.push(itemGr);
 						}
-						this.items[i][j].title = this.items[i][j].title || this.items[i][j].text;
-						arItems.push(this.items[i][j]);
+						else
+						{
+							arItems.push(this.items[i][j]);
+						}
 					}
 				}
 			}
@@ -1494,12 +1867,10 @@
 				{
 					for (j = 0; j < def.length; j++)
 					{
-						def[j].title = def[j].title || def[j].text;
 						arItems.push(def[j]);
 					}
 				}
 			}
-
 
 			var
 				x = e.clientX,
@@ -1512,27 +1883,19 @@
 
 			this.dummyTarget.style.left = x + 'px';
 			this.dummyTarget.style.top = y + 'px';
-
-
-			// TODO: !!!!
-//			bindElement.OPENER = new BX.COpener({
-//				DIV: bindElement,
-//				MENU: menu,
-//				TYPE: 'click',
-//				ACTIVE_CLASS: (typeof params.active_class != 'undefined') ? params.active_class : 'adm-btn-active',
-//				CLOSE_ON_CLICK: (typeof params.close_on_click != 'undefined') ? !!params.close_on_click : true
-//			});
+			this.dummyTarget.style.zIndex = '2002';
 
 			if (arItems.length > 0)
 			{
-				BX.PopupMenu.show(this.lastMenuId, this.dummyTarget, arItems, {
-						events: {
-							onPopupClose: BX.proxy(this.Hide, this)
-						},
-						offsetLeft: 1,
-						zIndex: 2005
-					}
-				);
+				this.OPENER = new BX.COpener({
+					DIV: this.dummyTarget,
+					MENU: arItems,
+					TYPE: 'click',
+					ACTIVE_CLASS: 'adm-btn-active',
+					CLOSE_ON_CLICK: true
+				});
+				this.OPENER.Open();
+				this.OPENER.GetMenu().DIV.style.zIndex = '3005';
 
 				this.isOpened = true;
 				BX.addCustomEvent(this.editor, 'OnIframeClick', BX.proxy(this.Hide, this));
@@ -1543,14 +1906,13 @@
 
 		Hide: function()
 		{
-			if (this.lastMenuId)
+			if (this.OPENER)
 			{
 				var _this = this;
 				this.contextMenuShownTimeout = setTimeout(function(){_this.editor.contextMenuShown = false;}, 300);
-				BX.PopupMenu.destroy(this.lastMenuId);
-				this.lastMenuId = null;
+				this.OPENER.bMenuInit = true;
+				this.OPENER.Close();
 				this.isOpened = false;
-
 				BX.removeCustomEvent(this.editor, 'OnIframeClick', BX.proxy(this.Hide, this));
 				BX.removeCustomEvent(this.editor, 'OnIframeKeyup', BX.proxy(this.CheckEscapeClose, this));
 			}
@@ -1565,6 +1927,12 @@
 		GetTargetItem: function(tag)
 		{
 			return tag ? (this.targetItems[tag] || null) : this.targetItems;
+		},
+
+		PushTargetItem: function(key, tag)
+		{
+			if (!this.targetItems[key])
+				this.targetItems[key] = tag;
 		}
 	};
 
@@ -1606,6 +1974,7 @@
 
 			this.hiddenWrap = wraps.hidden;
 
+			this.editor.normalWidth = this.editor.NORMAL_WIDTH;
 			for (i = 0; i < map.length; i++)
 			{
 				if(map[i].hidden)
@@ -1613,12 +1982,17 @@
 					map[i].wrap = 'hidden';
 					this.showMoreButton = true;
 				}
+				else if (map[i].checkWidth && map[i].offsetWidth)
+				{
+					this.editor.normalWidth += map[i].offsetWidth;
+				}
+
 				wrap = wraps[(map[i].wrap || 'main')];
 
 				if (!wrap)
 				{
 					// We trying to find wrap as dom element by Id
-					wrap = BX(map[i].wrap, true);
+					wrap = BX(map[i].wrap);
 					if (wrap)
 					{
 						wraps[map[i].wrap] = wrap;
@@ -1680,6 +2054,9 @@
 
 		GetControlsMap: function()
 		{
+			if (this.controlsMap)
+				return this.controlsMap;
+
 			var res = this.editor.config.controlsMap;
 			if (!res)
 			{
@@ -1714,8 +2091,7 @@
 					{id: 'PrintBreak', compact: false, hidden: true, sort: 270},
 					{id: 'PageBreak', compact: false, hidden: true, sort: 275},
 					{id: 'Spellcheck', compact: false, hidden: true, sort: 280},
-	//				{id: 'PageBreak', compact: false, hidden: true, sort: 280},
-	//				{id: 'InsertHr', compact: false, hidden: true, sort: 290},
+					{id: 'InsertHr', compact: false, hidden: true, sort: 290},
 					{id: 'Sub', compact: false, hidden: true, sort: 310},
 					{id: 'Sup', compact: false, hidden: true, sort: 320},
 					{id: 'TemplateSelector', compact: false, sort: 330},
@@ -1728,16 +2104,13 @@
 
 			this.editor.On("GetControlsMap", [res]);
 			res = res.sort(function(a, b){return a.sort - b.sort});
+			this.controlsMap = res;
 			return res;
 		},
 
 		GetSeparator: function()
 		{
 			return BX.create('span', {props: {className: 'bxhtmled-top-bar-separator'}});
-		},
-
-		AddButton: function()
-		{
 		},
 
 		GetHeight: function()
@@ -1770,8 +2143,7 @@
 
 		AdaptControls: function(width)
 		{
-			var bCompact = width < this.editor.NORMAL_WIDTH;
-
+			var bCompact = width < this.editor.normalWidth;
 			if (this.controls.More)
 			{
 				if (bCompact || this.showMoreButton)
@@ -1965,6 +2337,10 @@
 					if (this.pCont.firstChild)
 					{
 						this.pCont.insertBefore(itemCont, this.pCont.firstChild);
+						if(!this.AdjustSize())
+						{
+							break;
+						}
 					}
 					else
 					{
@@ -1975,9 +2351,20 @@
 				{
 					break;
 				}
-
 				node = node.parentNode;
 			}
+
+			this.AdjustSize();
+		},
+
+		AdjustSize: function()
+		{
+			if (this.pCont.lastChild && this.pCont.lastChild.offsetTop > 0)
+			{
+				BX.remove(this.pCont.firstChild);
+				return false;
+			}
+			return true;
 		},
 
 		ShowMenu: function(e)
@@ -2118,7 +2505,9 @@
 									//BX.removeClass(this.bindElement, "bxec-add-more-over");
 								}
 							},
-							offsetLeft: 1
+							offsetLeft: 1,
+							zIndex: 4000,
+							bindOptions: { position: "top" }
 						}
 					);
 				}
@@ -2313,6 +2702,11 @@
 			}
 			BX.unbind(document, 'mouseup', BX.proxy(this.OnMouseUp, this));
 			BX.removeCustomEvent(this.editor, "OnIframeMouseUp", BX.proxy(this.OnMouseUp, this));
+
+			if (this.editor.toolbar && this.editor.toolbar.controls && this.editor.toolbar.controls.More)
+			{
+				this.editor.toolbar.controls.More.Close();
+			}
 		},
 
 		OnMouseDown: function()
@@ -2338,7 +2732,7 @@
 		{
 			this.Check(value);
 		}
-	}
+	};
 
 	// List
 	function DropDown(editor)
@@ -2744,6 +3138,7 @@
 		this.defaultValue = params.defaultValue || '';
 		this.posOffset = {top: 8, left: -4};
 		this.zIndex = 3010;
+		this.SPLIT_SYMBOL = ',';
 		this.itemClassName = 'bxhtmled-dd-list-item';
 		this.itemClassNameActive = 'bxhtmled-dd-list-item-active';
 	}
@@ -2814,7 +3209,8 @@
 				value = this.values[i];
 				itemClass = this.itemClassName || '';
 				this.values[i].TITLE = this.values[i].TITLE || this.values[i].NAME;
-				if (this.values[i].VALUE)
+
+				if (this.values[i].VALUE && this.values[i].VALUE !== this.values[i].TITLE)
 				{
 					this.values[i].TITLE += ' (' + this.values[i].VALUE + ')';
 				}
@@ -2893,7 +3289,7 @@
 				res = [],
 				str = this.pInput.value;
 
-			if (str.indexOf(',') === -1 || this.bMultiple === false)
+			if (str.indexOf(this.SPLIT_SYMBOL) === -1 || this.bMultiple === false)
 			{
 				res.push(
 					{
@@ -2905,7 +3301,7 @@
 			}
 			else
 			{
-				arVals = str.split(',');
+				arVals = str.split(this.SPLIT_SYMBOL);
 				gStart = 0;
 				gEnd = 0;
 				for (i = 0; i < arVals.length; i++)
@@ -2943,7 +3339,7 @@
 				}
 				else
 				{
-					pos = val.TITLE.indexOf(needle);
+					pos = val.TITLE.toLowerCase().indexOf(needle.toLowerCase());
 					if (pos !== -1 || needle == '')
 					{
 						val.cont.innerHTML = BX.util.htmlspecialchars(val.TITLE.substr(0, pos)) + '<b>' + BX.util.htmlspecialchars(needle) + '</b>' + BX.util.htmlspecialchars(val.TITLE.substr(pos + needle.length));
@@ -3029,6 +3425,7 @@
 			}
 
 			var
+				glue = this.SPLIT_SYMBOL == ' ' ? ' ' : this.SPLIT_SYMBOL + ' ',
 				curValue = this.pInput.value,
 				before = curValue.substr(0, splVal.start),
 				after = curValue.substr(splVal.end);
@@ -3037,9 +3434,9 @@
 			after = after.replace(/^[\s\r\n\,]+/g, '').replace(/[\s\r\n\,]+$/g, '');
 
 			this.pInput.value = before +
-				(before == '' ? '' : ', ') +
+				(before == '' ? '' : glue) +
 				val.VALUE +
-				(after == '' ? '' : ', ') +
+				(after == '' ? '' : glue) +
 				after;
 
 			this.FilterAndHighlight('');
@@ -3066,12 +3463,15 @@
 				}
 			}
 
-			var selected = this.pValuesContWrap.querySelectorAll("." + this.itemClassNameActive);
-			if (selected)
+			if (document.querySelectorAll)
 			{
-				for (i = 0; i < selected.length; i++)
+				var selected = this.pValuesContWrap.querySelectorAll("." + this.itemClassNameActive);
+				if (selected)
 				{
-					BX.removeClass(selected[i], this.itemClassNameActive);
+					for (i = 0; i < selected.length; i++)
+					{
+						BX.removeClass(selected[i], this.itemClassNameActive);
+					}
 				}
 			}
 
@@ -3142,12 +3542,15 @@
 			this.pValuesCont.style.left = left + 'px';
 			this.bOpened = true;
 
-			var selected = this.pValuesContWrap.querySelectorAll("." + this.itemClassNameActive);
-			if (selected)
+			if (document.querySelectorAll)
 			{
-				for (i = 0; i < selected.length; i++)
+				var selected = this.pValuesContWrap.querySelectorAll("." + this.itemClassNameActive);
+				if (selected)
 				{
-					BX.removeClass(selected[i], this.itemClassNameActive);
+					for (i = 0; i < selected.length; i++)
+					{
+						BX.removeClass(selected[i], this.itemClassNameActive);
+					}
 				}
 			}
 
@@ -3196,8 +3599,9 @@
 		this.filterTag = params.filterTag || '';
 		this.lastTemplateId = this.editor.GetTemplateId();
 		this.values = this.GetClasses();
+		this.SPLIT_SYMBOL = ' ';
 		this.Init();
-	};
+	}
 	BX.extend(ClassSelector, ComboBox);
 
 	ClassSelector.prototype.OnChange = function()
@@ -3212,14 +3616,36 @@
 
 	ClassSelector.prototype.GetClasses = function()
 	{
-		var classes = this.editor.GetCurrentCssClasses(this.filterTag);
+		var
+			title,
+			classes = this.editor.GetCurrentCssClasses(this.filterTag);
+
 		this.values = [];
 		if (classes && classes.length > 0)
 		{
 			for (var i = 0; i < classes.length; i++)
 			{
+				title = null;
+				if (classes[i].classTitle && typeof classes[i].classTitle == 'object')
+				{
+					if (classes[i].classTitle.title)
+					{
+						title = classes[i].classTitle.title;
+					}
+					else
+					{
+						continue;
+					}
+				}
+				else if (classes[i].classTitle)
+				{
+					title = classes[i].classTitle;
+				}
+
 				this.values.push(
 					{
+						VALUE: classes[i].className,
+						TITLE:  title,
 						NAME: classes[i].className
 					}
 				);

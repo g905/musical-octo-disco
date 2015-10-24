@@ -1,4 +1,5 @@
 ;(function(window){
+	var cnvConstr = null, cnvEdtr = null;
 	if (BX["UploaderTemplateThumbnails"])
 		return false;
 

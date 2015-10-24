@@ -1,8 +1,8 @@
 <?
 /*
-This is callback page for Google OAuth 2.0 authentication.
+This is callback page for Bitrix24 OAuth 2.0 authentication.
 Google redirects only to specific back url set in the OAuth application.
-The page opens in popup window after user authorized on Google.
+The page opens in popup window after user authorized on Bitrix24.
 */
 define("NOT_CHECK_PERMISSIONS", true);
 if(isset($_REQUEST["state"]) && is_string($_REQUEST["state"]))
@@ -10,9 +10,9 @@ if(isset($_REQUEST["state"]) && is_string($_REQUEST["state"]))
 	$arState = array();
 	parse_str($_REQUEST["state"], $arState);
 
-	if(isset($arState['site_id']))
+	if(isset($arState['site_id']) && is_string($arState['site_id']))
 	{
-		$site = substr(preg_replace("/[^a-z0-9_]/i", "", $arState['site_id']), 0, 2);
+		$site = substr(preg_replace("/[^a-z0-9_]/i", "", $arState['site_id'].''), 0, 2);
 		define("SITE_ID", $site);
 	}
 }

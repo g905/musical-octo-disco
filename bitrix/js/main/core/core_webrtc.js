@@ -20,20 +20,33 @@
 		this.detectedBrowser = 'none';
 		this.attachMediaStream = null;
 		this.pcConfig = {};
+		this.oneway = false;
+		this.lastUserMediaParams = {};
 		this.pcConstraints = {};
 		this.sdpConstraints = {'mandatory': { 'OfferToReceiveAudio':true, 'OfferToReceiveVideo':true }};
 
 		this.configVideo = {
-			maxWidth: 1280,
-			maxHeight: 720
+			maxWidth: 1920,
+			maxHeight: 1080,
+			minWidth: 1280,
+			minHeight: 720
 		};
 		this.configVideoGroup = {
-			maxWidth: 800,
-			maxHeight: 600
+			maxWidth: 1280,
+			maxHeight: 720,
+			minWidth: 1280,
+			minHeight: 720
 		};
 		this.configVideoMobile = {
-			maxWidth: 640,
-			maxHeight: 480
+			maxWidth: 1280,
+			maxHeight: 720,
+			minWidth: 1280,
+			minHeight: 720
+		};
+
+		this.configVideoAfterError = {
+			maxWidth: 1920,
+			maxHeight: 1080
 		};
 
 		this.callStreamSelf = null;
@@ -106,7 +119,7 @@
 
 			this.attachMediaStream = function(element, stream)
 			{
-				element.src = webkitURL.createObjectURL(stream);
+				element.src = URL.createObjectURL(stream);
 			};
 
 			if (!webkitMediaStream.prototype.getVideoTracks)
@@ -242,14 +255,31 @@
 	// this is public function, you can inherit
 	BX.webrtc.prototype.startGetUserMedia = function(video, audio)
 	{
+		if (this.oneway && !this.initiator)
+		{
+			this.onUserMediaSuccess();
+			return true;
+		}
+
+		this.lastUserMediaParams = {video: video, audio: audio};
+
 		if (this.callRequestUserMedia[this.callVideo? 'video': 'audio'])
 			return false;
 
-		video = typeof(video) != 'undefined' || BX.browser.IsFirefox()? video: this.callToGroup? this.configVideoGroup: this.configVideo;
-		audio = typeof(audio) != 'undefined'? audio: true;
+		video = typeof(video) != 'undefined' && video !== true ? video: this.callToGroup? this.configVideoGroup: this.configVideo;
+		audio = typeof(audio) != 'undefined' && audio !== true? audio: true;
+		if (video && !BX.browser.IsFirefox())
+		{
+			video = {"mandatory": video, "optional": []};
+		}
 
-		var constraints = {"audio": audio, "video": (this.callVideo ? {"mandatory": video, "optional": []}: false)};
+		var constraints = {
+			"audio": audio,
+			"video": video
+		};
+
 		this.log("Requested access to local media with constraints:  \"" + JSON.stringify(constraints) + "\"");
+
 		try {
 			this.callRequestUserMedia[this.callVideo? 'video': 'audio'] = true;
 			getUserMedia(constraints, BX.delegate(this.onUserMediaSuccess, this), BX.delegate(this.onUserMediaError, this));
@@ -264,20 +294,23 @@
 	// this is protected function, you must inherit
 	BX.webrtc.prototype.onUserMediaSuccess = function(stream)
 	{
-		this.callRequestUserMedia[this.callVideo? 'video': 'audio'] = false;
-		if (this.callStreamSelf)
-			return false;
-
-		if (!this.callActive)
+		if (!this.oneway || this.initiator)
 		{
-			stream.stop();
-			return false;
+			this.callRequestUserMedia[this.callVideo? 'video': 'audio'] = false;
+			if (this.callStreamSelf)
+				return false;
+
+			if (!this.callActive && stream)
+			{
+				stream.stop();
+				return false;
+			}
+
+			this.log("User has granted access to local media.");
+
+			this.callStreamSelf = stream;
+			this.toggleAudio(false);
 		}
-
-		this.log("User has granted access to local media.");
-
-		this.callStreamSelf = stream;
-		this.toggleAudio(false);
 
 		if (!this.needPeerConnection)
 			return true;
@@ -328,15 +361,14 @@
 		if (!this.callActive)
 			return false;
 
-		var messageError = '0';
-		if (error.code)
-			messageError = error.code;
-		else if (error.name || error.message)
-			messageError = error.name || error.message;
-		else
-			messageError = JSON.stringify(error);
+		this.log("Failed to get access to local media. Error code was " + JSON.stringify(error));
 
-		this.log("Failed to get access to local media. Error code was " + messageError);
+		if (error && error.name == 'ConstraintNotSatisfiedError')
+		{
+			this.configVideo = this.configVideoAfterError;
+			this.configVideoGroup = this.configVideoAfterError;
+			this.configVideoMobile = this.configVideoAfterError;
+		}
 
 		return true;
 	}
@@ -351,7 +383,7 @@
 
 		initiator = initiator === true;
 		if (this.debug) console.log(userId, 'wait initPeerConnection')
-		if (!this.pcStart[userId] && this.callStreamSelf /* && turnReady*/)
+		if (!this.pcStart[userId] && (!this.oneway && this.callStreamSelf || this.oneway && this.initiator && this.callStreamSelf || this.oneway && !this.initiator))
 		{
 			if (this.connected[userId])
 			{
@@ -612,7 +644,10 @@
 			this.pc[userId].onremovestream = BX.delegate(function(event) { this.onRemoteStreamRemovedEvent(userId, event)}, this);
 			this.pc[userId].oniceconnectionstatechange = BX.delegate(function(event) { this.onIceConnectionStateChangeEvent(userId, event)}, this);
 			this.pc[userId].onsignalingstatechange = BX.delegate(function(event) { this.onSignalingStateChangeEvent(userId, event)}, this);
-			this.pc[userId].addStream(this.callStreamSelf);
+			if (!this.oneway || this.initiator)
+			{
+				this.pc[userId].addStream(this.callStreamSelf);
+			}
 
 			this.log("Created RTCPeerConnnection for "+userId+" with:\n" +
 			"  config: \"" + JSON.stringify(this.pcConfig) + "\";\n" +
@@ -647,7 +682,7 @@
 			if (this.pc[userId] == null)
 				return false;
 
-			this.pc[userId].setRemoteDescription(new RTCSessionDescription(signal));
+			this.pc[userId].setRemoteDescription(new RTCSessionDescription(signal), function(){}, function(){});
 		}
 		else if (signal.type === 'candidate' && this.pcStart[userId])
 		{
@@ -780,7 +815,7 @@
 		{
 			if (!this.pc[userId]) return false;
 			this.pc[userId].createAnswer(BX.delegate(function(desc){this.setLocalAndSend(userId, desc)}, this), BX.delegate(function(a){this.log('createAnswer failure', a)}, this), this.sdpConstraints);
-		}, this));
+		}, this), function(){});
 
 		return true;
 	}

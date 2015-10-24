@@ -11,14 +11,15 @@ function __run()
 		Button = window.BXHtmlEditor.Button,
 		Dialog = window.BXHtmlEditor.Dialog;
 
-	function ColorPicker(editor, wrap)
+	function ColorPicker(editor, wrap, params)
 	{
 		this.editor = editor;
+		this.params = params || {};
 		this.className = 'bxhtmled-top-bar-btn bxhtmled-top-bar-color';
 		this.activeClassName = 'bxhtmled-top-bar-btn-active';
 		this.disabledClassName = 'bxhtmled-top-bar-btn-disabled';
 		this.bCreated = false;
-		this.zIndex = 3006;
+		this.zIndex = 3009;
 		this.disabledForTextarea = true;
 		this.posOffset = {top: 6, left: 0};
 		this.id = 'color';
@@ -45,17 +46,20 @@ function __run()
 			BX.bind(this.pCont, "click", BX.delegate(this.OnClick, this));
 			BX.bind(this.pCont, "mousedown", BX.delegate(this.OnMouseDown, this));
 
-			this.editor.RegisterCheckableAction(this.actionColor, {
-				action: this.actionColor,
-				control: this,
-				value: this.value
-			});
+			if (this.params.registerActions !== false)
+			{
+				this.editor.RegisterCheckableAction(this.actionColor, {
+					action: this.actionColor,
+					control: this,
+					value: this.value
+				});
 
-			this.editor.RegisterCheckableAction(this.actionBg, {
-				action: this.actionBg,
-				control: this,
-				value: this.value
-			});
+				this.editor.RegisterCheckableAction(this.actionBg, {
+					action: this.actionBg,
+					control: this,
+					value: this.value
+				});
+			}
 		},
 
 		GetCont: function()
@@ -63,7 +67,7 @@ function __run()
 			return this.pCont;
 		},
 
-		Check: function (bFlag)
+		Check: function(bFlag)
 		{
 			if(bFlag != this.checked && !this.disabled)
 			{
@@ -180,13 +184,13 @@ function __run()
 			if (pEl.nodeType == 3)
 				pEl = pEl.parentNode;
 
-			if (!BX.findParent(pEl, {className: 'lhe-colpick-cont'}))
+			if (pEl !== this.custInp && !BX.findParent(pEl, {className: 'lhe-colpick-cont'}))
 			{
 				this.Close();
 			}
 		},
 
-		Open: function ()
+		Open: function()
 		{
 			this.editor.popupShown = true;
 			if (this.popupShownTimeout)
@@ -200,10 +204,10 @@ function __run()
 
 				if (this.showBgMode)
 				{
-					this.pTextColorLink = this.pValuesCont.appendChild(BX.create("SPAN", {props: {className: "bxhtmled-color-link bxhtmled-color-link-active"}, text: BX.message('BXEdForeColor')}));
+					this.pTextColorLink = this.pValuesCont.appendChild(BX.create("SPAN", {props: {className: "bxhtmled-color-link bxhtmled-color-link-active"}, text: this.params.ForeColorMess || BX.message('BXEdForeColor')}));
 					this.pTextColorLink.setAttribute('data-bx-type', 'changeColorAction');
 					this.pTextColorLink.setAttribute('data-bx-value', this.actionColor);
-					this.pBgColorLink = this.pValuesCont.appendChild(BX.create("SPAN", {props: {className: "bxhtmled-color-link"}, text: BX.message('BXEdBackColor')}));
+					this.pBgColorLink = this.pValuesCont.appendChild(BX.create("SPAN", {props: {className: "bxhtmled-color-link"}, text: this.params.BgColorMess || BX.message('BXEdBackColor')}));
 					this.pBgColorLink.setAttribute('data-bx-type', 'changeColorAction');
 					this.pBgColorLink.setAttribute('data-bx-value', this.actionBg);
 				}
@@ -226,7 +230,24 @@ function __run()
 							type = (target && target.getAttribute) ? target.getAttribute('data-bx-type') : null;
 						}
 
-						if (type == 'changeColorAction')
+						if (type == 'customColorAction')
+						{
+							var val = target.getAttribute('data-bx-value');
+							if (val == 'link')
+							{
+								_this.ShowCustomColor(true, _this.colorCell.style.backgroundColor);
+								BX.PreventDefault(e);
+							}
+							if (val == 'button')
+							{
+								_this.SelectColor(_this.custInp.value);
+								if (_this.params.checkAction !== false && _this.editor.action.IsSupported(_this.currentAction))
+								{
+									_this.editor.action.Exec(_this.currentAction, _this.custInp.value);
+								}
+							}
+						}
+						else if (type == 'changeColorAction')
 						{
 							if (_this.showBgMode)
 							{
@@ -237,7 +258,10 @@ function __run()
 						else if (target && type)
 						{
 							target.setAttribute('data-bx-action', _this.currentAction);
-							_this.editor.CheckCommand(target);
+							if(_this.params.checkAction !== false)
+							{
+								_this.editor.CheckCommand(target);
+							}
 							_this.SelectColor(target.getAttribute('data-bx-value'));
 						}
 					}
@@ -260,7 +284,7 @@ function __run()
 
 				this.pDefValueRow = tbl.insertRow(-1);
 				cell = this.pDefValueRow.insertCell(-1);
-				cell.colSpan = 8;
+				cell.colSpan = 5;
 				var defBut = cell.appendChild(BX.create("SPAN", {props:{className: 'bxhtmled-color-def-but'}}));
 				defBut.innerHTML = BX.message('BXEdDefaultColor');
 				defBut.setAttribute('data-bx-type', 'action');
@@ -268,9 +292,24 @@ function __run()
 				defBut.setAttribute('data-bx-value', '');
 
 				colorCell = this.pDefValueRow.insertCell(-1);
-				colorCell.colSpan = 8;
+				colorCell.colSpan = 5;
 				colorCell.className = 'bxhtmled-color-inp-cell';
 				colorCell.style.backgroundColor = arColors[38];
+				this.colorCell = colorCell;
+
+				cell = this.pDefValueRow.insertCell(-1);
+				cell.colSpan = 6;
+
+				this.custLink = cell.appendChild(BX.create("SPAN", {props:{className: 'bxhtmled-color-custom'}, html: BX.message('BXEdColorOther')}));
+				this.custLink.setAttribute('data-bx-type', 'customColorAction');
+				this.custLink.setAttribute('data-bx-value', 'link');
+				this.custInp = cell.appendChild(BX.create('INPUT', {props: {type: 'text', className: 'bxhtmled-color-custom-inp'}, style: {display: 'none'}}));
+				this.custInp.setAttribute('data-bx-type', 'customColorAction');
+				this.custInp.setAttribute('data-bx-value', 'input');
+
+				this.custBut = cell.appendChild(BX.create('INPUT', {props: {type: 'button', className: 'bxhtmled-color-custom-but', value: 'ok'}, style: {display: 'none'}}));
+				this.custBut.setAttribute('data-bx-type', 'customColorAction');
+				this.custBut.setAttribute('data-bx-value', 'button');
 
 				for(i = 0; i < l; i++)
 				{
@@ -328,6 +367,8 @@ function __run()
 			{
 				BX.bind(document, 'mousedown', BX.proxy(_this.CheckClose, _this));
 			},100);
+
+			this.ShowCustomColor(false, '');
 		},
 
 		SetMode: function(action)
@@ -354,6 +395,11 @@ function __run()
 				action = this.currentAction;
 			}
 
+			if (this.params.callback && typeof this.params.callback == 'function')
+			{
+				this.params.callback(action, this.editor.util.RgbToHex(color));
+			}
+
 			if (action == this.actionColor)
 			{
 				this.pContLetter.style.color = color || '#000';
@@ -363,6 +409,25 @@ function __run()
 			{
 				this.pContLetter.style.backgroundColor = color || 'transparent';
 			}
+		},
+
+		ShowCustomColor: function(show, value)
+		{
+			if (show !== false)
+			{
+				this.custInp.style.display = '';
+				this.custBut.style.display = '';
+				this.custLink.style.display = 'none';
+			}
+			else
+			{
+				this.custInp.style.display = 'none';
+				this.custBut.style.display = 'none';
+				this.custLink.style.display = '';
+			}
+			if (value)
+				value = this.editor.util.RgbToHex(value);
+			this.custInp.value = value.toUpperCase() || '';
 		}
 	};
 	// Buttons and controls of editor
@@ -750,66 +815,583 @@ function __run()
 		this.title = BX.message('StyleSelectorTitle');
 		this.className += ' ';
 		this.action = 'formatStyle';
+		this.itemClassNameGroup = 'bxhtmled-dd-list-item-gr';
+		this.OPEN_DELAY = 800;
+		this.checkedClasses = [];
+		this.checkedTags = this.editor.GetBlockTags();
 
-		var styleList = this.editor.GetStyleList();
+		this.arValues = this.GetStyleListValues();
+		this.Create();
+
+		if (wrap)
+			wrap.appendChild(this.GetCont());
+
+		BX.addCustomEvent(this.editor, "OnApplySiteTemplate", BX.proxy(this.OnTemplateChanged, this));
+	}
+	BX.extend(StyleSelectorList, window.BXHtmlEditor.DropDownList);
+
+	StyleSelectorList.prototype.OnTemplateChanged = function ()
+	{
+		if (this.bOpened)
+			this.Close();
+
+		this.arValues = this.GetStyleListValues();
+		this.Create();
+	};
+
+	StyleSelectorList.prototype.GetStyleListValues = function ()
+	{
+		// Basic styles
 		this.arValues = [
 			{
 				id: '',
 				name: BX.message('StyleNormal'),
 				topName: BX.message('StyleSelectorName'),
-				title: BX.message('StyleNormal'),
 				tagName: false,
 				action: 'formatStyle',
 				value: '',
 				defaultValue: true
+			},
+			{
+				name: BX.message('StyleH2'),
+				className: 'bxhtmled-style-h2',
+				tagName: 'H2',
+				action: 'formatStyle',
+				value: 'H2'
+			},
+			{
+				name: BX.message('StyleH3'),
+				className: 'bxhtmled-style-h3',
+				tagName: 'H3',
+				action: 'formatStyle',
+				value: 'H3'
+			},
+			{
+				id: 'headingsMore',
+				name: BX.message('HeadingMore'),
+				className: 'bxhtmled-style-heading-more',
+				items: [
+					{
+						name: BX.message('StyleH1'),
+						className: 'bxhtmled-style-h1',
+						tagName: 'H1',
+						action: 'formatStyle',
+						value: 'H1'
+					},
+					{
+						name: BX.message('StyleH4'),
+						className: 'bxhtmled-style-h4',
+						tagName: 'H4',
+						action: 'formatStyle',
+						value: 'H4'
+					},
+					{
+						name: BX.message('StyleH5'),
+						className: 'bxhtmled-style-h5',
+						tagName: 'H5',
+						action: 'formatStyle',
+						value: 'H5'
+					},
+					{
+						name: BX.message('StyleH6'),
+						className: 'bxhtmled-style-h6',
+						tagName: 'H6',
+						action: 'formatStyle',
+						value: 'H6'
+					}
+				]
 			}
 		];
-		var i, name, cn, style, val;
 
-		for (i in styleList)
+		// Meta classes from template's .style.php
+		var stylesDescription = this.editor.GetStylesDescription();
+		this.metaClasses = this.GetMetaClassSections();
+
+		var cl, metaClass, arValues = [], metaInd = {}, tags, tagi, j;
+		for (cl in stylesDescription)
 		{
-			if (styleList.hasOwnProperty(i))
+			if (
+				stylesDescription.hasOwnProperty(cl) &&
+					typeof stylesDescription[cl] == 'object'
+				)
 			{
-				val = styleList[i].value;
-				name = styleList[i].name;
-				cn = styleList[i].className || 'bxhtmled-style-' + val.toLowerCase().replace(' ', '-');
-				style = styleList[i].arStyle || {};
-
-				this.arValues.push(
+				metaClass = stylesDescription[cl];
+				if(stylesDescription[cl].section)
+				{
+					if (typeof metaInd[metaClass.section] == 'undefined')
 					{
-						id: val,
-						name: name,
-						title: name,
-						className: cn,
-						style: style,
-						tagName: styleList[i].tagName || false,
-						action: 'formatStyle',
-						value: val,
-						defaultValue: !!styleList[i].defaultValue
+						metaInd[metaClass.section] = arValues.length;
+						arValues.push({
+							id: this.metaClasses[metaClass.section].id,
+							name: this.metaClasses[metaClass.section].name,
+							defaultValue: false,
+							items: []
+						});
 					}
-				);
+
+					arValues[metaInd[metaClass.section]].items.push({
+						id: cl,
+						name: metaClass.title || cl,
+						action: 'formatStyle',
+						value: {className: cl, tag: metaClass.tag || false},
+						html: metaClass.html || false,
+						defaultValue: false
+					});
+				}
+				else
+				{
+					arValues.push({
+						id: cl,
+						name: metaClass.title || cl,
+						action: 'formatStyle',
+						value: {className: cl, tag: metaClass.tag || false},
+						html: metaClass.html || false,
+						defaultValue: false
+					});
+				}
+
+				this.checkedClasses.push(cl);
+				if (metaClass.tag)
+				{
+					tags = metaClass.tag.indexOf(',') === -1 ? [metaClass.tag] : metaClass.tag.split(',');
+					for (j = 0; j < tags.length; j++)
+					{
+						tagi = BX.util.trim(tags[j]).toUpperCase();
+						if (!BX.util.in_array(tagi, this.checkedTags))
+							this.checkedTags.push(tagi);
+					}
+				}
 			}
 		}
 
-		this.Create();
+		if (arValues.length > 0)
+		{
+			this.arValues = this.arValues.concat(['separator'], arValues);
+		}
 
-		if (wrap)
-			wrap.appendChild(this.GetCont());
-	}
-	BX.extend(StyleSelectorList, window.BXHtmlEditor.DropDownList);
+		this.arValues.push('separator');
+		this.arValues.push({
+			id: 'P',
+			name: BX.message('StyleParagraph'),
+			action: 'formatStyle',
+			value: 'P'
+		});
+		this.arValues.push({
+			id: 'DIV',
+			name: BX.message('StyleDiv'),
+			action: 'formatStyle',
+			value: 'DIV'
+		});
+
+		this.editor.On("GetStyleList", [this.styleList]);
+		return this.arValues;
+	};
+
+	StyleSelectorList.prototype.GetMetaClassSections = function()
+	{
+		var res = {
+			'quote':{
+				id: 'quote',
+				name: BX.message('BXEdMetaClass_quote')
+			},
+			'text': {
+				id: 'text',
+				name: BX.message('BXEdMetaClass_text')
+			},
+			'block': {
+				id: 'block',
+				name: BX.message('BXEdMetaClass_block')
+			},
+			'block_icon': {
+				id: 'block_icon',
+				name: BX.message('BXEdMetaClass_block_icon')
+			},
+			'list' : {
+				id: 'list',
+				name: BX.message('BXEdMetaClass_list'),
+				activateNodes: ['OL', 'UL']
+			}
+		};
+		return res;
+	};
 
 	StyleSelectorList.prototype.SetValue = function (active, state)
 	{
+		this.FilterMetaClasses();
+		var selected = false, k, val;
 		if (active)
 		{
-			var nodeName = state.nodeName.toUpperCase();
-			this.SelectItem(nodeName, false, false);
+			if (state && state.nodeName)
+			{
+				this.FilterMetaClasses(state.nodeName);
+
+				if (state.className && state.className !== '')
+				{
+					val = state.className;
+					if (state.nodeName == 'UL')
+					{
+						var customBullitClass = this.editor.action.actions.insertUnorderedList.getCustomBullitClass(state);
+						if (customBullitClass)
+							val = state.className + '~~' + customBullitClass;
+					}
+
+
+					for (k in this.valueIndex)
+					{
+						if (this.valueIndex.hasOwnProperty(k) && k.indexOf(val) !== -1)
+						{
+							this.SelectItem(k, false, false);
+							selected = true;
+							break;
+						}
+					}
+				}
+			}
+
+			if (!selected)
+			{
+				var nodeName = state.nodeName.toUpperCase();
+				this.SelectItem(nodeName, false, false);
+				selected = true;
+			}
 		}
-		else
+
+		if (!active || !selected)
 		{
 			this.SelectItem('', false, false);
 		}
 	};
+
+	StyleSelectorList.prototype.FilterMetaClasses = function(tagName)
+	{
+		for (var i in this.metaClasses)
+		{
+			if (this.metaClasses.hasOwnProperty(i) &&
+				this.metaClasses[i].activateNodes &&
+				this.metaClasses[i].itemNode)
+			{
+				if (!tagName)
+				{
+					this.metaClasses[i].itemNode.style.display = 'none';
+				}
+				else if (BX.util.in_array(tagName.toUpperCase(), this.metaClasses[i].activateNodes))
+				{
+					this.metaClasses[i].itemNode.style.display = '';
+				}
+			}
+		}
+	};
+
+	StyleSelectorList.prototype.Create = function()
+	{
+		if (!this.pCont)
+		{
+			this.pCont = BX.create("SPAN", {props: {className: this.className, title: this.title}, attrs: {unselectable: 'on'}, text: ''});
+			if (this.width)
+				this.pCont.style.width = this.width + 'px';
+
+			BX.bind(this.pCont, 'click', BX.proxy(this.OnClick, this));
+		}
+
+		if (!this.pValuesCont)
+		{
+			this.pValuesCont = BX.create("DIV", {props: {className: "bxhtmled-popup bxhtmled-dropdown-list-cont"}, html: '<div class="bxhtmled-popup-corner"></div>'});
+			this.pValuesContWrap = this.pValuesCont.appendChild(BX.create("DIV", {props: {className: "bxhtmled-dd-list-wrap"}}));
+		}
+		else
+		{
+			BX.cleanNode(this.pValuesContWrap);
+		}
+		this.valueIndex = {};
+		this.itemIndex = {};
+
+		if(this.zIndex)
+		{
+			this.pValuesCont.style.zIndex = this.zIndex;
+		}
+
+		var value, i;
+		for (i = 0; i < this.arValues.length; i++)
+		{
+			value = this.arValues[i];
+			if (value.items && value.items.length > 0) // Group
+			{
+				this.CreateSubmenuItem(value, this.pValuesContWrap, i);
+			}
+			else if (!value.items) // single item
+			{
+				this.CreateItem(value, this.pValuesContWrap, i);
+			}
+		}
+
+		if (this.action && this.checkableAction)
+		{
+			this.editor.RegisterCheckableAction(this.action, {
+				action: this.action,
+				control: this
+			});
+		}
+	};
+
+	StyleSelectorList.prototype.CreateItem = function (item, parentCont, index)
+	{
+		if (item == 'separator') // Separator
+		{
+			parentCont.appendChild(BX.create("I", {props: {className: 'bxhtmled-dd-list-sep'}}));
+		}
+		else
+		{
+			if (item.tagName)
+			{
+				item.tagName = item.tagName.toUpperCase();
+				if (!item.id)
+					item.id = item.tagName;
+			}
+
+			var
+				_this = this,
+				itemClass = this.itemClassName + (item.className ? ' ' + item.className : '');
+
+			if (!item.html)
+			{
+				item.html = item.tagName ? ('<' + item.tagName + '>' + item.name + '</' + item.tagName + '>') : item.name;
+			}
+
+			var
+				but = parentCont.appendChild(BX.create("SPAN", {props: {title: item.title || item.name, className: itemClass}, html: item.html, style: item.style}));
+
+			but.setAttribute('data-bx-dropdown-value', item.id);
+			this.valueIndex[item.id] = index;
+			this.itemIndex[item.id] = item;
+
+			if (item.defaultValue)
+			{
+				this.SelectItem(null, item);
+			}
+
+
+			BX.bind(but, 'mousedown', function(e)
+			{
+				_this.SelectItem(this.getAttribute('data-bx-dropdown-value'));
+				if (item.action && _this.editor.action.IsSupported(item.action))
+				{
+					_this.editor.action.Exec(item.action, item.value || false);
+				}
+			});
+
+			this.arValues[index].listCont = but;
+		}
+	};
+
+	StyleSelectorList.prototype.CreateSubmenuItem = function (item, parentCont, index)
+	{
+		var
+			_this = this,
+			itemClass = this.itemClassName + ' ' + this.itemClassNameGroup + (item.className ? ' ' + item.className : ''),
+			but = parentCont.appendChild(BX.create("SPAN", {props: {title: item.title || item.name, className: itemClass}, html: item.name + '<i class="bxed-arrow"></i>', style: item.style || ''}));
+
+		but.setAttribute('data-bx-dropdown-value', item.id);
+		this.valueIndex[item.id] = index; //
+		this.itemIndex[item.id] = item;
+
+		this.arValues[index].listCont = but;
+
+		var
+			timeout,
+			hover = false;
+
+		var par_ind = this.valueIndex[item.id];
+		var i, ind;
+		for (i = 0; i < item.items.length; i++)
+		{
+			if (item.items[i].tagName)
+			{
+				item.items[i].tagName = item.items[i].tagName.toUpperCase();
+				if (!item.items[i].id)
+					item.items[i].id = item.items[i].tagName;
+			}
+			ind = par_ind + '_' + i;
+			if (!this.arValues[ind])
+				this.arValues[ind] = item.items[i];
+			this.valueIndex[item.items[i].id] = ind;
+			item.items[i].listSubmenuCont = but;
+		}
+
+		BX.bind(but, 'mouseover', function(e)
+		{
+			hover = true;
+			if (timeout)
+				clearTimeout(timeout);
+
+			timeout = setTimeout(function()
+			{
+				if (hover)
+				{
+					_this.OpenSubmenu(item);
+				}
+			}, _this.OPEN_DELAY);
+		});
+
+		BX.bind(but, 'mouseout', function(e)
+		{
+			hover = false;
+			if (timeout)
+				timeout = clearTimeout(timeout);
+		});
+
+		if (this.metaClasses && this.metaClasses[item.id])
+		{
+			this.metaClasses[item.id].itemNode = but;
+		}
+	};
+
+	StyleSelectorList.prototype.OpenSubmenu = function (item)
+	{
+		// Hack for load font awesome css (used in some templatese to customize bullit list styles)
+		if (item.id == 'list')
+			BX.loadCSS(['/bitrix/css/main/font-awesome.css']);
+
+		if (!this.pSubmenuCont)
+		{
+			this.pSubmenuCont = BX.create("DIV", {props: {className: "bxhtmled-popup bxhtmled-popup-left bxhtmled-dropdown-list-cont bxhtmled-dropdown-list-cont-submenu"}, html: '<div class="bxhtmled-popup-corner"></div>'});
+			this.pSubmenuContWrap = this.pSubmenuCont.appendChild(BX.create("DIV", {props: {className: "bxhtmled-dd-list-wrap"}}));
+		}
+		else
+		{
+			BX.cleanNode(this.pSubmenuContWrap);
+		}
+
+		if(this.zIndex)
+		{
+			this.pSubmenuCont.style.zIndex = this.zIndex;
+		}
+
+		document.body.appendChild(this.pSubmenuCont);
+		this.pSubmenuCont.style.display = 'block';
+
+		if (this.curSubmenuItem)
+		{
+			BX.removeClass(this.curSubmenuItem, 'bxhtmled-dd-list-item-selected');
+		}
+
+		this.curSubmenuItem = item.listCont;
+		BX.addClass(this.curSubmenuItem, 'bxhtmled-dd-list-item-selected');
+
+		var
+			_this = this,
+			pos = BX.pos(this.curSubmenuItem),
+			left = pos.right + 17,
+			top = pos.top - 9;
+
+		this.pSubmenuCont.style.top = top + 'px';
+		this.pSubmenuCont.style.left = left + 'px';
+
+		var par_ind = this.valueIndex[item.id];
+		var i, ind;
+		for (i = 0; i < item.items.length; i++)
+		{
+			ind = par_ind + '_' + i;
+			if (!this.arValues[ind])
+				this.arValues[ind] = item.items[i];
+			this.CreateItem(item.items[i], this.pSubmenuContWrap, ind);
+		}
+
+		BX.onCustomEvent(this.curSubmenuItem, "OnStyleListSubmenuOpened", []);
+	};
+
+	StyleSelectorList.prototype.CloseSubmenu = function()
+	{
+		if (this.pSubmenuCont && this.pSubmenuContWrap)
+		{
+			BX.cleanNode(this.pSubmenuContWrap);
+			this.pSubmenuCont.style.display = 'none';
+		}
+
+		if (this.curSubmenuItem)
+		{
+			BX.removeClass(this.curSubmenuItem, 'bxhtmled-dd-list-item-selected');
+		}
+	};
+
+	StyleSelectorList.prototype.SelectItem = function (valDropdown, val, bClose)
+	{
+		var _this = this;
+
+		bClose = bClose !== false;
+		if (!val)
+		{
+			val = this.arValues[this.valueIndex[valDropdown]];
+			if (!val && this.valueIndex[valDropdown.toUpperCase()])
+			{
+				val = this.arValues[this.valueIndex[valDropdown.toUpperCase()]];
+			}
+			if (!val && this.valueIndex[valDropdown.toLowerCase()])
+			{
+				val = this.arValues[this.valueIndex[valDropdown.toLowerCase()]];
+			}
+		}
+
+		if (this.lastActiveSubmenuItem)
+			BX.removeClass(this.lastActiveSubmenuItem, this.activeListClassName);
+		if (this.lastActiveItem)
+			BX.removeClass(this.lastActiveItem, this.activeListClassName);
+
+		if (val)
+		{
+			this.pCont.innerHTML = BX.util.htmlspecialchars((val.topName || val.name || val.id));
+			this.pCont.title = this.title + ': ' + (val.title || val.name);
+
+			// Select value in list as active
+			if (val.listSubmenuCont && BX.isNodeInDom(val.listSubmenuCont))
+			{
+				this.lastActiveSubmenuItem = val.listSubmenuCont;
+				BX.addClass(val.listSubmenuCont, this.activeListClassName);
+			}
+
+			if (val.listCont && BX.isNodeInDom(val.listCont))
+			{
+				this.lastActiveItem = val.listCont;
+				BX.addClass(val.listCont, this.activeListClassName);
+			}
+			else
+			{
+				// Item can be in submenu
+				function submenu()
+				{
+					if (val.listCont && BX.isNodeInDom(val.listCont))
+					{
+						if (_this.lastActiveItem)
+							BX.removeClass(_this.lastActiveItem, _this.activeListClassName);
+						_this.lastActiveItem = val.listCont;
+						BX.addClass(val.listCont, _this.activeListClassName);
+					}
+					BX.removeCustomEvent(val.listSubmenuCont, "OnStyleListSubmenuOpened", submenu);
+				}
+
+				if (val.listSubmenuCont)
+				{
+					BX.addCustomEvent(val.listSubmenuCont, "OnStyleListSubmenuOpened", submenu);
+				}
+			}
+		}
+
+		if (this.bOpened && bClose)
+		{
+			this.Close();
+		}
+	};
+
+	StyleSelectorList.prototype.Open = function ()
+	{
+		StyleSelectorList.superclass.Open.apply(this, arguments);
+	};
+
+	StyleSelectorList.prototype.Close = function ()
+	{
+		this.CloseSubmenu();
+		StyleSelectorList.superclass.Close.apply(this, arguments);
+	};
+
 
 	function FontSelectorList(editor, wrap)
 	{
@@ -2041,6 +2623,7 @@ function __run()
 		this.id = 'hr';
 		this.title = BX.message('BXEdInsertHr');
 		this.className += ' bxhtmled-button-hr';
+		this.action = 'insertHr';
 		this.Create();
 		if (wrap)
 		{
@@ -2176,8 +2759,10 @@ function __run()
 		//this.action = 'smile';
 		this.checkableAction = false;
 		this.zIndex = 3007;
+		this.smileSizeDef = 20;
 		this.posOffset = {top: 6, left: 0};
 		this.smiles = editor.config.smiles || [];
+		this.smileSets = editor.config.smileSets || [];
 		this.disabledForTextarea = !editor.bbCode;
 
 		this.Create();
@@ -2201,7 +2786,37 @@ function __run()
 		this.pValuesCont.style.zIndex = this.zIndex;
 		this.valueIndex = {};
 
-		var _this = this, i, smileImg;
+		var
+			_this = this, i, smileImg, setInd,
+			setLength = this.smileSets.length,
+			blockWidth = Math.round(100 / setLength) + '%',
+			sliderWidth = (100 * setLength) + '%';
+
+		if (setLength > 0)
+		{
+			this.smileSetsIndex = {};
+			this.smileTabsWrap = this.pValuesCont.appendChild(BX.create('DIV', {props: {className: 'bxhtmled-smile-tabs-wrap'}}));
+
+			this.smileSliderWrap = this.pValuesCont.appendChild(BX.create('DIV', {props: {className: 'bxhtmled-smile-slider-wrap'}}));
+
+			this.smileSlider = this.smileSliderWrap.appendChild(BX.create('DIV', {props: {className: 'bxhtmled-smile-slider'}, style: {width: sliderWidth}}));
+
+			for(i = 0; i < this.smileSets.length; i++)
+			{
+				this.smileSetsIndex[this.smileSets[i].id] = i;
+				this.smileSets[i].butWrap = this.smileTabsWrap.appendChild(BX.create('SPAN', {props: {className: 'bxhtmled-smile-tab'}}));
+				this.smileSets[i].butWrap.setAttribute('data-bx-smile-set', this.smileSets[i].id);
+				this.smileSets[i].butWrapImage = false;
+				this.smileSets[i].smilesBlock = this.smileSlider.appendChild(BX.create('DIV', {props: {className: 'bxhtmled-smiles-wrap'}, style: {width: blockWidth}}));
+
+				if (i == 0)
+				{
+					BX.addClass(this.smileSets[i].butWrap, 'bxhtmled-smile-tab-active');
+					this.currentTab = this.smileSets[i].butWrap;
+				}
+			}
+		}
+
 		for(i = 0; i < this.smiles.length; i++)
 		{
 			smileImg = BX.create("IMG", {props:
@@ -2214,19 +2829,41 @@ function __run()
 
 			if (this.smiles[i].width)
 			{
-				smileImg.style.width = this.smiles[i].width;
+				smileImg.style.width = parseInt(this.smiles[i].width) + 'px';
 			}
 			if (this.smiles[i].height)
 			{
-				smileImg.style.height = this.smiles[i].height;
+				smileImg.style.height = parseInt(this.smiles[i].height) + 'px';
+			}
+
+			BX.bind(smileImg, 'error', function(){BX.remove(this)});
+
+			if (this.smiles[i].set_id && this.smileSetsIndex && this.smileSetsIndex[this.smiles[i].set_id] !== undefined)
+			{
+				setInd = this.smileSetsIndex[this.smiles[i].set_id];
+				this.smileSets[setInd].smilesBlock.appendChild(smileImg);
+				if (!this.smileSets[setInd].butWrapImage)
+				{
+					this.smileSets[setInd].butWrapImage = smileImg.cloneNode();
+					this.smileSets[setInd].butWrapImage.className = '';
+					this.smileSets[setInd].butWrapImage.title = '';
+					this.smileSets[setInd].butWrap.appendChild(this.smileSets[setInd].butWrapImage);
+
+					var h = this.smiles[i].height;
+					if (h < this.smileSizeDef)
+					{
+						this.smileSets[setInd].butWrapImage.style.marginTop = Math.round((this.smileSizeDef - h) / 2) + 'px';
+					}
+				}
+			}
+			else
+			{
+				this.pValuesCont.appendChild(smileImg);
 			}
 
 			smileImg.setAttribute('data-bx-type', 'action');
 			smileImg.setAttribute('data-bx-action', 'insertSmile');
 			smileImg.setAttribute('data-bx-value', this.smiles[i].code);
-
-			BX.bind(smileImg, 'error', function(){BX.remove(this)});
-			this.pValuesCont.appendChild(smileImg);
 		}
 
 		BX.bind(this.pCont, 'click', BX.proxy(this.OnClick, this));
@@ -2234,9 +2871,57 @@ function __run()
 
 		BX.bind(this.pValuesCont, 'mousedown', function(e)
 		{
+			var target = e.target || e.srcElement;
+			if (target && target.getAttribute('data-bx-smile-set') !== null)
+			{
+				return _this.ShowSetTab(target.getAttribute('data-bx-smile-set'));
+			}
+			else if(target && target.parentNode && target.parentNode.getAttribute('data-bx-smile-set') !== null)
+			{
+				return _this.ShowSetTab(target.parentNode.getAttribute('data-bx-smile-set'));
+			}
+
 			_this.editor.CheckCommand(e.target || e.srcElement);
 			_this.Close();
 		});
+	};
+
+	SmileButton.prototype.ShowSetTab = function(setId)
+	{
+		if (this.smileSetsIndex[setId] !== undefined)
+		{
+			var
+				_this = this,
+				smileSet = this.smileSets[this.smileSetsIndex[setId]],
+				start = parseInt(this.smileSlider.style.marginLeft) || 0,
+				end = - parseInt(this.smileSetsIndex[setId] * 100);
+
+			if (this.currentTab)
+				BX.removeClass(this.currentTab, 'bxhtmled-smile-tab-active');
+
+			BX.addClass(smileSet.butWrap, 'bxhtmled-smile-tab-active');
+			this.currentTab = smileSet.butWrap;
+
+			this.ani = new BX.easing({
+				duration : 300,
+				start : {marginLeft: start},
+				finish : {marginLeft: end},
+				transition : BX.easing.makeEaseOut(BX.easing.transitions.quart),
+				step : function(state)
+				{
+					if (_this.smileSlider)
+						_this.smileSlider.style.marginLeft = state.marginLeft + '%';
+				},
+				complete : function()
+				{
+					if (_this.smileSlider)
+						_this.smileSlider.style.marginLeft = '-' + end + '%';
+					_this.ani = null;
+				}
+			});
+			this.ani.animate();
+		}
+		return false;
 	};
 
 	InsertTableButton.prototype.OnPopupClose = function()
@@ -2275,13 +2960,13 @@ function __run()
 		this.editor.action.actions.quote.setRange(false);
 		var range = this.editor.selection.GetRange(this.editor.selection.GetSelection(document));
 
-		if (!this.editor.synchro.IsFocusedOnTextarea())
+		if (!this.editor.synchro.IsFocusedOnTextarea() && this.editor.iframeView.isFocused)
 		{
 			this.savedRange = this.editor.selection.SaveBookmark();
 			this.editor.action.actions.quote.setRange(this.savedRange);
 		}
 
-		if ((this.editor.synchro.IsFocusedOnTextarea() || this.savedRange.collapsed) && range && !range.collapsed)
+		if ((this.editor.synchro.IsFocusedOnTextarea() || !this.editor.iframeView.isFocused || this.savedRange.collapsed) && range && !range.collapsed)
 		{
 			var tmpDiv = BX.create('DIV', {html: range.toHtml()}, this.editor.GetIframeDoc());
 			this.editor.action.actions.quote.setExternalSelection(this.editor.util.GetTextContentEx(tmpDiv));
@@ -2339,6 +3024,7 @@ function __run()
 		this.Create();
 		this.posOffset.left = -8;
 		BX.addClass(this.pValuesContWrap, 'bxhtmled-more-cnt');
+		this.disabledForTextarea = false;
 
 		if (wrap)
 		{
@@ -2431,8 +3117,22 @@ function __run()
 
 		// Call parrent constructor
 		ImageDialog.superclass.constructor.apply(this, [editor, params]);
+		this.readyToShow = false;
+		if (!this.editor.fileDialogsLoaded)
+		{
+			var _this = this;
+			this.editor.LoadFileDialogs(function()
+			{
+				_this.SetContent(_this.Build());
+				_this.readyToShow = true;
+			});
+		}
+		else
+		{
+			this.SetContent(this.Build());
+			this.readyToShow = true;
+		}
 
-		this.SetContent(this.Build());
 		BX.addCustomEvent(this, "OnDialogSave", BX.proxy(this.Save, this));
 	}
 	BX.extend(ImageDialog, Dialog);
@@ -2506,10 +3206,8 @@ function __run()
 					if (butMl_1)
 					{
 						r.rightCell.appendChild(butMl_1);
-						//BX.bind(butFd, 'click', window['BxOpenFileBrowserImgFile' + this.editor.id]);
 					}
 				}
-
 			}
 		}
 		else
@@ -2629,9 +3327,9 @@ function __run()
 				if (typeof filename == 'object') // Using medialibrary
 				{
 					url = filename.src;
-					if (_this.pTitle && _this.pTitle.value == '')
+					if (_this.pTitle)
 						_this.pTitle.value = filename.description || filename.name;
-					if (_this.pAlt && _this.pAlt.value == '')
+					if (_this.pAlt)
 						_this.pAlt.value = filename.description || filename.name;
 				}
 				else // Using file dialog
@@ -3157,10 +3855,15 @@ function __run()
 	ImageDialog.prototype.Show = function(nodes, savedRange)
 	{
 		var
+			_this = this,
 			range,
 			value = {}, bxTag,
 			i, img = false;
 
+		if (!this.readyToShow)
+		{
+			return setTimeout(function(){_this.Show(nodes, savedRange);}, 100);
+		}
 		this.savedRange = savedRange;
 
 		if (!this.editor.bbCode || !this.editor.synchro.IsFocusedOnTextarea())
@@ -3255,6 +3958,34 @@ function __run()
 			}
 		}
 
+		if (!this.editor.bbCode)
+		{
+			// Mantis: 60197
+			window['OnFileDialogSelect' + this.editor.id] =
+			window['OnFileDialogImgSelect' + this.editor.id] =
+			function(filename, path, site)
+			{
+				var url;
+				if (typeof filename == 'object') // Using medialibrary
+				{
+					url = filename.src;
+					if (_this.pTitle)
+						_this.pTitle.value = filename.description || filename.name;
+					if (_this.pAlt)
+						_this.pAlt.value = filename.description || filename.name;
+				}
+				else // Using file dialog
+				{
+					url = (path == '/' ? '' : path) + '/' + filename;
+				}
+
+				_this.pSrc.value = url;
+				BX.focus(_this.pSrc);
+				_this.pSrc.select();
+				_this.SrcOnChange();
+			};
+		}
+
 		this.SetValues(value);
 		this.SetTitle(BX.message('InsertImage'));
 
@@ -3318,6 +4049,7 @@ function __run()
 						},
 						complete : function()
 						{
+							_this.CheckSize();
 							this._row.animation = null;
 						}
 					});
@@ -3345,6 +4077,8 @@ function __run()
 					}
 				}
 			}
+
+			this.CheckSize();
 		}
 	};
 
@@ -3429,9 +4163,23 @@ function __run()
 
 		this.id = 'link' + this.editor.id;
 		this.action = 'createLink';
+		this.selectFirstFocus = true;
 
-		this.SetContent(this.Build());
-		this.ChangeType();
+		this.readyToShow = false;
+		if (!this.editor.fileDialogsLoaded)
+		{
+			var _this = this;
+			this.editor.LoadFileDialogs(function()
+			{
+				_this.SetContent(_this.Build());
+				_this.readyToShow = true;
+			});
+		}
+		else
+		{
+			this.SetContent(this.Build());
+			this.readyToShow = true;
+		}
 
 		BX.addCustomEvent(this, "OnDialogSave", BX.proxy(this.Save, this));
 	}
@@ -3462,6 +4210,7 @@ function __run()
 		}
 
 		var
+			_this = this,
 			r,
 			cont = BX.create('DIV');
 
@@ -3497,9 +4246,44 @@ function __run()
 		if (!this.editor.bbCode)
 		{
 			this.pHrefIn.style.minWidth = '80%';
-			this.pFileDialogBut = r.rightCell.appendChild(BX.create('INPUT', {props: {className: 'bxhtmled-link-dialog-fdbut', type: 'button', id: this.id + '-href-fd', value: '...'}}));
-			BX.bind(this.pFileDialogBut, 'click', BX.delegate(this.OpenFileDialog, this));
+			var butMl = BX('bx-open-file-link-medialib-but-' + this.editor.id);
+			if (butMl)
+			{
+				r.rightCell.appendChild(butMl);
+			}
+			else
+			{
+				var butFd = BX('bx_open_file_link_medialib_button_' + this.editor.id);
+				if (butFd)
+				{
+					r.rightCell.appendChild(butFd);
+					BX.bind(butFd, 'click', window['BxOpenFileBrowserImgFile' + this.editor.id]);
+				}
+				else
+				{
+					var butMl_1 = BX('bx_ml_bx_open_file_link_medialib_button_' + this.editor.id);
+					if (butMl_1)
+					{
+						r.rightCell.appendChild(butMl_1);
+					}
+				}
+			}
 		}
+		else
+		{
+			butMl = BX('bx-open-file-link-medialib-but-' + this.editor.id);
+			butFd = BX('bx_open_file_link_medialib_button_' + this.editor.id);
+
+			if (butMl)
+			{
+				butMl.style.display = 'none';
+			}
+			if (butFd)
+			{
+				butFd.style.display = 'none';
+			}
+		}
+
 		this.pHrefIntCont = r.row;
 
 		// 2. External
@@ -3609,7 +4393,7 @@ function __run()
 
 	LinkDialog.prototype.ChangeType = function()
 	{
-		var type = this.pType ? this.pType.value : 'internal';
+		var type = this.pType ? this.pType.value : (this.editor.config.linkDialogType || 'internal');
 
 		this.pHrefIntCont.style.display = 'none';
 		this.pHrefExtCont.style.display = 'none';
@@ -3637,6 +4421,9 @@ function __run()
 		{
 			this.pHrefEmailCont.style.display = '';
 		}
+
+		this.editor.config.linkDialogType = type;
+		this.editor.SaveOption('link_dialog_type', this.editor.config.linkDialogType);
 	};
 
 	LinkDialog.prototype.CheckShowStatParams = function()
@@ -3685,17 +4472,26 @@ function __run()
 		{
 			// 1. Detect type
 			var href = values.href || '';
-			if (href != '')
+
+			if (this.editor.bbCode)
+			{
+				values.type = 'internal';
+				this.pHrefIn.value = href || '';
+				this.firstFocus = this.pHrefIn;
+			}
+			else if (href != '')
 			{
 				if(href.substring(0, 'mailto:'.length).toLowerCase() == 'mailto:') // email
 				{
 					values.type = 'email';
 					this.pHrefEmail.value = href.substring('mailto:'.length);
+
 				}
 				else if(href.substr(0, 1) == '#') // anchor
 				{
 					values.type = 'anchor';
 					this.pHrefAnchor.value = href;
+					this.firstFocus = this.pHrefAnchor;
 				}
 				else if (href.indexOf("://") !== -1 || href.substr(0, 'www.'.length) == 'www.' || href.indexOf("&goto=") !== -1)
 				{
@@ -3725,7 +4521,7 @@ function __run()
 								s = s.substr(pos+p.length+1, pos2 - pos - 1 - p.length);
 							}
 							return unescape(s);
-						};
+						}
 
 						this.pStatEvent1.value = __ExtrParam('event1', sParams);
 						this.pStatEvent2.value = __ExtrParam('event2', sParams);
@@ -3741,11 +4537,13 @@ function __run()
 					if (this.pHrefType.value != prot)
 						this.pHrefType.value = '';
 					this.pHrefExt.value = href.substring(href.indexOf("://") + 3);
+					this.firstFocus = this.pHrefExt;
 				}
 				else // link to page on server
 				{
 					values.type = 'internal';
 					this.pHrefIn.value = href || '';
+					this.firstFocus = this.pHrefIn;
 				}
 			}
 
@@ -3755,11 +4553,40 @@ function __run()
 				{
 					this.pHrefEmail.value = values.text;
 					values.type = 'email';
+					this.firstFocus = this.pHrefEmail;
 				}
 				else
 				{
-					values.type = 'internal';
-					this.pHrefIn.value = href || '';
+					if (this.editor.config.linkDialogType && BX.util.in_array(this.editor.config.linkDialogType, ['internal', 'external', 'anchor', 'email']))
+					{
+						values.type = this.editor.config.linkDialogType;
+						if(values.type == 'email')
+						{
+							this.pHrefEmail.value = '';
+							this.firstFocus = this.pHrefEmail;
+						}
+						else if(values.type == 'anchor')
+						{
+							this.pHrefAnchor.value = '';
+							this.firstFocus = this.pHrefAnchor;
+						}
+						else if(values.type == 'internal')
+						{
+							this.pHrefIn.value = '';
+							this.firstFocus = this.pHrefIn;
+						}
+						else
+						{
+							this.pHrefExt.value = '';
+							this.firstFocus = this.pHrefExt;
+						}
+					}
+					else
+					{
+						values.type = 'internal';
+						this.pHrefIn.value = href || '';
+						this.firstFocus = this.pHrefIn;
+					}
 				}
 			}
 
@@ -3890,14 +4717,22 @@ function __run()
 			value.className = this.pClass.value;
 		}
 
+		value.node = this.lastLink || false;
+
 		return value;
 	};
 
 	LinkDialog.prototype.Show = function(nodes, savedRange)
 	{
 		var
+			_this = this,
 			values = {},
 			i, l, link, lastLink, linksCount = 0;
+
+		if (!this.readyToShow)
+		{
+			return setTimeout(function(){_this.Show(nodes, savedRange);}, 100);
+		}
 
 		this.savedRange = savedRange;
 
@@ -3927,7 +4762,7 @@ function __run()
 				}
 
 				// One link
-				if (linksCount === 1 && lastLink)
+				if (linksCount === 1 && lastLink && lastLink.querySelector)
 				{
 					// 1. Link contains only text
 					if (!lastLink.querySelector("*"))
@@ -3960,6 +4795,7 @@ function __run()
 					values.rel = lastLink.getAttribute('rel');
 					values.target = lastLink.target;
 					values.className = lastLink.className;
+					this.lastLink = lastLink;
 				}
 			}
 			else
@@ -3973,18 +4809,21 @@ function __run()
 
 			this.bNewLink = nodes && linksCount > 0;
 			var anchors = [], bxTag;
-			var surrs = this.editor.sandbox.GetDocument().querySelectorAll('.bxhtmled-surrogate');
-			l = surrs.length;
-			for (i = 0; i < l; i++)
+			if (document.querySelectorAll)
 			{
-				bxTag = this.editor.GetBxTag(surrs[i]);
-				if (bxTag.tag == 'anchor')
+				var surrs = this.editor.sandbox.GetDocument().querySelectorAll('.bxhtmled-surrogate');
+				l = surrs.length;
+				for (i = 0; i < l; i++)
 				{
-					anchors.push({
-						NAME: '#' + bxTag.params.name,
-						DESCRIPTION: BX.message('BXEdLinkHrefAnch') + ': #' + bxTag.params.name,
-						CLASS_NAME: 'bxhtmled-inp-popup-item'
-					});
+					bxTag = this.editor.GetBxTag(surrs[i]);
+					if (bxTag.tag == 'anchor')
+					{
+						anchors.push({
+							NAME: '#' + bxTag.params.name,
+							DESCRIPTION: BX.message('BXEdLinkHrefAnch') + ': #' + bxTag.params.name,
+							CLASS_NAME: 'bxhtmled-inp-popup-item'
+						});
+					}
 				}
 			}
 
@@ -4009,6 +4848,33 @@ function __run()
 		else
 		{
 			values.text = this.editor.textareaView.GetTextSelection();
+		}
+
+		if (!this.editor.bbCode)
+		{
+			// Mantis: 60197
+			window['OnFileDialogImgSelect' + this.editor.id] =
+			window['OnFileDialogSelect' + this.editor.id] =
+				function(filename, path, site)
+				{
+					var url;
+					if (typeof filename == 'object') // Using medialibrary
+					{
+						url = filename.src;
+						if (_this.pTitle)
+							_this.pTitle.value = filename.description || filename.name;
+						if (_this.pAlt)
+							_this.pAlt.value = filename.description || filename.name;
+					}
+					else // Using file dialog
+					{
+						url = (path == '/' ? '' : path) + '/' + filename;
+					}
+
+					_this.pHrefIn.value = url;
+					_this.pHrefIn.focus();
+					_this.pHrefIn.select();
+				};
 		}
 
 		this.SetValues(values);
@@ -4066,7 +4932,7 @@ function __run()
 		// Title
 		r = this.AddTableRow(pParTbl, {label: BX.message('BXEdVideoInfoTitle') + ':', id: this.id + '-title'});
 		this.pTitle = r.rightCell.appendChild(BX.create('INPUT', {props: {id: this.id + '-title', type: 'text', className: 'bxhtmled-90-input', disabled: !!this.editor.bbCode}}));
-		BX.addClass(r.row, 'bxhtmled-video-ext-row');
+		BX.addClass(r.row, 'bxhtmled-video-ext-row bxhtmled-video-ext-loc-row');
 
 		// Size
 		r = this.AddTableRow(pParTbl, {label: BX.message('BXEdVideoSize') + ':', id: this.id + '-size'});
@@ -4087,7 +4953,7 @@ function __run()
 		this.pPreviewCont = pParTbl.insertRow(-1);
 		c = BX.adjust(this.pPreviewCont.insertCell(-1), {props:{title: BX.message('BXEdVideoPreview')},attrs: {colSpan: 2}});
 		this.pPreview = c.appendChild(BX.create('DIV', {props: {className: 'bxhtmled-video-preview-cnt'}}));
-		BX.addClass(this.pPreviewCont, 'bxhtmled-video-ext-row');
+		BX.addClass(this.pPreviewCont, 'bxhtmled-video-ext-row bxhtmled-video-ext-loc-row');
 
 		this.pCont.appendChild(pTableWrap);
 		return this.pCont;
@@ -4198,10 +5064,18 @@ function __run()
 
 	VideoDialog.prototype.ShowVideoParams = function(data)
 	{
-		this.data = data;
+		this.data = data || {};
+		BX.removeClass(this.pCont, 'bxhtmled-video-local');
 		if (data === false || typeof data != 'object')
 		{
 			BX.addClass(this.pCont, 'bxhtmled-video-empty');
+		}
+		else if (data.local && !this.bEdit)
+		{
+			// Size
+			this.SetSize(400, 300);
+			BX.removeClass(this.pCont, 'bxhtmled-video-empty');
+			BX.addClass(this.pCont, 'bxhtmled-video-local');
 		}
 		else
 		{
@@ -4352,6 +5226,10 @@ function __run()
 		if (this.data && this.data.html)
 			this.data.html = this.UpdateHtml(this.data.html, width, height, title);
 
+		var
+			bbSource = '',
+			html = '';
+
 		if (this.bEdit)
 		{
 			if (this.bxTag && this.editor.bbCode && !this.data)
@@ -4360,32 +5238,61 @@ function __run()
 			}
 			else if (this.data && this.editor.action.IsSupported('insertHTML'))
 			{
-				var node = this.editor.GetIframeDoc().getElementById(this.bxTag.id);
+				var node = this.editor.GetIframeElement(this.bxTag.id);
 				if (node)
 				{
 					this.editor.selection.SelectNode(node);
 					BX.remove(node);
 				}
-				this.editor.action.Exec('insertHTML', this.data.html);
+				html = this.data.html;
 			}
 		}
-		else
+		else if (this.data)
 		{
-			if (this.data && this.editor.action.IsSupported('insertHTML'))
+			if (this.editor.bbCode && this.data.local)
+			{
+				bbSource = this.data.html = '[VIDEO width=' + width + ' height=' + height + ']' + this.data.path + '[/VIDEO]';
+				html = this.editor.bbParser.GetVideoSourse(this.data.path, {type: false, width: width, height: height, html: this.data.html}, this.data.html);
+			}
+			else if (this.data.html)
 			{
 				if (this.savedRange)
 				{
 					this.editor.selection.SetBookmark(this.savedRange);
 				}
 
-				this.editor.action.Exec('insertHTML', this.data.html);
+				if (_this.editor.synchro.IsFocusedOnTextarea())
+				{
+					var videoParams = this.editor.phpParser.FetchVideoIframeParams(this.data.html);
+					bbSource = '[VIDEO TYPE=' + this.data.provider.toUpperCase() +
+						' WIDTH=' + this.data.width +
+						' HEIGHT=' + this.data.height + ']' +
+						videoParams.src +
+						'[/VIDEO]';
+				}
+
+				html = this.data.html;
 			}
 		}
 
-		setTimeout(function()
+		if (_this.editor.synchro.IsFocusedOnTextarea())
 		{
-			_this.editor.synchro.FullSyncFromIframe();
-		}, 50);
+			if (bbSource !== '')
+				this.editor.textareaView.WrapWith(false, false, bbSource);
+			_this.editor.synchro.Sync();
+		}
+		else
+		{
+			if (html !== '' && this.editor.action.IsSupported('insertHTML'))
+			{
+				this.editor.action.Exec('insertHTML', html);
+			}
+
+			setTimeout(function()
+			{
+				_this.editor.synchro.FullSyncFromIframe();
+			}, 50);
+		}
 	};
 
 
@@ -4671,8 +5578,8 @@ function __run()
 			this.pHeight.value = values.height || '';
 			this.pId.value = values.id || '';
 			this.pCaption.value = values.caption || '';
-			this.pCellPadding.value = values.cellPadding || 0;
-			this.pCellSpacing.value = values.cellSpacing || 0;
+			this.pCellPadding.value = values.cellPadding || '';
+			this.pCellSpacing.value = values.cellSpacing || '';
 			this.pBorder.value = values.border || '';
 			this.pClass.value = values.className || '';
 			this.pHeaders.value = values.headers || '';
@@ -4722,9 +5629,9 @@ function __run()
 			res.height = BX.util.trim(this.pHeight.value);
 			res.id = BX.util.trim(this.pId.value);
 			res.caption = BX.util.trim(this.pCaption.value);
-			res.cellPadding = parseInt(this.pCellPadding.value) || '';
-			res.cellSpacing = parseInt(this.pCellSpacing.value) || '';
-			res.border = parseInt(this.pBorder.value) || '';
+			res.cellPadding = isNaN(parseInt(this.pCellPadding.value)) ? '' : parseInt(this.pCellPadding.value);
+			res.cellSpacing = isNaN(parseInt(this.pCellSpacing.value)) ? '' : parseInt(this.pCellSpacing.value);
+			res.border = isNaN(parseInt(this.pBorder.value)) ? '' : parseInt(this.pBorder.value);
 			res.headers = this.pHeaders.value;
 			res.className = this.pClass.value;
 			res.align = this.pAlign.value;
@@ -4841,13 +5748,12 @@ function __run()
 	};
 	// Table dialog END
 
-
 	// Setting dialog
 	function SettingsDialog(editor, params)
 	{
 		params = {
 			id: 'bx_settings',
-			width: 400,
+			width: 600,
 			resizable: false
 		};
 
@@ -4866,7 +5772,6 @@ function __run()
 	{
 		this.pCont = BX.create('DIV', {props: {className: 'bxhtmled-settings-dialog-cnt'}});
 		var
-			_this = this,
 			r, c,
 			pTableWrap = BX.create('TABLE', {props: {className: 'bxhtmled-dialog-tbl'}});
 
@@ -4874,6 +5779,38 @@ function __run()
 		r = this.AddTableRow(pTableWrap);
 		this.pCleanSpans = r.leftCell.appendChild(BX.create('INPUT', {props: {id: this.id + '-clean-spans', type: 'checkbox'}}));
 		r.rightCell.appendChild(BX.create('LABEL', {html: BX.message('BXEdSettingsCleanSpans')})).setAttribute('for', this.id + '-clean-spans');
+
+		r = pTableWrap.insertRow(-1);
+		c = r.insertCell(-1);
+		BX.adjust(c, {props: {className: 'bxhtmled-title-cell', colSpan: 2}, text: BX.message('BXEdPasteSettings')});
+
+		r = this.AddTableRow(pTableWrap);
+		this.pPasteSetColors = r.leftCell.appendChild(BX.create('INPUT', {props: {id: this.id + '-ps-colors', type: 'checkbox'}}));
+		r.rightCell.appendChild(BX.create('LABEL', {html: BX.message('BXEdPasteSetColors')})).setAttribute('for', this.id + '-ps-colors');
+
+		r = this.AddTableRow(pTableWrap);
+		this.pPasteSetBgBorders = r.leftCell.appendChild(BX.create('INPUT', {props: {id: this.id + '-ps-border', type: 'checkbox'}}));
+		r.rightCell.appendChild(BX.create('LABEL', {html: BX.message('BXEdPasteSetBgBorders')})).setAttribute('for', this.id + '-ps-border');
+
+		r = this.AddTableRow(pTableWrap);
+		this.pPasteSetDecor = r.leftCell.appendChild(BX.create('INPUT', {props: {id: this.id + '-ps-decor', type: 'checkbox'}}));
+		r.rightCell.appendChild(BX.create('LABEL', {html: BX.message('BXEdPasteSetDecor')})).setAttribute('for', this.id + '-ps-decor');
+
+		r = this.AddTableRow(pTableWrap);
+		this.pPasteTblDimen = r.leftCell.appendChild(BX.create('INPUT', {props: {id: this.id + '-ps-tbl-dim', type: 'checkbox'}}));
+		r.rightCell.appendChild(BX.create('LABEL', {html: BX.message('BXEdPasteSetTableDimen')})).setAttribute('for', this.id + '-ps-tbl-dim');
+
+		r = pTableWrap.insertRow(-1);
+		c = r.insertCell(-1);
+		BX.adjust(c, {props: {className: 'bxhtmled-title-cell', colSpan: 2}, text: BX.message('BXEdViewSettings')});
+
+		r = this.AddTableRow(pTableWrap);
+		this.pShowSnippets = r.leftCell.appendChild(BX.create('INPUT', {props: {id: this.id + '-show-snippets', type: 'checkbox'}}));
+		r.rightCell.appendChild(BX.create('LABEL', {html: BX.message('BXEdShowSnippets') + '*'})).setAttribute('for', this.id + '-show-snippets');
+
+		r = pTableWrap.insertRow(-1);
+		c = r.insertCell(-1);
+		BX.adjust(c, {props: {className: 'bxhtmled-notice-cell', colSpan: 2}, text: '* ' + BX.message('BXEdRefreshNotice')});
 
 		this.pCont.appendChild(pTableWrap);
 		return this.pCont;
@@ -4885,6 +5822,11 @@ function __run()
 		this.SetValues(value);
 		this.SetTitle(BX.message('BXEdSettings'));
 		this.pCleanSpans.checked = this.editor.config.cleanEmptySpans;
+		this.pPasteSetColors.checked = this.editor.config.pasteSetColors;
+		this.pPasteSetBgBorders.checked = this.editor.config.pasteSetBorders;
+		this.pPasteSetDecor.checked = this.editor.config.pasteSetDecor;
+		this.pPasteTblDimen.checked = this.editor.config.pasteClearTableDimen;
+		this.pShowSnippets.checked = this.editor.config.showSnippets;
 
 		// Call parrent Dialog.Show()
 		SettingsDialog.superclass.Show.apply(this, arguments);
@@ -4893,7 +5835,18 @@ function __run()
 	SettingsDialog.prototype.Save = function()
 	{
 		this.editor.config.cleanEmptySpans = this.pCleanSpans.checked;
+		this.editor.config.pasteSetColors = this.pPasteSetColors.checked;
+		this.editor.config.pasteSetBorders = this.pPasteSetBgBorders.checked;
+		this.editor.config.pasteSetDecor = this.pPasteSetDecor.checked;
+		this.editor.config.pasteClearTableDimen = this.pPasteTblDimen.checked;
+		this.editor.config.showSnippets = this.pShowSnippets.checked;
+
 		this.editor.SaveOption('clean_empty_spans', this.editor.config.cleanEmptySpans ? 'Y' : 'N');
+		this.editor.SaveOption('paste_clear_colors', this.editor.config.pasteSetColors ? 'Y' : 'N');
+		this.editor.SaveOption('paste_clear_borders', this.editor.config.pasteSetBorders ? 'Y' : 'N');
+		this.editor.SaveOption('paste_clear_decor', this.editor.config.pasteSetDecor ? 'Y' : 'N');
+		this.editor.SaveOption('paste_clear_table_dimen', this.editor.config.pasteClearTableDimen ? 'Y' : 'N');
+		this.editor.SaveOption('show_snippets', this.editor.config.showSnippets ? 'Y' : 'N');
 	};
 
 	// Default properties dialog
@@ -4942,6 +5895,26 @@ function __run()
 			nodes = [];
 		}
 
+		if (nodes.length == 1 && BX.util.in_array(nodes[0].nodeName, ['TD', 'TH', 'TR', 'TABLE']))
+		{
+			this.colorRow.style.display = '';
+		}
+		else
+		{
+			this.colorRow.style.display = 'none';
+		}
+
+//		if (nodes.length == 1 && BX.util.in_array(nodes[0].nodeName, ['TD', 'TH']))
+//		{
+//			this.widthRow.style.display = '';
+//			this.heightRow.style.display = '';
+//		}
+//		else
+//		{
+//			this.widthRow.style.display = 'none';
+//			this.heightRow.style.display = 'none';
+//		}
+
 		for (i = 0; i < nodes.length; i++)
 		{
 			if (style === undefined && className === undefined)
@@ -4973,7 +5946,7 @@ function __run()
 	DefaultDialog.prototype.Build = function()
 	{
 		var
-			r, c,
+			r, c, _this = this,
 			cont = BX.create('DIV');
 
 		var pTableWrap = BX.create('TABLE', {props: {className: 'bxhtmled-dialog-tbl'}});
@@ -4992,6 +5965,56 @@ function __run()
 		c = BX.adjust(r.insertCell(-1), {props: {className: 'bxhtmled-right-c'}});
 		this.pCssStyle = c.appendChild(BX.create('INPUT', {props: {type: 'text', id: this.id + '-css-style'}}));
 
+		// Cell background
+		r = pTableWrap.insertRow(-1);
+		c = BX.adjust(r.insertCell(-1), {props: {className: 'bxhtmled-left-c'}});
+		c.appendChild(BX.create('LABEL', {text: BX.message('BXEdColorpickerDialog') + ':', attrs: {'for': this.id + '-css-class'}}));
+		c = BX.adjust(r.insertCell(-1), {props: {className: 'bxhtmled-right-c'}});
+		this.textColor = c.appendChild(BX.create('INPUT', {props: {type: 'hidden', id: this.id + '-s'}}));
+		this.bgColor = c.appendChild(BX.create('INPUT', {props: {type: 'hidden', id: this.id + '-s'}}));
+		var colorPicker = new window.BXHtmlEditor.Controls.Color(this.editor, c, {
+			registerActions: false,
+			checkAction: false,
+			BgColorMess: BX.message('BXEdBgColor'),
+			callback: function(action, value)
+			{
+				var cssTextNew, cssText = ' ' +_this.pCssStyle.value;
+				if (action == 'foreColor')
+				{
+					cssTextNew = cssText.replace(/\s+color\s*:\s*([\s\S]*?);/ig, (value ? ' color: ' + value + ';' : ''));
+					if (cssTextNew.toLowerCase() != cssText.toLowerCase())
+						cssText = cssTextNew;
+					else if (value)
+						cssText += ' color: ' + value + ';';
+				}
+				else if (action == 'backgroundColor')
+				{
+					cssTextNew = cssText.replace(/background-color\s*:\s*([\s\S]*?);/ig, 'background-color: ' + value + ';');
+					if (cssTextNew.toLowerCase() != cssText.toLowerCase())
+						cssText = cssTextNew;
+					else if (value)
+						cssText += ' background-color: ' + value + ';';
+				}
+
+				_this.pCssStyle.value = BX.util.trim(cssText);
+			}
+		});
+		this.colorRow = r;
+
+//		r = pTableWrap.insertRow(-1);
+//		c = BX.adjust(r.insertCell(-1), {props: {className: 'bxhtmled-left-c'}});
+//		c.appendChild(BX.create('LABEL', {text: BX.message('BXEdTableWidth') + ':', attrs: {'for': this.id + '-cell-width'}}));
+//		c = BX.adjust(r.insertCell(-1), {props: {className: 'bxhtmled-right-c'}});
+//		this.pWidth = c.appendChild(BX.create('INPUT', {props: {type: 'text', id: this.id + '-cell-width'}}));
+//		this.widthRow = r;
+//
+//		r = pTableWrap.insertRow(-1);
+//		c = BX.adjust(r.insertCell(-1), {props: {className: 'bxhtmled-left-c'}});
+//		c.appendChild(BX.create('LABEL', {text: BX.message('BXEdTableHeight') + ':', attrs: {'for': this.id + '-cell-height'}}));
+//		c = BX.adjust(r.insertCell(-1), {props: {className: 'bxhtmled-right-c'}});
+//		this.pWidth = c.appendChild(BX.create('INPUT', {props: {type: 'text', id: this.id + '-cell-height'}}));
+//		this.heightRow = r;
+
 		cont.appendChild(pTableWrap);
 		return cont;
 	};
@@ -5005,7 +6028,7 @@ function __run()
 
 		this.nodes = values.nodes || [];
 		this.renewNodes = values.renewNodes;
-		this.pCssStyle.value = values.style || '';
+		this.pCssStyle.value = this.editor.util.RgbToHex(values.style || '');
 		this.pCssClass.value = values.className || '';
 
 		if (!this.oClass)

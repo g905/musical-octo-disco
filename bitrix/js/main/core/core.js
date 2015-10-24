@@ -103,7 +103,6 @@ readyList = [],
 proxySalt = Math.random(),
 proxyId = 1,
 proxyList = [],
-deferList = [],
 
 /* getElementById cache */
 NODECACHE = {},
@@ -141,6 +140,7 @@ r = {
 	script: /<script([^>]*)>/ig,
 	script_end: /<\/script>/ig,
 	script_src: /src=["\']([^"\']+)["\']/i,
+	script_type: /type=["\']([^"\']+)["\']/i,
 	space: /\s+/,
 	ltrim: /^[\s\r\n]+/g,
 	rtrim: /[\s\r\n]+$/g,
@@ -223,13 +223,26 @@ BX.namespace = function(namespace)
 
 BX.debug = function()
 {
-	if (window.BXDEBUG)
+	if (BX.debugStatus())
 	{
 		if (window.console && window.console.log)
 			window.console.log('BX.debug: ', arguments.length > 0 ? arguments : arguments[0]);
 		if (window.console && window.console.trace)
 			console.trace();
 	}
+};
+
+BX.debugEnable = function(flag)
+{
+	flag = typeof (flag) == 'boolean'? flag: true;
+	BX.debugEnableFlag = flag;
+
+	console.info('Debug mode is '+(BX.debugEnableFlag? 'ON': 'OFF'))
+};
+
+BX.debugStatus = function()
+{
+	return BX.debugEnableFlag || false;
 };
 
 BX.is_subclass_of = function(ob, parent_class)
@@ -384,6 +397,73 @@ BX.cleanNode = function(node, bSuicide)
 
 	return node;
 };
+
+BX.html = function(node, html, parameters)
+{
+	if(typeof html == 'undefined')
+		return node.innerHTML;
+
+	if(typeof parameters == 'undefined')
+		parameters = {};
+
+	html = BX.processHTML(html.toString());
+
+	var assets = [];
+	var inlineJS = [];
+
+	if(typeof html.STYLE != 'undefined' && html.STYLE.length > 0)
+	{
+		for(var k in html.STYLE)
+			assets.push(html.STYLE[k]);
+	}
+
+	if(typeof html.SCRIPT != 'undefined' && html.SCRIPT.length > 0)
+	{
+		for(var k in html.SCRIPT)
+		{
+			if(html.SCRIPT[k].isInternal)
+				inlineJS.push(html.SCRIPT[k].JS);
+			else
+				assets.push(html.SCRIPT[k].JS);
+		}
+	}
+
+	if(parameters.htmlFirst && typeof html.HTML != 'undefined')
+		node.innerHTML = html.HTML;
+
+	var afterAsstes = function(){
+		if(!parameters.htmlFirst && typeof html.HTML != 'undefined')
+			node.innerHTML = html.HTML;
+
+		for(var k in inlineJS)
+			BX.evalGlobal(inlineJS[k]);
+
+		if(BX.type.isFunction(parameters.callback))
+			parameters.callback();
+	}
+
+	if(assets.length > 0)
+	{
+		BX.load(assets, afterAsstes);
+	}
+	else
+		afterAsstes();
+}
+
+BX.insertAfter = function(node, dstNode)
+{
+	dstNode.parentNode.insertBefore(node, dstNode.nextSibling);
+}
+
+BX.prepend = function(node, dstNode)
+{
+	dstNode.insertBefore(node, dstNode.firstChild);
+}
+
+BX.append = function(node, dstNode)
+{
+	dstNode.appendChild(node);
+}
 
 BX.addClass = function(ob, value)
 {
@@ -582,13 +662,13 @@ BX.focusEventsBlur = function(){BX.removeClass(this,'bx-focus');this.BXFOCUS=fal
 
 BX.setUnselectable = function(node)
 {
-	BX.addClass(node, 'bx-unselectable');
+	node.style.userSelect = node.style.MozUserSelect = node.style.WebkitUserSelect = node.style.KhtmlUserSelect = node.style = 'none';
 	node.setAttribute('unSelectable', 'on');
 };
 
 BX.setSelectable = function(node)
 {
-	BX.removeClass(node, 'bx-unselectable');
+	node.style.userSelect = node.style.MozUserSelect = node.style.WebkitUserSelect = node.style.KhtmlUserSelect = node.style = '';
 	node.removeAttribute('unSelectable');
 };
 
@@ -702,6 +782,70 @@ BX.nextSibling = function(el)
 	}
 
 	return e;
+};
+
+/*
+	params: {
+		obj : html node
+		className : className value
+		recursive : used only for older browsers to optimize the tree traversal, in new browsers the search is always recursively, default - true
+	}
+
+	Search all nodes with className
+*/
+BX.findChildrenByClassName = function(obj, className, recursive)
+{
+	if(!obj || !obj.childNodes) return null;
+
+	var result = [];
+	if (typeof(obj.getElementsByClassName) == 'undefined')
+	{
+		recursive = recursive !== false;
+		result = BX.findChildren(obj, {className : className}, recursive);
+	}
+	else
+	{
+		var col = obj.getElementsByClassName(className);
+		for (i=0,l=col.length;i<l;i++)
+		{
+			result[i] = col[i];
+		}
+	}
+	return result;
+};
+
+/*
+	params: {
+		obj : html node
+		className : className value
+		recursive : used only for older browsers to optimize the tree traversal, in new browsers the search is always recursively, default - true
+	}
+
+	Search first node with className
+*/
+BX.findChildByClassName = function(obj, className, recursive)
+{
+	if(!obj || !obj.childNodes) return null;
+
+	var result = null;
+	if (typeof(obj.getElementsByClassName) == 'undefined')
+	{
+		recursive = recursive !== false;
+		result = BX.findChild(obj, {className : className}, recursive);
+	}
+	else
+	{
+		var col = obj.getElementsByClassName(className);
+		if (col && typeof(col[0]) != 'undefined')
+		{
+			result = col[0];
+		}
+		else
+		{
+			result = null;
+		}
+	}
+	return result;
 };
 
 /*
@@ -823,6 +967,11 @@ BX.findPreviousSibling = function(obj, params)
 	return null;
 };
 
+BX.checkNode = function(obj, params)
+{
+	return _checkNode(obj, params);
+};
+
 BX.findFormElements = function(form)
 {
 	if (BX.type.isString(form))
@@ -844,6 +993,26 @@ BX.findFormElements = function(form)
 
 	return res;
 };
+
+BX.isParentForNode = function(whichNode, forNode)
+{
+
+	if(!BX.type.isDomNode(whichNode) || !BX.type.isDomNode(forNode))
+		return false;
+
+	while(true){
+
+		if(whichNode == forNode)
+			return true;
+
+		if(forNode && forNode.parentNode)
+			forNode = forNode.parentNode;
+		else
+			break;
+	}
+
+	return false;
+}
 
 BX.clone = function(obj, bCopyObj)
 {
@@ -898,6 +1067,49 @@ BX.clone = function(obj, bCopyObj)
 	}
 
 	return _obj;
+};
+
+BX.merge = function(){
+	var arg = Array.prototype.slice.call(arguments);
+
+	if(arg.length < 2)
+		return {};
+
+	var result = arg.shift();
+
+	for(var i = 0; i < arg.length; i++)
+	{
+		for(var k in arg[i]){
+
+			if(typeof arg[i] == 'undefined' || arg[i] == null)
+				continue;
+
+			if(arg[i].hasOwnProperty(k)){
+
+				if(typeof arg[i][k] == 'undefined' || arg[i][k] == null)
+					continue;
+
+				if(typeof arg[i][k] == 'object' && !BX.type.isDomNode(arg[i][k]) && (typeof arg[i][k]['isUIWidget'] == 'undefined')){
+
+					// go deeper
+
+					var isArray = 'length' in arg[i][k];
+
+					if(typeof result[k] != 'object')
+						result[k] = isArray ? [] : {};
+
+					if(isArray)
+						BX.util.array_merge(result[k], arg[i][k]);
+					else
+						BX.merge(result[k], arg[i][k]);
+
+				}else
+					result[k] = arg[i][k];
+			}
+		}
+	}
+
+	return result;
 };
 
 /* events */
@@ -1208,6 +1420,29 @@ BX.defer_proxy = function(func, thisObject)
 	return proxyList[thisObject['__proxy_id_' + proxySalt]][func['__defer_id_' + proxySalt]];
 };
 
+BX.once = function(el, evname, func)
+{
+	if (typeof func['__once_id_' + evname + '_' + proxySalt] == 'undefined')
+	{
+		func['__once_id_' + evname + '_' + proxySalt] = proxyId++;
+	}
+
+	this._initObjectProxy(el);
+
+	if (!proxyList[el['__proxy_id_' + proxySalt]][func['__once_id_' + evname + '_' + proxySalt]])
+	{
+		var g = function()
+		{
+			BX.unbind(el, evname, g);
+			func.apply(this, arguments);
+		};
+
+		proxyList[el['__proxy_id_' + proxySalt]][func['__once_id_' + evname + '_' + proxySalt]] = g;
+	}
+
+	return proxyList[el['__proxy_id_' + proxySalt]][func['__once_id_' + evname + '_' + proxySalt]];
+};
+
 BX.bindDelegate = function (elem, eventName, isTarget, handler)
 {
 	var h = BX.delegateEvent(isTarget, handler);
@@ -1415,6 +1650,48 @@ BX.onCustomEvent = function(eventObject, eventName, arEventParams, secureParams)
 	}
 };
 
+BX.bindDebouncedChange = function(node, fn, fnInstant, timeout, ctx)
+{
+	ctx = ctx || window;
+	timeout = timeout || 300;
+
+	var dataTag = 'bx-dc-previous-value';
+	BX.data(node, dataTag, node.value);
+
+	var act = function(fn, val){
+
+		var pVal = BX.data(node, dataTag);
+
+		if(typeof pVal == 'undefined' || pVal != val){
+			if(typeof ctx != 'object')
+				fn(val);
+			else
+				fn.apply(ctx, [val]);
+		}
+	};
+
+	var actD = BX.debounce(function(){
+		var val = node.value;
+		act(fn, val);
+		BX.data(node, dataTag, val);
+	}, timeout);
+
+	BX.bind(node, 'keyup', actD);
+	BX.bind(node, 'change', actD);
+	BX.bind(node, 'input', actD);
+
+	if(BX.type.isFunction(fnInstant)){
+
+		var actI = function(){
+			act(fnInstant, node.value);
+		};
+
+		BX.bind(node, 'keyup', actI);
+		BX.bind(node, 'change', actI);
+		BX.bind(node, 'input', actI);
+	}
+};
+
 BX.parseJSON = function(data, context)
 {
 	var result = null;
@@ -1475,6 +1752,58 @@ BX.submit = function(obForm, action_name, action_value, onAfterSubmit)
 	setTimeout(BX.delegate(function() {BX.fireEvent(this, 'click'); if (onAfterSubmit) onAfterSubmit();}, obForm['BXFormSubmit_' + action_name]), 10);
 };
 
+// returns function which runs fn in timeout ms after returned function is finished being called
+BX.debounce = function(fn, timeout, ctx)
+{
+	var timer = 0;
+
+	return function()
+	{
+		ctx = ctx || this;
+		var args = arguments;
+
+		clearTimeout(timer);
+
+		timer = setTimeout(function()
+		{
+			fn.apply(ctx, args);
+		}, timeout);
+	}
+};
+
+// returns function which runs fn and repeats every timeout ms while returned function is being called
+BX.throttle = function(fn, timeout, ctx)
+{
+
+	var timer = 0,
+		args = null,
+		invoke;
+
+	return function()
+	{
+		ctx = ctx || this;
+		args = arguments;
+		invoke = true;
+
+		if(!timer)
+		{
+			var q = function()
+			{
+				if(invoke)
+				{
+					fn.apply(ctx, args);
+					invoke = false;
+					timer = setTimeout(q, timeout);
+				}
+				else
+				{
+					timer = null;
+				}
+			};
+			q();
+		}
+	};
+};
 
 /* browser detection */
 BX.browser = {
@@ -1549,6 +1878,11 @@ BX.browser = {
 		return (/(iPad;)|(iPhone;)/i.test(navigator.userAgent));
 	},
 
+	IsMobile: function()
+	{
+		return (/(ipad|iphone|android|mobile|touch)/i.test(navigator.userAgent));
+	},
+
 	DetectIeVersion: function()
 	{
 		if(BX.browser.IsOpera() || BX.browser.IsSafari() || BX.browser.IsFirefox() || BX.browser.IsChrome())
@@ -1614,7 +1948,11 @@ BX.browser = {
 
 	addGlobalClass: function() {
 
-		var globalClass = "";
+		var globalClass = "bx-core";
+		if (BX.hasClass(document.documentElement, globalClass))
+		{
+			return;
+		}
 
 		//Mobile
 		if (BX.browser.IsIOS())
@@ -1630,7 +1968,7 @@ BX.browser = {
 			globalClass += " bx-android";
 		}
 
-		globalClass += (BX.browser.IsIOS() || BX.browser.IsAndroid() ? " bx-touch" : " bx-no-touch");
+		globalClass += (BX.browser.IsMobile() ? " bx-touch" : " bx-no-touch");
 		globalClass += (BX.browser.isRetina() ? " bx-retina" : " bx-no-retina");
 
 		//Desktop
@@ -1658,8 +1996,6 @@ BX.browser = {
 		}
 
 		BX.addClass(document.documentElement, globalClass);
-
-		BX.browser.addGlobalClass = BX.DoNothing;
 	},
 
 	isPropertySupported: function(jsProperty, bReturnCSSName)
@@ -1815,6 +2151,19 @@ BX.util = {
 		return arv;
 	},
 
+	object_keys: function(obj)
+	{
+		var arv = [];
+		for(var k in obj)
+		{
+			if(obj.hasOwnProperty(k))
+			{
+				arv.push(k);
+			}
+		}
+		return arv;
+	},
+
 	array_merge: function(first, second)
 	{
 		if (!BX.type.isArray(first)) first = [];
@@ -1955,6 +2304,14 @@ BX.util = {
 		for (var i = 0; i < escapes.length; i++)
 			str = str.replace(new RegExp(escapes[i].c, 'g'), escapes[i].r);
 		return str;
+	},
+
+	nl2br: function(str)
+	{
+		if (!str || !str.replace)
+			return str;
+
+		return str.replace(/([^>])\n/g, '$1<br/>');
 	},
 
 	str_pad: function(input, pad_length, pad_string, pad_type)
@@ -2212,7 +2569,8 @@ BX.util = {
 			decimals = 2;
 		}
 		dec_point = dec_point || ',';
-		thousands_sep = thousands_sep || '.';
+		if (typeof thousands_sep === 'undefined')
+			thousands_sep = '.';
 
 		number = (+number || 0).toFixed(decimals);
 		if (number < 0)
@@ -2236,6 +2594,72 @@ BX.util = {
 		url = url || "";
 		var items = url.split("?")[0].split(".");
 		return items[items.length-1].toLowerCase();
+	},
+	addObjectToForm: function(object, form, prefix)
+	{
+		if(!BX.type.isString(prefix))
+		{
+			prefix = "";
+		}
+
+		for(var key in object)
+		{
+			if(!object.hasOwnProperty(key))
+			{
+				continue;
+			}
+
+			var value = object[key];
+			var name = prefix !== "" ? (prefix + "[" + key + "]") : key;
+			if(BX.type.isArray(value))
+			{
+				for(var i = 0; i < value.length; i++)
+				{
+					BX.util.addObjectToForm(value[i], form, (name + "[" + i.toString() + "]"));
+				}
+			}
+			else if(BX.type.isPlainObject(value))
+			{
+				BX.util.addObjectToForm(value, form, name);
+			}
+			else
+			{
+				value = BX.type.isFunction(value.toString) ? value.toString() : "";
+				if(value !== "")
+				{
+					form.appendChild(BX.create("INPUT", { attrs: { type: "hidden", name: name, value: value } }));
+				}
+			}
+		}
+	},
+
+	observe: function(object, enable)
+	{
+		if (!BX.browser.IsChrome() || typeof(object) != 'object')
+			return false;
+
+		enable = enable !== false;
+
+		var observer = function(options)
+		{
+			options.forEach(function(option){
+				var groupName = option.name + ' changed';
+				console.groupCollapsed(groupName);
+				console.log('Old value: ', option.oldValue);
+				console.log('New value: ', option.object[option.name]);
+				console.groupEnd(groupName);
+			});
+		}
+		if (enable)
+		{
+			Object.observe(object, observer);
+		}
+		else
+		{
+			Object.unobserve(object, observer);
+		}
+
+		return enable;
 	}
 };
 
@@ -2355,7 +2779,7 @@ BX.evalGlobal = function(data)
 
 BX.processHTML = function(data, scriptsRunFirst)
 {
-	var matchScript, matchStyle, matchSrc, matchHref, scripts = [], styles = [];
+	var matchScript, matchStyle, matchSrc, matchHref, matchType, scripts = [], styles = [];
 	var textIndexes = [];
 	var lastIndex = r.script.lastIndex = r.script_end.lastIndex = 0;
 
@@ -2368,20 +2792,35 @@ BX.processHTML = function(data, scriptsRunFirst)
 			break;
 		}
 
-		textIndexes.push([lastIndex, matchScript.index - lastIndex]);
-
-		var bRunFirst = scriptsRunFirst || (matchScript[1].indexOf('bxrunfirst') != '-1');
-
-		if ((matchSrc = matchScript[1].match(r.script_src)) !== null)
+		// skip script tags of special types
+		var skipTag = false;
+		if ((matchType = matchScript[1].match(r.script_type)) !== null)
 		{
-			scripts.push({"bRunFirst": bRunFirst, "isInternal": false, "JS": matchSrc[1]});
+			if(matchType[1] == 'text/html' || matchType[1] == 'text/template')
+				skipTag = true;
+		}
+
+		if(skipTag)
+		{
+			textIndexes.push([lastIndex, r.script_end.lastIndex - lastIndex]);
 		}
 		else
 		{
-			var start = matchScript.index + matchScript[0].length;
-			var js = data.substr(start, matchScriptEnd.index-start);
+			textIndexes.push([lastIndex, matchScript.index - lastIndex]);
 
-			scripts.push({"bRunFirst": bRunFirst, "isInternal": true, "JS": js});
+			var bRunFirst = scriptsRunFirst || (matchScript[1].indexOf('bxrunfirst') != '-1');
+
+			if ((matchSrc = matchScript[1].match(r.script_src)) !== null)
+			{
+				scripts.push({"bRunFirst": bRunFirst, "isInternal": false, "JS": matchSrc[1]});
+			}
+			else
+			{
+				var start = matchScript.index + matchScript[0].length;
+				var js = data.substr(start, matchScriptEnd.index-start);
+
+				scripts.push({"bRunFirst": bRunFirst, "isInternal": true, "JS": js});
+			}
 		}
 
 		lastIndex = matchScriptEnd.index + 9;
@@ -2521,6 +2960,40 @@ BX.GetWindowSize = function(pDoc)
 	};
 };
 
+BX.scrollTop = function(node, val){
+	if(typeof val != 'undefined'){
+
+		if(node == window){
+			throw new Error('scrollTop() for window is not implemented');
+		}else
+			node.scrollTop = parseInt(val);
+
+	}else{
+
+		if(node == window)
+			return BX.GetWindowScrollPos().scrollTop;
+
+		return node.scrollTop;
+	}
+}
+
+BX.scrollLeft = function(node, val){
+	if(typeof val != 'undefined'){
+
+		if(node == window){
+			throw new Error('scrollLeft() for window is not implemented');
+		}else
+			node.scrollLeft = parseInt(val);
+
+	}else{
+
+		if(node == window)
+			return BX.GetWindowScrollPos().scrollLeft;
+
+		return node.scrollLeft;
+	}
+}
+
 BX.hide_object = function(ob)
 {
 	ob = BX(ob);
@@ -2625,12 +3098,38 @@ BX.pos = function(el, bRelative)
 	{
 		if(r.hasOwnProperty(i))
 		{
-			r[i] = parseInt(r[i]);
+			r[i] = Math.round(r[i]);
 		}
 	}
 
 	return r;
 };
+
+BX.width = function(node, val){
+	if(typeof val != 'undefined')
+		BX.style(node, 'width', parseInt(val)+'px');
+	else{
+
+		if(node == window)
+			return window.innerWidth;
+
+		//return parseInt(BX.style(node, 'width'));
+		return BX.pos(node).width;
+	}
+}
+
+BX.height = function(node, val){
+	if(typeof val != 'undefined')
+		BX.style(node, 'height', parseInt(val)+'px');
+	else{
+
+		if(node == window)
+			return window.innerHeight;
+
+		//return parseInt(BX.style(node, 'height'));
+		return BX.pos(node).height;
+	}
+}
 
 BX.align = function(pos, w, h, type)
 {
@@ -2693,8 +3192,18 @@ BX.showWait = function(node, msg)
 
 	var obMsg = node.bxmsg = document.body.appendChild(BX.create('DIV', {
 		props: {
-			id: 'wait_' + container_id,
-			className: 'bx-core-waitwindow'
+			id: 'wait_' + container_id
+		},
+		style: {
+			background: 'url("/bitrix/js/main/core/images/wait.gif") no-repeat scroll 10px center #fcf7d1',
+			border: '1px solid #E1B52D',
+			color: 'black',
+			fontFamily: 'Verdana,Arial,sans-serif',
+			fontSize: '11px',
+			padding: '10px 30px 10px 37px',
+			position: 'absolute',
+			zIndex:'10000',
+			textAlign:'center'
 		},
 		text: msg
 	}));
@@ -2936,6 +3445,26 @@ BX.load = function(items, callback, doc)
 	return isAsync ? loadAsync(items, callback, doc) : loadAsyncEmulation(items, callback, doc);
 };
 
+BX.convert =
+{
+	nodeListToArray: function(nodes)
+	{
+		try
+		{
+			return (Array.prototype.slice.call(nodes, 0));
+		}
+		catch (ex)
+		{
+			var ary = [];
+			for(var i = 0, l = nodes.length; i < l; i++)
+			{
+				ary.push(nodes[i]);
+			}
+			return ary;
+		}
+	}
+};
+
 function loadAsync(items, callback, doc)
 {
 	if (!BX.type.isArray(items))
@@ -3042,7 +3571,7 @@ function loadAsyncEmulation(items, callback, doc)
 	}
 
 	load(getAsset(items[0]), items.length === 1 ? callback : function () {
-		loadAsyncEmulation.apply(null, [rest, callback]);
+		loadAsyncEmulation.apply(null, [rest, callback, doc]);
 	}, doc);
 }
 
@@ -3206,7 +3735,7 @@ function initCssList()
 {
 	if(!cssInit)
 	{
-		var linksCol = document.getElementsByTagName('LINK'), links = [];
+		var linksCol = document.getElementsByTagName('link');
 
 		if(!!linksCol && linksCol.length > 0)
 		{
@@ -3259,7 +3788,7 @@ function initJsList()
 {
 	if(!jsInit)
 	{
-		var scriptCol = document.getElementsByTagName('script'), script = [];
+		var scriptCol = document.getElementsByTagName('script');
 
 		if(!!scriptCol && scriptCol.length > 0)
 		{
@@ -3364,7 +3893,7 @@ BX.getNumMonth = function(month)
 	return month;
 };
 
-BX.parseDate = function(str)
+BX.parseDate = function(str, bUTC)
 {
 	if (BX.type.isNotEmptyString(str))
 	{
@@ -3431,11 +3960,23 @@ BX.parseDate = function(str)
 		if(aResult['DD'] > 0 && aResult['MM'] > 0 && aResult['YYYY'] > 0)
 		{
 			var d = new Date();
-			d.setDate(1);
-			d.setFullYear(aResult['YYYY']);
-			d.setMonth(aResult['MM']-1);
-			d.setDate(aResult['DD']);
-			d.setHours(0, 0, 0);
+
+			if(bUTC)
+			{
+				d.setUTCDate(1);
+				d.setUTCFullYear(aResult['YYYY']);
+				d.setUTCMonth(aResult['MM'] - 1);
+				d.setUTCDate(aResult['DD']);
+				d.setUTCHours(0, 0, 0);
+			}
+			else
+			{
+				d.setDate(1);
+				d.setFullYear(aResult['YYYY']);
+				d.setMonth(aResult['MM'] - 1);
+				d.setDate(aResult['DD']);
+				d.setHours(0, 0, 0);
+			}
 
 			if(
 				(!isNaN(aResult['HH']) || !isNaN(aResult['GG']) || !isNaN(aResult['H']) || !isNaN(aResult['G']))
@@ -3463,7 +4004,14 @@ BX.parseDate = function(str)
 				if (isNaN(aResult['SS']))
 					aResult['SS'] = 0;
 
-				d.setHours(aResult['HH'], aResult['MI'], aResult['SS']);
+				if(bUTC)
+				{
+					d.setUTCHours(aResult['HH'], aResult['MI'], aResult['SS']);
+				}
+				else
+				{
+					d.setHours(aResult['HH'], aResult['MI'], aResult['SS']);
+				}
 			}
 
 			return d;
@@ -4404,5 +4952,493 @@ else
 BX(BX.DoNothing);
 window.BX = BX;
 BX.browser.addGlobalClass();
-BX.browser.addGlobalFeatures(["boxShadow", "borderRadius", "flexWrap", "boxDirection", "transition", "transform"])
+
+/* data storage */
+BX.data = function(node, key, value)
+{
+	if(typeof node == 'undefined')
+		return undefined;
+
+	if(typeof key == 'undefined')
+		return undefined;
+
+	if(typeof value != 'undefined')
+	{
+		// write to manager
+		dataStorage.set(node, key, value);
+	}
+	else
+	{
+		var data = undefined;
+
+		// from manager
+		if((data = dataStorage.get(node, key)) != undefined)
+		{
+			return data;
+		}
+		else
+		{
+			// from attribute data-*
+			if('getAttribute' in node && (data = node.getAttribute('data-'+key.toString())))
+				return data;
+		}
+
+		return undefined;
+	}
+};
+
+BX.DataStorage = function()
+{
+
+	this.keyOffset = 1;
+	this.data = {};
+	this.uniqueTag = 'BX-'+Math.random();
+
+	this.resolve = function(owner, create){
+		if(typeof owner[this.uniqueTag] == 'undefined')
+			if(create)
+			{
+				try
+				{
+					Object.defineProperty(owner, this.uniqueTag, {
+						value: this.keyOffset++
+					});
+				}
+				catch(e)
+				{
+					owner[this.uniqueTag] = this.keyOffset++;
+				}
+			}
+			else
+				return undefined;
+
+		return owner[this.uniqueTag];
+	};
+	this.get = function(owner, key){
+		if((owner != document && !BX.type.isElementNode(owner)) || typeof key == 'undefined')
+			return undefined;
+
+		owner = this.resolve(owner, false);
+
+		if(typeof owner == 'undefined' || typeof this.data[owner] == 'undefined')
+			return undefined;
+
+		return this.data[owner][key];
+	};
+	this.set = function(owner, key, value){
+
+		if((owner != document && !BX.type.isElementNode(owner)) || typeof value == 'undefined')
+			return;
+
+		var o = this.resolve(owner, true);
+
+		if(typeof this.data[o] == 'undefined')
+			this.data[o] = {};
+
+		this.data[o][key] = value;
+	};
+};
+
+// some internal variables for new logic
+var dataStorage = new BX.DataStorage();	// manager which BX.data() uses to keep data
+
+BX.LazyLoad = {
+	images: [],
+	imageStatus: {
+		hidden: -2,
+		error: -1,
+		"undefined": 0,
+		inited: 1,
+		loaded: 2
+	},
+	imageTypes: {
+		image: 1,
+		background: 2
+	},
+
+	registerImage: function(id, isImageVisibleCallback)
+	{
+		if (BX.type.isNotEmptyString(id))
+		{
+			this.images.push({
+				id: id,
+				node: null,
+				src: null,
+				type: null,
+				func: BX.type.isFunction(isImageVisibleCallback) ? isImageVisibleCallback : null,
+				status: this.imageStatus.undefined
+			});
+		}
+	},
+
+	registerImages: function(ids, isImageVisibleCallback)
+	{
+		if (BX.type.isArray(ids))
+		{
+			for (var i = 0, length = ids.length; i < length; i++)
+			{
+				this.registerImage(ids[i], isImageVisibleCallback);
+			}
+		}
+	},
+
+	showImages: function(checkOwnVisibility)
+	{
+		var image = null;
+		var isImageVisible = false;
+
+		checkOwnVisibility = checkOwnVisibility === false ? false : true;
+		for (var i = 0, length = this.images.length; i < length; i++)
+		{
+			image = this.images[i];
+
+			if (image.status == this.imageStatus.undefined)
+			{
+				this.initImage(image);
+			}
+
+			if (image.status !== this.imageStatus.inited)
+			{
+				continue;
+			}
+
+			if (
+				!image.node
+				|| !image.node.parentNode
+			)
+			{
+				image.node = null;
+				image.status = this.imageStatus.error;
+				continue;
+			}
+
+			isImageVisible = true;
+			if (checkOwnVisibility && image.func)
+			{
+				isImageVisible = image.func(image);
+			}
+
+			if (
+				isImageVisible === true
+				&& this.isElementVisibleOnScreen(image.node)
+			)
+			{
+				if (image.type == this.imageTypes.image)
+				{
+					image.node.src = image.src;
+				}
+				else
+				{
+					image.node.style.backgroundImage = "url('" + image.src + "')";
+				}
+
+				image.node.setAttribute("data-src", "");
+				image.status = this.imageStatus.loaded;
+			}
+		}
+	},
+
+	initImage: function(image)
+	{
+		image.status = this.imageStatus.error;
+		var node = BX(image.id);
+		if (node)
+		{
+			var src = node.getAttribute("data-src");
+			if (BX.type.isNotEmptyString(src))
+			{
+				image.node = node;
+				image.src = src;
+				image.status = this.imageStatus.inited;
+				image.type = (image.node.tagName.toLowerCase() == "img"
+					? this.imageTypes.image
+					: this.imageTypes.background
+				);
+			}
+		}
+	},
+
+	isElementVisibleOnScreen: function (element)
+	{
+		var coords = this.getElementCoords(element);
+
+		var windowTop = window.pageYOffset || document.documentElement.scrollTop;
+		var windowBottom = windowTop + document.documentElement.clientHeight;
+
+		coords.bottom = coords.top + element.offsetHeight;
+
+		var topVisible = coords.top > windowTop && coords.top < windowBottom;
+		var bottomVisible = coords.bottom < windowBottom && coords.bottom > windowTop;
+
+		return topVisible || bottomVisible;
+	},
+
+	isElementVisibleOn2Screens: function(element)
+	{
+		var coords = this.getElementCoords(element);
+
+		var windowHeight = document.documentElement.clientHeight;
+		var windowTop = window.pageYOffset || document.documentElement.scrollTop;
+		var windowBottom = windowTop + windowHeight;
+
+		coords.bottom = coords.top + element.offsetHeight;
+
+		windowTop -= windowHeight;
+		windowBottom += windowHeight;
+
+		var topVisible = coords.top > windowTop && coords.top < windowBottom;
+		var bottomVisible = coords.bottom < windowBottom && coords.bottom > windowTop;
+
+		return topVisible || bottomVisible;
+	},
+
+	getElementCoords: function(element)
+	{
+		var box = element.getBoundingClientRect();
+
+		return {
+			originTop: box.top,
+			originLeft: box.left,
+			top: box.top + window.pageYOffset,
+			left: box.left + window.pageXOffset
+		};
+	},
+
+	onScroll: function()
+	{
+		BX.LazyLoad.showImages();
+	},
+
+	clearImages: function ()
+	{
+		this.images = [];
+	}
+
+};
+
+BX.getCookie = function (name)
+{
+	var matches = document.cookie.match(new RegExp(
+		"(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+	));
+
+	return matches ? decodeURIComponent(matches[1]) : undefined;
+};
+
+BX.FixFontSize = function(params)
+{
+	this.node = null;
+	this.prevWindowSize = 0;
+	this.mainWrapper = null;
+	this.textWrapper = null;
+	this.objList = params.objList;
+	this.minFontSizeList = [];
+	this.minFontSize = 0;
+
+	if(params.onresize)
+	{
+		this.prevWindowSize = window.innerWidth || document.documentElement.clientWidth;
+		BX.bind(window, 'resize', BX.proxy(BX.throttle(this.onResize, 350),this));
+	}
+
+	this.createTestNodes();
+	this.decrease();
+};
+
+BX.FixFontSize.prototype =
+{
+	createTestNodes: function()
+	{
+		this.textWrapper = BX.create('div',{
+			style : {
+				display : 'inline-block',
+				whiteSpace : 'nowrap'
+			}
+		});
+
+		this.mainWrapper = BX.create('div',{
+			style : {
+				height : 0,
+				overflow : 'hidden'
+			},
+			children : [this.textWrapper]
+		});
+
+	},
+	insertTestNodes: function()
+	{
+		document.body.appendChild(this.mainWrapper);
+	},
+	removeTestNodes: function()
+	{
+		document.body.removeChild(this.mainWrapper);
+	},
+	decrease: function()
+	{
+		var width,
+			fontSize;
+
+		this.insertTestNodes();
+
+		for(var i=this.objList.length-1; i>=0; i--)
+		{
+			width  = parseInt(getComputedStyle(this.objList[i].node)["width"]);
+			fontSize = parseInt(getComputedStyle(this.objList[i].node)["font-size"]);
+
+			this.textWrapperSetStyle(this.objList[i].node);
+
+			if(this.textWrapperInsertText(this.objList[i].node))
+			{
+				while(this.textWrapper.offsetWidth > width && fontSize > 0)
+				{
+					this.textWrapper.style.fontSize = --fontSize + 'px';
+				}
+
+				if(this.objList[i].smallestValue)
+				{
+					this.minFontSize = this.minFontSize ? Math.min(this.minFontSize, fontSize) : fontSize;
+
+					this.minFontSizeList.push(this.objList[i].node)
+				}
+				else
+				{
+					this.objList[i].node.style.fontSize = fontSize + 'px';
+				}
+			}
+		}
+
+		if(this.minFontSizeList.length > 0)
+			this.setMinFont();
+
+		this.removeTestNodes();
+
+	},
+	increase: function()
+	{
+		this.insertTestNodes();
+		var width,
+			fontSize;
+
+		this.insertTestNodes();
+
+		for(var i=this.objList.length-1; i>=0; i--)
+		{
+			width  = parseInt(getComputedStyle(this.objList[i].node)["width"]);
+			fontSize = parseInt(getComputedStyle(this.objList[i].node)["font-size"]);
+
+			this.textWrapperSetStyle(this.objList[i].node);
+
+			if(this.textWrapperInsertText(this.objList[i].node))
+			{
+				while(this.textWrapper.offsetWidth < width && fontSize < this.objList[i].maxFontSize)
+				{
+					this.textWrapper.style.fontSize = ++fontSize + 'px';
+				}
+
+				if(this.objList[i].smallestValue)
+				{
+					this.minFontSize = this.minFontSize ? Math.min(this.minFontSize, fontSize) : fontSize;
+
+					this.minFontSizeList.push(this.objList[i].node)
+				}
+				else
+				{
+					this.objList[i].node.style.fontSize = fontSize + 'px';
+				}
+			}
+		}
+
+		if(this.minFontSizeList.length > 0)
+			this.setMinFont();
+
+		this.removeTestNodes();
+	},
+	setMinFont : function()
+	{
+		for(var i = this.minFontSizeList.length-1; i>=0; i--)
+		{
+			this.minFontSizeList[i].style.fontSize = this.minFontSize + 'px';
+		}
+
+		this.minFontSize = 0;
+	},
+	onResize : function()
+	{
+		var width = window.innerWidth || document.documentElement.clientWidth;
+
+		if(this.prevWindowSize > width)
+			this.decrease();
+
+		else if (this.prevWindowSize < width)
+			this.increase();
+
+		this.prevWindowSize = width;
+	},
+	textWrapperInsertText : function(node)
+	{
+		if(node.textContent){
+			this.textWrapper.textContent = node.textContent;
+			return true;
+		}
+		else if(node.innerText)
+		{
+			this.textWrapper.innerText = node.innerText;
+			return true;
+		}
+		else {
+			return false;
+		}
+	},
+	textWrapperSetStyle : function(node)
+	{
+		this.textWrapper.style.fontFamily = getComputedStyle(node)["font-family"];
+		this.textWrapper.style.fontSize = getComputedStyle(node)["font-size"];
+		this.textWrapper.style.fontStyle = getComputedStyle(node)["font-style"];
+		this.textWrapper.style.fontWeight = getComputedStyle(node)["font-weight"];
+		this.textWrapper.style.lineHeight = getComputedStyle(node)["line-height"];
+	}
+};
+
+BX.FixFontSize.init = function(params)
+{
+	return new BX.FixFontSize(params);
+};
+
+if(typeof(BX.ParamBag) === "undefined")
+{
+	BX.ParamBag = function()
+	{
+		this._params = {};
+	};
+
+	BX.ParamBag.prototype =
+	{
+		initialize: function(params)
+		{
+			this._params = params ? params : {};
+		},
+		getParam: function(name, defaultvalue)
+		{
+			var p = this._params;
+			return typeof(p[name]) != "undefined" ? p[name] : defaultvalue;
+		},
+		setParam: function(name, value)
+		{
+			this._params[name] = value;
+		},
+		clear: function()
+		{
+			this._params = {};
+		}
+	};
+
+	BX.ParamBag.create = function(params)
+	{
+		var self = new BX.ParamBag();
+		self.initialize(params);
+		return self;
+	}
+}
+
 })(window);
+

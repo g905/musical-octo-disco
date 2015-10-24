@@ -226,7 +226,6 @@ BX.adminLogin.prototype.setAuthResult = function(result)
 			url: this.url,
 			method: !!this.post_data ? 'POST' : 'GET',
 			data: this.post_data,
-			processScriptsConsecutive: true,
 			onsuccess:  BX.delegate(this._loadAdmin, this),
 			onfailure: function() {
 				BX.debug(arguments);

@@ -1,4 +1,4 @@
-function BXDialogTree(){};
+function BXDialogTree(){}
 
 BXDialogTree.prototype =
 {
@@ -159,7 +159,7 @@ BXDialogTree.prototype =
 				},
 				5
 			);
-		}
+		};
 		oWaitWindow.Show();
 		window.action_warning = false;
 		window.load_items_correct = false;
@@ -214,7 +214,7 @@ BXDialogTree.prototype =
 			return;
 
 		if (bOpen == 'check')
-			bOpen = bOpened == 1 ? false : true;
+			bOpen = (bOpened != 1);
 
 		if (bOpen)
 		{
@@ -259,7 +259,7 @@ BXDialogTree.prototype =
 
 			for (i = 0; i < l; i++)
 			{
-				dir = BX.util.trim(arPath[i]);
+				dir = arPath[i];
 				if (dir != '')
 				{
 					basePath += '/' + dir;
@@ -366,7 +366,11 @@ BXDialogTree.prototype =
 
 		var
 			path = this.curSelectedItem.path,
-			selectPath = false;
+			selectPath = false,
+			lind,
+			parPath,
+			parItems,
+			i, curInd;
 
 		switch(e.keyCode)
 		{
@@ -378,21 +382,18 @@ BXDialogTree.prototype =
 				}
 
 				// Get parent path
-				var
-					lind = path.lastIndexOf('/'),
-					parPath = lind == 0 ? '/' : path.substr(0, lind),
-					parItems = arFDDirs[parPath];
+				lind = path.lastIndexOf('/');
+				parPath = lind == 0 ? '/' : path.substr(0, lind);
+				parItems = arFDDirs[parPath];
 
 				selectPath = parPath == '/' ? parItems[0].path : parPath;
 				break;
 			case 38: // Up
 				// Get parent path
-				var
-					lind = path.lastIndexOf('/'),
-					parPath = lind == 0 ? '/' : path.substr(0, lind),
-					parItems = arFDDirs[parPath],
-					l = parItems.length,
-					i, curInd;
+				lind = path.lastIndexOf('/');
+				parPath = lind == 0 ? '/' : path.substr(0, lind);
+				parItems = arFDDirs[parPath];
+				l = parItems.length;
 
 				// find cur element in parent path array
 				if (l > 0)
@@ -431,12 +432,10 @@ BXDialogTree.prototype =
 				break;
 			case 39: // Right
 				// Get parent path
-				var
-					lind = path.lastIndexOf('/'),
-					parPath = lind == 0 ? '/' : path.substr(0, lind),
-					parItems = arFDDirs[parPath],
-					l = parItems.length,
-					i, curInd;
+				lind = path.lastIndexOf('/');
+				parPath = lind == 0 ? '/' : path.substr(0, lind);
+				parItems = arFDDirs[parPath];
+				l = parItems.length;
 
 				// find cur element in parent path array
 				if (l > 0)
@@ -461,13 +460,10 @@ BXDialogTree.prototype =
 				break;
 			case 40: // Down
 				// Get parent path
-				var
-					lind = path.lastIndexOf('/'),
-					parPath = lind == 0 ? '/' : path.substr(0, lind),
-					parItems = arFDDirs[parPath],
-					l = parItems.length,
-					i, curInd;
-
+				lind = path.lastIndexOf('/');
+				parPath = lind == 0 ? '/' : path.substr(0, lind);
+				parItems = arFDDirs[parPath];
+				l = parItems.length;
 
 				if (this.SectionIsOpened(path) && arFDDirs[path] && arFDDirs[path][0])
 				{
@@ -525,10 +521,9 @@ BXDialogTree.prototype =
 				break;
 			case 8: // Backspace
 				// Get parent path
-				var
-					lind = path.lastIndexOf('/'),
-					parPath = lind == 0 ? '/' : path.substr(0, lind),
-					parItems = arFDDirs[parPath];
+				lind = path.lastIndexOf('/');
+				parPath = lind == 0 ? '/' : path.substr(0, lind);
+				parItems = arFDDirs[parPath];
 				selectPath = parPath == '/' ? parItems[0].path : parPath;
 				break;
 		}
@@ -564,7 +559,7 @@ BXDialogTree.prototype =
 			return this.arDirConts[path].firstChild.rows[0].getAttribute('__bx_bOpen') == 1;
 		}catch(e) {return false;}
 	}
-}
+};
 
 // *****************************************************************************
 //                               BXDialogWindow
@@ -820,7 +815,7 @@ BXDialogWindow.prototype =
 			sizeCell.innerHTML = FD_MESS.FD_SORT_SIZE;
 			typeCell.innerHTML = FD_MESS.FD_SORT_TYPE;
 			dateCell.innerHTML = FD_MESS.FD_SORT_DATE;
-		}
+		};
 
 		// Detail table header
 		var
@@ -870,7 +865,7 @@ BXDialogWindow.prototype =
 			oCell.setAttribute("sort_order",new_sort_order);
 			oBXDialogWindow.sort_order = new_sort_order;
 
-			var arr_img = "<img src='/bitrix/images/main/file_dialog/arrow_"+(oBXDialogWindow.sort_order == 'asc' ? 'up' : 'down')+".gif'>"
+			var arr_img = "<img src='/bitrix/images/main/file_dialog/arrow_"+(oBXDialogWindow.sort_order == 'asc' ? 'up' : 'down')+".gif'>";
 			oCell.innerHTML += '&nbsp;'+arr_img;
 
 			oWaitWindow.Show();
@@ -884,12 +879,12 @@ BXDialogWindow.prototype =
 						oWaitWindow.Hide();
 					}, 5
 				);
-		}
+		};
 
-		nameCell.onclick = function(){__onclick("name", nameCell);}
-		sizeCell.onclick = function(){__onclick("size", sizeCell);}
-		typeCell.onclick = function(){__onclick("type", typeCell);}
-		dateCell.onclick = function(){__onclick("date", dateCell);}
+		nameCell.onclick = function(){__onclick("name", nameCell);};
+		sizeCell.onclick = function(){__onclick("size", sizeCell);};
+		typeCell.onclick = function(){__onclick("type", typeCell);};
+		dateCell.onclick = function(){__onclick("date", dateCell);};
 
 		for (var i = 0, l = arElements.length; i < l; i++)
 			this.AddElementToList('detail', oSubContTable, arElements[i], i);
@@ -920,15 +915,15 @@ BXDialogWindow.prototype =
 
 		var
 			_size = (oEl.icon != 'folder') ? getFileSize(oEl.size) : '',
-			_title = (jsUtils.IsIE()) ? (oEl.name + (oEl.icon != 'folder' ? "\n"+FD_MESS.FD_SORT_SIZE+": " + _size : "") + "\n"+FD_MESS.FD_SORT_DATE+": "+oEl.date) : (oEl.name);
+			_title = (jsUtils.IsIE()) ? (oEl.name + (oEl.icon != 'folder' ? "\n"+FD_MESS.FD_SORT_SIZE+": " + _size : "") + "\n"+FD_MESS.FD_SORT_DATE+": "+oEl.date) : (oEl.name),
+			oIconCell, src;
 
 		if (view == 'list')
 		{
 			pEl = oCont.insertRow(-1);
-			var
-				oIconCell = pEl.insertCell(-1),
-				oTitleCell = pEl.insertCell(-1),
-				src = oBXDialogWindow.iconsPath + oBXDialogWindow.arIcons[oEl.icon].small;
+			oIconCell = pEl.insertCell(-1);
+			var oTitleCell = pEl.insertCell(-1);
+			src = oBXDialogWindow.iconsPath + oBXDialogWindow.arIcons[oEl.icon].small;
 
 			oIconCell.innerHTML = '<img src="'+src+'" title="'+_title+'" />';
 			oIconCell.style.width = '0%';
@@ -943,15 +938,15 @@ BXDialogWindow.prototype =
 			pEl = oCont.insertRow(-1);
 			pEl.className = 'bxfd-det-list-row';
 
+			oIconCell = pEl.insertCell(-1);
 			var
-				oIconCell = pEl.insertCell(-1),
 				oNameCell = pEl.insertCell(-1),
 				oSizeCell = pEl.insertCell(-1),
 				oTypeCell = pEl.insertCell(-1),
 				oDateCell = pEl.insertCell(-1),
-				src = oBXDialogWindow.iconsPath + oBXDialogWindow.arIcons[oEl.icon].small,
 				_type = oBXDialogWindow.arIcons[oEl.icon].type,
 				_date = oEl.date;
+			src = oBXDialogWindow.iconsPath + oBXDialogWindow.arIcons[oEl.icon].small;
 
 			oIconCell.innerHTML = '<img src="'+src+'" title="'+_title+'" />';
 			oIconCell.style.width = '10px';
@@ -973,8 +968,8 @@ BXDialogWindow.prototype =
 				pEl = oCont.appendChild(jsUtils.CreateElement('DIV', {className: 'bxfd-prev-cont', title: _title})),
 				elTable = pEl.appendChild(jsUtils.CreateElement('TABLE', {}, {width:"100%", height:"100%"})),
 				oPreviewCell = elTable.insertRow(-1).insertCell(-1),
-				oDetailsCell = elTable.insertRow(-1).insertCell(-1),
-				src = (oBXFileDialog.oConfig.genThumb && oEl.tmb) ? oEl.tmb : oBXDialogWindow.iconsPath + oBXDialogWindow.arIcons[oEl.icon].big; // Preview IMAGE
+				oDetailsCell = elTable.insertRow(-1).insertCell(-1);
+			src = (oBXFileDialog.oConfig.genThumb && oEl.tmb) ? oEl.tmb : oBXDialogWindow.iconsPath + oBXDialogWindow.arIcons[oEl.icon].big; // Preview IMAGE
 
 			oPreviewCell.align = "center";
 			oPreviewCell.unselectable = "on";
@@ -1171,7 +1166,7 @@ BXDialogWindow.prototype =
 		if (this.Last_ElList_len % 12 == 0 && this.Last_ElList_len > 0)
 		{
 			oSubCont = addSubCont(oSubContTable,oRow);
-			var oSSContTable = oSubCont.appendChild(document.createElement('TABLE'));
+			oSSContTable = oSubCont.appendChild(document.createElement('TABLE'));
 			oSSContTable.style.width = "100%";
 		}
 		addElement_list(oSSContTable);
@@ -1181,16 +1176,16 @@ BXDialogWindow.prototype =
 	{
 		var addElement_detail = function(oTable)
 		{
-			oR = oTable.insertRow(-1);
-			oIconCell = oR.insertCell(-1);
+			var oR = oTable.insertRow(-1);
+			var oIconCell = oR.insertCell(-1);
 			var src = oBXDialogWindow.iconsPath + oBXDialogWindow.arIcons['folder'].small;
 			oIconCell.innerHTML = '<img src="'+src+'" />';
 			oIconCell.style.width = '10px';
-			oNameCell = oR.insertCell(-1);
+			var oNameCell = oR.insertCell(-1);
 			oNameCell.className = "bxfd-win-item";
-			oSizeCell = oR.insertCell(-1);
-			oTypeCell = oR.insertCell(-1);
-			oDateCell = oR.insertCell(-1);
+			var oSizeCell = oR.insertCell(-1);
+			var oTypeCell = oR.insertCell(-1);
+			var oDateCell = oR.insertCell(-1);
 
 			var oNameInput = oNameCell.appendChild(jsUtils.CreateElement('INPUT', {type:'text', value:oBXDialogControls.DefaultDirName, id:'__edited_element', __bx_mode: 'new'}, {width:'100%'}));
 			oBXDialogWindow.oNameInput = oNameInput;
@@ -1208,8 +1203,8 @@ BXDialogWindow.prototype =
 	{
 		var addElement_preview = function(oCont)
 		{
-			elDiv = oCont.appendChild(jsUtils.CreateElement('DIV', {className: "bxfd-prev-cont"}));
-			elTable = elDiv.appendChild(jsUtils.CreateElement('TABLE', {},{width:"100%", height:"100%"}));
+			var elDiv = oCont.appendChild(jsUtils.CreateElement('DIV', {className: "bxfd-prev-cont"}));
+			var elTable = elDiv.appendChild(jsUtils.CreateElement('TABLE', {},{width:"100%", height:"100%"}));
 			var oPreviewCell = elTable.insertRow(-1).insertCell(-1);
 			oPreviewCell.align = "center";
 			oPreviewCell.unselectable = "on";
@@ -1265,7 +1260,7 @@ BXDialogWindow.prototype =
 	{
 		try{
 			if (!e)
-				e = window.event
+				e = window.event;
 			if (!e)
 				return;
 
@@ -1274,7 +1269,7 @@ BXDialogWindow.prototype =
 
 			if (esc || enter)
 			{
-				oElement = BX('__edited_element');
+				var oElement = BX('__edited_element');
 				jsUtils.removeEvent(document, "keypress", oBXDialogWindow.OnElementKeyPress);
 				jsUtils.removeEvent(oElement, "blur", oBXDialogWindow.OnElementBlur);
 
@@ -1295,7 +1290,7 @@ BXDialogWindow.prototype =
 
 	OnElementBlur: function(e)
 	{
-		oElement = BX("__edited_element");
+		var oElement = BX("__edited_element");
 		if (!oElement)
 			return;
 		jsUtils.removeEvent(document, "keypress", oBXDialogWindow.OnElementKeyPress);
@@ -1371,10 +1366,11 @@ BXDialogWindow.prototype =
 							setTimeout(function()
 							{
 								// Select folder after creation
+								var tmpPath;
 								if(path == '/')
-									var tmpPath = '/' + name;
+									tmpPath = '/' + name;
 								else
-									var tmpPath = path + '/' + name;
+									tmpPath = path + '/' + name;
 
 								var oFile = oBXDialogWindow.arFiles[tmpPath];
 								if (oFile && oFile._winCont && oFile._winCont[oBXDialogWindow.view])
@@ -1387,7 +1383,7 @@ BXDialogWindow.prototype =
 							}, 50);
 						}
 					}, 5);
-				}
+				};
 
 				var mess = oBXDialogWindow.ClientSideCheck(path, name, false, true);
 				if (mess !== true)
@@ -1498,7 +1494,7 @@ BXDialogWindow.prototype =
 					}
 				}
 			}, 5);
-		}
+		};
 
 		oWaitWindow.Show();
 		oBXFileDialog.RequestUrl = oBXFileDialog.GetRequestUrl(getSite());
@@ -1576,7 +1572,7 @@ BXDialogWindow.prototype =
 							oBXDialogTree.DisplaySubTree(oCont, window.arFDDirs[path], true);
 					}
 				}, 5);
-			}
+			};
 
 			oWaitWindow.Show();
 			oBXFileDialog.RequestUrl = oBXFileDialog.GetRequestUrl(getSite());
@@ -1617,10 +1613,10 @@ BXDialogWindow.prototype =
 	SelectInput: function(oElement, value)
 	{
 		if (!value)
-			var value = oBXDialogControls.DefaultDirName;
+			value = oBXDialogControls.DefaultDirName;
 
 		if (!oElement)
-			var oElement = BX('__edited_element');
+			oElement = BX('__edited_element');
 		if (!oElement)
 			return;
 
@@ -1636,7 +1632,7 @@ BXDialogWindow.prototype =
 			oEl = oBXDialogWindow.arFiles[path];
 
 		if (!e)
-			e = window.event
+			e = window.event;
 		if (!e || !oEl)
 			return;
 
@@ -1699,13 +1695,13 @@ BXDialogWindow.prototype =
 		if (oBXDialogWindow.oNameInput !== false)
 			return true;
 
-		var newInd = false;
+		var newInd = false, curInd, l, oEl;
 		switch(e.keyCode)
 		{
 			case 37: // Left
 				if (this.view != 'detail') // For detail viewing it looks like "Up"
 				{
-					var curInd = this.GetCurIndex(this.curSelectedItem.path);
+					curInd = this.GetCurIndex(this.curSelectedItem.path);
 					if (this.view == 'list')
 						newInd = curInd - 12;
 					else // preview
@@ -1716,7 +1712,7 @@ BXDialogWindow.prototype =
 					break;
 				}
 			case 38: // Up
-				var curInd = this.GetCurIndex(this.curSelectedItem.path);
+				curInd = this.GetCurIndex(this.curSelectedItem.path);
 
 				if (curInd === false || curInd <= 0)
 					return;
@@ -1729,9 +1725,8 @@ BXDialogWindow.prototype =
 			case 39: // Right
 				if (this.view != 'detail') // For detail viewing it looks like "DOWN"
 				{
-					var
-						curInd = this.GetCurIndex(this.curSelectedItem.path),
-						l = this.arElIndex.length;
+					curInd = this.GetCurIndex(this.curSelectedItem.path);
+					l = this.arElIndex.length;
 
 					if (curInd === false || curInd == l - 1)
 						return;
@@ -1746,9 +1741,8 @@ BXDialogWindow.prototype =
 					break;
 				}
 			case 40: // Down
-				var
-					curInd = this.GetCurIndex(this.curSelectedItem.path),
-					newInd, l = this.arElIndex.length;
+				curInd = this.GetCurIndex(this.curSelectedItem.path);
+				l = this.arElIndex.length;
 
 				if (curInd === false || curInd >= l - 1)
 					return;
@@ -1760,7 +1754,7 @@ BXDialogWindow.prototype =
 
 				break;
 			case 46: // Del - delete
-				var oEl = this.arElIndex[this.GetCurIndex(this.curSelectedItem.path)];
+				oEl = this.arElIndex[this.GetCurIndex(this.curSelectedItem.path)];
 				if (oEl)
 				{
 					if (oEl.permission.del && confirm(oEl.icon == 'folder' ? FD_MESS.FD_CONFIRM_DEL_DIR : FD_MESS.FD_CONFIRM_DEL_FILE))
@@ -1769,7 +1763,7 @@ BXDialogWindow.prototype =
 				}
 				break;
 			case 113: // F2 - rename
-				var oEl = this.arElIndex[this.GetCurIndex(this.curSelectedItem.path)];
+				oEl = this.arElIndex[this.GetCurIndex(this.curSelectedItem.path)];
 				if (oEl)
 				{
 					if (oEl.permission.ren)
@@ -1778,10 +1772,10 @@ BXDialogWindow.prototype =
 				}
 				break;
 			case 13: // Enter
-				var oEl = this.arElIndex[this.GetCurIndex(this.curSelectedItem.path)];
+				oEl = this.arElIndex[this.GetCurIndex(this.curSelectedItem.path)];
 				if (oEl)
 				{
-					var oEl = this.arElIndex[this.GetCurIndex(this.curSelectedItem.path)];
+					oEl = this.arElIndex[this.GetCurIndex(this.curSelectedItem.path)];
 					if (oEl.icon == 'folder')
 						oBXDialogTree.SetPath(this.curSelectedItem.path);
 					else
@@ -1812,7 +1806,7 @@ BXDialogWindow.prototype =
 		}
 		return false;
 	}
-}
+};
 
 
 function BXDialogTabs() {this.Init();}
@@ -1859,7 +1853,7 @@ BXDialogTabs.prototype =
 		{
 			var _style = "background-image: url(/bitrix/images/main/file_dialog/tabs/tab_icons.gif);";
 			oCell.innerHTML = '<img class=" '+className+'" src="/bitrix/images/1.gif" height="27px" width="'+width+'px" style="'+_style+'"/>';
-		}
+		};
 
 		var createTitleArea = function(oCell,name,title,hint,bActive,bDisable)
 		{
@@ -1875,7 +1869,7 @@ BXDialogTabs.prototype =
 			if (!bDisable)
 				oCell.onclick = function(e){_this.SetActive(name,!bActive);};
 			oCell.title = hint;
-		}
+		};
 
 		var
 			count = 0,
@@ -1961,7 +1955,7 @@ BXDialogTabs.prototype =
 		this.arTabs[tabName].disable = bDisable;
 		this.DisplayTabs();
 	}
-}
+};
 
 
 function BXDialogControls()
@@ -2014,21 +2008,21 @@ function BXDialogControls()
 		this.PageTitle1.onchange = function(e)
 		{
 			_this.PageTitle2.value = this.value;
-		}
+		};
 		this.PageTitle2.onchange = function(e)
 		{
 			_this.PageTitle1.value = this.value;
-		}
+		};
 		this.PageTitle = {};
 		this.PageTitle.Get = function()
 		{
 			return _this.PageTitle1.value;
-		}
+		};
 
 		this.PageTitle.Set = function(value)
 		{
 			_this.PageTitle1.value = _this.PageTitle2.value = value;
-		}
+		};
 
 		var defTitleInp = BX('title');
 		if (defTitleInp)
@@ -2038,7 +2032,7 @@ function BXDialogControls()
 	}
 
 	this.GoButton = BX("__bx_dir_path_go");
-	this.GoButton.onclick = function(e) {oBXDialogTree.SetPath(oBXDialogControls.dirPath.Get(true));}
+	this.GoButton.onclick = function(e) {oBXDialogTree.SetPath(oBXDialogControls.dirPath.Get(true));};
 
 	this.UpButton = BX("__bx_dir_path_up");
 	this.UpButton.onclick = function(e)
@@ -2046,7 +2040,7 @@ function BXDialogControls()
 		var sPath = oBXDialogControls.dirPath.Get(true);
 		if (sPath != '/')
 			oBXDialogTree.SetPath(sPath.substr(0, sPath.lastIndexOf('/')));
-	}
+	};
 
 	this.RootButton = BX("__bx_dir_path_root");
 	this.RootButton.onclick = function(e)
@@ -2091,7 +2085,7 @@ BXDialogControls.prototype.RefreshOnclick = function()
 
 	var path = oBXDialogControls.dirPath.Get() || '/';
 	oBXDialogTree.SetPath(path);
-}
+};
 
 BXDialogControls.prototype.SiteSelectorOnChange = function(site)
 {
@@ -2128,9 +2122,9 @@ BXFDSorter.prototype =
 		if ((a.icon == 'folder' && b.icon == 'folder') || (a.icon != 'folder' && b.icon != 'folder'))
 			return _this.common_sort(a.name,b.name);
 		else if (a.icon == 'folder' && b.icon != 'folder')
-			return -1*(_this.order == 'des' ? -1 : 1);
+			return (_this.order == 'des' ? 1 : -1);
 		else
-			return 1*(_this.order == 'des' ? -1 : 1);
+			return (_this.order == 'des' ? -1 : 1);
 	},
 	size: function(a, b)
 	{
@@ -2144,9 +2138,9 @@ BXFDSorter.prototype =
 		else if (a.icon != 'folder' && b.icon != 'folder')
 			return _this.common_sort(a.ext,b.ext);
 		else if (a.icon == 'folder' && b.icon != 'folder')
-			return -1*(_this.order == 'des' ? -1 : 1);
+			return (_this.order == 'des' ? 1 : -1);
 		else
-			return 1*(_this.order == 'des' ? -1 : 1);
+			return (_this.order == 'des' ? -1 : 1);
 	},
 	date: function(a, b)
 	{
@@ -2158,9 +2152,9 @@ BXFDSorter.prototype =
 		if ((a.icon == 'folder' && b.icon == 'folder') || (a.icon != 'folder' && b.icon != 'folder'))
 			return _this.common_sort(_a,_b);
 		else if (a.icon == 'folder' && b.icon != 'folder')
-			return -1 *(_this.order == 'des' ? -1 : 1);
+			return (_this.order == 'des' ? 1 : -1);
 		else
-			return 1*(_this.order == 'des' ? -1 : 1);
+			return (_this.order == 'des' ? -1 : 1);
 	},
 	common_sort: function(a, b)
 	{
@@ -2183,7 +2177,7 @@ BXFDSorter.prototype =
 		arr.sort(this[oBXDialogWindow.sort || 'name']);
 		return arr;
 	}
-}
+};
 
 function __DirPathBar()
 {
@@ -2341,7 +2335,7 @@ __Preview.prototype =
 		if (w && h)
 		{
 			var a = 100, b = 130; //max height, width
-			newW = w + "px",
+			newW = w + "px";
 			newH = h + "px";
 
 			if (a/b > h/w)
@@ -2408,7 +2402,7 @@ __Preview.prototype =
 		this.oDiv.className = '';
 		this.addInfoCont.innerHTML = "";
 	}
-}
+};
 
 function __ViewSelector()
 {
@@ -2423,7 +2417,7 @@ function __ViewSelector()
 			window.fd_view_list.PopupShow(pos);
 			// Temp hack for old popupmenus
 			if (BX('fd_view_list'))
-				BX('fd_view_list').style.zIndex = 3500;
+				BX('fd_view_list').style.zIndex = 3510;
 		}, 5);
 	};
 
@@ -2452,7 +2446,7 @@ function __ViewSelector()
 		oBXFileDialog.UserConfig.view = value;
 		//if (bSaveConfig)
 		//	oBXFileDialog.SaveConfig();
-	}
+	};
 
 	__ViewSelector.prototype.Get = function()
 	{
@@ -2495,7 +2489,7 @@ function __SortSelector()
 			oBXDialogWindow.DisplayElementsList(arFDDirs[path], arFDFiles[path], oBXDialogWindow.view, oBXDialogWindow.filter, oBXDialogWindow.sort, oBXDialogWindow.sort_order);
 			oWaitWindow.Hide();
 		}, 3);
-	}
+	};
 
 	__SortSelector.prototype.Set = function(sort, sort_order)
 	{
@@ -2509,23 +2503,23 @@ function __SortSelector()
 		}
 
 		this.OnChange();
-	}
+	};
 
 	__SortSelector.prototype.Get = function()
 	{
 		return {sort : this.oSel.value, sort_order : this.SortOrderGet()};
-	}
+	};
 
 	__SortSelector.prototype.SortOrderSet = function(sort_order)
 	{
 		this.oCheck.setAttribute("__bx_value", sort_order);
 		this.oCheck.className = "fd_iconkit " + ((sort_order == 'asc') ? "sort_up" : "sort_down");
-	}
+	};
 
 	__SortSelector.prototype.SortOrderGet = function()
 	{
 		return this.oCheck.getAttribute("__bx_value");
-	}
+	};
 
 	__SortSelector.prototype.OnChange = function()
 	{
@@ -2619,7 +2613,7 @@ function __FileFilter()
 			addOption('*','*.*', FD_MESS.FD_ALL_FILES);
 		this.oSel.options[0].selected = "selected";
 		this.curentFilter = 0;
-	}
+	};
 	this.Init();
 }
 
@@ -2741,11 +2735,7 @@ __Uploader.prototype =
 			oBXDialogWindow.LoadFolderContent(window.oBXDialogControls.dirPath.Get(), true);
 		}
 	}
-}
-
-
-
-
+};
 
 function __History()
 {
@@ -2753,7 +2743,7 @@ function __History()
 	{
 		this.arHistoryPath = [];
 		this.currentPos = -1;
-	}
+	};
 
 	__History.prototype.Push = function(sValue)
 	{
@@ -2769,7 +2759,7 @@ function __History()
 		}
 		else
 			this.currentPos--;
-	}
+	};
 
 	__History.prototype.RemoveLast = function()
 	{
@@ -2777,7 +2767,7 @@ function __History()
 		this.currentPos--;
 		if (this.currentPos == this.arHistoryPath.length-1)
 			this.ButForwardDisable(true);
-	}
+	};
 
 	__History.prototype.Back = function()
 	{
@@ -2798,7 +2788,7 @@ function __History()
 			return newPath;
 		}
 		return false;
-	}
+	};
 
 	__History.prototype.Forward = function()
 	{
@@ -2817,15 +2807,12 @@ function __History()
 			return newPath;
 		}
 		return false;
-	}
+	};
 
 	__History.prototype.CheckButBack = function()
 	{
-		if (oBXDialogControls.dirPath.butBack.getAttribute("__bx_disable") == 'Y')
-			return false;
-		else
-			return true;
-	}
+		return (oBXDialogControls.dirPath.butBack.getAttribute("__bx_disable") != 'Y')
+	};
 
 	__History.prototype.ButBackDisable = function(bDisable)
 	{
@@ -2839,15 +2826,12 @@ function __History()
 			oBXDialogControls.dirPath.butBack.setAttribute("__bx_disable",'N');
 			oBXDialogControls.dirPath.butBack.className = "fd_iconkit path_back";
 		}
-	}
+	};
 
-		__History.prototype.CheckButForward = function()
+	__History.prototype.CheckButForward = function()
 	{
-		if (oBXDialogControls.dirPath.butForward.getAttribute("__bx_disable") == 'Y')
-			return false;
-		else
-			return true;
-	}
+		return (oBXDialogControls.dirPath.butForward.getAttribute("__bx_disable") != 'Y')
+	};
 
 	__History.prototype.ButForwardDisable = function(bDisable)
 	{
@@ -2861,7 +2845,7 @@ function __History()
 			oBXDialogControls.dirPath.butForward.setAttribute("__bx_disable",'N');
 			oBXDialogControls.dirPath.butForward.className = "fd_iconkit path_forward";
 		}
-	}
+	};
 
 	this.Init();
 }
@@ -3041,12 +3025,12 @@ function BXMenuHandling()
 	{
 		//oBXDialogTabs.DisableTab('tab2', !this.checked);
 		oBXMenuHandling.Show(this.checked);
-	}
+	};
 	this.MenuTypeSelect = BX("__bx_fd_menutype");
 	this.MenuTypeSelect.onchange = function()
 	{
 		oBXMenuHandling.ChangeMenuType();
-	}
+	};
 
 	this.NewItemOpt = BX("__bx_fd_itemtype_n");
 	this.ExsItemOpt = BX("__bx_fd_itemtype_e");
@@ -3065,7 +3049,7 @@ function BXMenuHandling()
 			_this._displayRow("__bx_fd_e2",false);
 			_this._displayRow("__bx_fd_e3",true);
 		}
-	}
+	};
 	this.NewItemOpt.onclick = this.ExsItemOpt.onclick = optCheck;
 
 	BXMenuHandling.prototype.Show = function(bShow)
@@ -3074,7 +3058,7 @@ function BXMenuHandling()
 			BX("add2menuTable").style.display = "block";
 		else
 			BX("add2menuTable").style.display = "none";
-	}
+	};
 	//#################################################################################
 
 	BXMenuHandling.prototype.ChangeMenuType = function()
@@ -3124,7 +3108,7 @@ function BXMenuHandling()
 			list.options.add(new Option(itms[i], i+1, false, false));
 
 		list.options.add(new Option(FD_MESS.FD_LAST_POINT, 0, true, true));
-	}
+	};
 
 	BXMenuHandling.prototype._displayRow = function(rowId,bDisplay)
 	{
@@ -3138,7 +3122,7 @@ function BXMenuHandling()
 		{
 			row.style.display = 'none';
 		}
-	}
+	};
 	//##################################################
 }
 
@@ -3173,7 +3157,7 @@ BXWaitWindow.prototype =
 		if (this.oDiv)
 			this.oDiv.style.display = "none";
 	}
-}
+};
 
 
 //*********************************** CONTEXT MENU ********************************************//
@@ -3250,7 +3234,7 @@ BXFDContextMenu.prototype =
 		}
 		this.oDiv.style.width = tbl.parentNode.offsetWidth;
 	}
-}
+};
 
 function BXFDCleanNode(pNode)
 {
@@ -3310,4 +3294,5 @@ function getSite()
 		return window.oBXDialogControls.currentSite;
 	return BXSite;
 }
+
 

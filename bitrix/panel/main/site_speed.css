@@ -132,3 +132,23 @@
 .site-speed-analytics {
 	display: none;
 }
+
+.site-speed-hits-table {
+	margin-top: 10px;
+}
+
+.site-speed-page-column {
+	vertical-align: top;
+	word-wrap: break-word;
+	max-width:400px;
+	font-weight: bold;
+}
+
+.site-speed-interactive-column,
+.site-speed-response-column,
+.site-speed-processing-column,
+.site-speed-composite-column {
+	width: 40px;
+	padding-left: 15px;
+	vertical-align: top;
+}

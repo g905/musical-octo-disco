@@ -144,7 +144,7 @@ table.bxfm-d-params a.bxfm-add-link{margin: 2px 0 4px 10px; display: block; floa
 div.bx-fm-dialog-tabed table.edit-tab tr.bxfm-d-title td{background-color: #EEEEEE !important; height: 22px;}
 
 /* Input Select*/
-div.bx-fm-dialog input.bxfm-is-inp, input.bxfm-is-inp{background: #fff url(/bitrix/images/fileman/controls_ex/sort_down.gif) right center no-repeat; padding-right: 15px !important;}
+div.bx-fm-dialog input.bxfm-is-inp, input.bxfm-is-inp{background: #fff url(/bitrix/images/fileman/controls_ex/sort_down.gif) right center no-repeat;}
 div.bxfm-is-popup {
 	background: #fff;
 	border: 1px solid #D5E1E4;
@@ -312,7 +312,7 @@ img.bxfm-unlinked{background: url(/bitrix/themes/.default/icons/fileman/unlink.g
 .bxfm-site-sel-it{/* height: 20px; */ width: 200px;margin: 0!important; padding: 0!important;display: inline-block;}
 .bxfm-ss-checked{background-image: url(/bitrix/themes/.default/images/checkbox.gif);background-repeat: no-repeat; background-color: transparent; background-position: 4px 2px;font-weight: bold!important;}
 .bxfm-ss-over{background-color:#DBE3F2!important;}
-.bxfm-site-sel-it div{margin: 0px 2px 0 26px!important; font-family: Verdana!important; font-size: 11px!important; padding:4px 0!important;}
+.bxfm-site-sel-it div{margin: 0px 2px 0 26px!important; font-family: Verdana!important; font-size: 11px!important; padding:4px 0 4px 3px!important;}
 
 .bxfm-text-overflow{-o-text-overflow: ellipsis; text-overflow: ellipsis; -moz-binding: url('/bitrix/js/fileman/text-overflow.xml#ellipsis'); overflow:hidden; white-space: nowrap;}
 
@@ -357,7 +357,7 @@ table.bx-pack-compare-tbl tr.bx-pack-title td.bx-pack-sep-td{padding: 0!importan
 div.bxfm-arctype-sel{margin: 1px 5px 0 0;float: left; width: 260px; height: 18px; border: 1px solid #EEEEEE;background: #fff url(/bitrix/images/fileman/controls_ex/sort_down.gif) right center no-repeat; cursor: pointer;}
 div.bxfm-arctype-sel div{font-family: Verdana!important; font-size: 11px!important; color: #000!important; margin: 2px 0 0 3px!important; padding: 0!important;}
 div.bxfm-arctype-sel-it{/* height: 20px; */ width: 260px;margin: 0!important; padding: 0!important;}
-div.bxfm-at-is-popup{background: #fff;border: 1px solid #B2B2B2; position: absolute;width: 260px; display: none; top:20px;z-index:15; overflow: hidden;}
+div.bxfm-at-is-popup{background-color: #FCFCFC !important; background-image: url(/bitrix/themes/.default/images/menu_gutter.gif) !important; background-repeat: repeat-y !important;border: 1px solid #B2B2B2; position: absolute;width: 260px; display: none; top:20px;z-index:15; overflow: hidden;}
 div.bxfm-at-checked{background-image: url(/bitrix/themes/.default/images/checkbox.gif);background-repeat: no-repeat; background-color: transparent; background-position: 4px 2px;font-weight: bold!important;}
 div.bxfm-at-over{background-color:#DBE3F2!important;}
 div.bxfm-arc-type-it div{margin: 0px 2px 0 26px!important; font-family: Verdana!important; font-size: 11px!important; padding:4px 0!important;}

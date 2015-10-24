@@ -61,3 +61,4 @@ div.calendar-float a.spin {width:7px; height:7px; border:0px; margin:1px; displa
 div.calendar-float a.spin:hover {width:9px; height:9px; margin:0px; border:1px solid #AEB6C2; background-color:#DBE3F2;}
 div.calendar-float a.spin-up {background-image:url(images/calendar/spin_up.gif);}
 div.calendar-float a.spin-down {background-image:url(images/calendar/spin_down.gif);}
+

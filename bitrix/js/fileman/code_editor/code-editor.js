@@ -7,17 +7,12 @@
 		this.arConfig = arConfig;
 		this.MESS = MESS;
 		this.arSyntaxes = {};
-
 		this.pTA = BX(this.arConfig.textareaId);
 		if (!this.pTA || !BX.isNodeInDom(this.pTA))
 			return false;
-
 		this.saveSettings = !!arConfig.saveSettings;
-
 		this.highlightMode = !!arConfig.highlightMode && this.IsValidBrowser();
-
 		this.theme = arConfig.theme;
-
 		this.tabSize = 4;
 		this.undoDepth = 30;
 		this.timeout = 100;
@@ -42,169 +37,180 @@
 			"}": "{<"
 		};
 
-		if (this.arConfig.forceSyntax && {'php': 1, 'js': 1, 'css': 1, 'sql': 1}[this.arConfig.forceSyntax])
-		{
-			this.syntaxName = this.arConfig.forceSyntax;
-		}
-		else
-		{
-			this.syntaxName = 'php'; // php | js | css | sql
-			this.arConfig.forceSyntax = false;
-		}
-
-		this.InitKeyEngine();
-		this.BuildSceleton();
-
-		if (BX.browser.IsIOS())
-			this.pInput.style.width = "0px";
-
-		if (!BX.browser.IsSafari() && !BX.browser.IsChrome())
-			this.pScroller.draggable = true;
-
-		this.pLinesCont.style.outline = "none";
-		this.FocusInput();
-
-		if (BX.browser.IsMac())
-		{
-			this.pScrollbar.style.zIndex = -2;
-			this.pScrollbar.style.visibility = "hidden";
-		}
-		else if (BX.browser.IsIE() && !BX.browser.IsIE9())
-		{
-			this.pScrollbar.style.minWidth = "18px";
-		}
-
-		try
-		{
-			this.GetCharWidth();
-		}
-		catch (e)
-		{
-			return;
-		}
-
-		// Delayed object wrap timeouts, making sure only one is active. blinker holds an interval.
-		this.pollDelayed = new Delayed();
-		this.highlight = new Delayed();
-
-		this.oDoc = new JCDocHolder([new JCLineHolder([new JCLine("")])]);
-		this.focused = false;
-		this.LoadSyntax();
-
-		this.oSel = {
-			from: {line: 0, ch: 0},
-			to: {line: 0, ch: 0},
-			inverted: false
-		};
-
-		this.lastClick = false;
-		this.lastDoubleClick = false;
-		this._lastScrollTop = 0;
-		this._lastStoppedKey = null;
-		this.suppressEdits = false;
-
-		this.callbacks = null;
-		this.arChanges = [];
-
-		this.displayOffset = 0;
-		this.showingFrom = 0;
-		this.showingTo = 0;
-		this.lastSizeC = 0;
-		this.bracketHighlighted = null;
-		this.maxLine = this.GetLine(0);
-		this.updateMaxLine = false;
-		this.maxLineChanged = true;
-		this._tabCache = {};
-		this.pollingFast = false;
-		this.goalColumn = null;
-
-		// Initialize the content.
-		this.Action(this.SetValue, this)(this.pTA.value || "");
-		this.updateInput = false;
-
-		this.oHistory = new History();
-
-		// Register our event handlers.
-		BX.bind(this.pScroller, "mousedown", this.Action(this.OnMouseDown, this));
-		BX.bind(this.pScroller, "dblclick", this.Action(this.OnDoubleClick, this));
-		//BX.bind(this.pLinesCont, "selectstart", preventDefault);
-		BX.bind(this.pLinesCont, "selectstart", BX.PreventDefault);
-		BX.bind(this.pScroller, "scroll", BX.proxy(this.OnScrollMain, this));
-		BX.bind(this.pScrollbar, "scroll", BX.proxy(this.OnScrollBar, this));
-		BX.bind(this.pScrollbar, "mousedown", function ()
-		{
-			if (_this.highlightMode && _this.focused)
-				setTimeout(_this.FocusInput, 0);
-		});
-		//BX.bind(window, "resize", BX.proxy()
-
-		BX.bind(this.pInput, "keyup", this.Action(this.OnKeyUp, this));
-		BX.bind(this.pInput, "input", BX.proxy(this.FastPoll, this));
-		BX.bind(this.pInput, "keydown", this.Action(this.OnKeyDown, this));
-		BX.bind(this.pInput, "keypress", this.Action(this.OnKeyPress, this));
-		BX.bind(this.pInput, "focus", BX.proxy(this.OnFocus, this));
-		BX.bind(this.pInput, "blur", BX.proxy(this.OnBlur, this));
-
-		BX.bind(this.pScroller, "paste", function ()
-		{
-			_this.FocusInput();
-			_this.FastPoll();
-		});
-		BX.bind(this.pInput, "paste", BX.proxy(this.FastPoll, this));
-		BX.bind(this.pInput, "cut", this.Action(function(){_this.ReplaceSelection("");}, this));
-
-		setTimeout(BX.proxy(this.OnFocus,this), 20);
-
-		if (this.theme != 'dark')
-		{
-			this.theme = 'dark';
-			this.SwitchTheme();
-		}
-
-		if (!this.highlightMode)
-		{
-			this.highlightMode = true;
-			this.SwitchHightlightMode();
-		}
-
-		// Autosave handlers
-		var pForm = this.pTA.form;
-		if (pForm)
-		{
-			BX.addCustomEvent(pForm, 'onAutoSavePrepare', function(){
-				if (pForm && pForm.BXAUTOSAVE)
-				{
-					try{
-						BX.addCustomEvent(this, 'OnAfterActionSelectionChanged', function(){
-							pForm.BXAUTOSAVE.Init();
-						});
-
-						BX.addCustomEvent(pForm, 'onAutoSave', function (ob, data)
-						{
-							if (_this.highlightMode)
-								_this.Save();
-							data[_this.pTA.name] = _this.GetTAValue();
-						});
-
-						BX.addCustomEvent(pForm, 'onAutoSaveRestore', function (ob, data)
-						{
-							if (_this.highlightMode)
-							{
-								_this.Action(_this.SetValue, _this)(data[_this.pTA.name]);
-							}
-							else
-							{
-								_this.pTA.value = data[_this.pTA.name];
-								_this.CheckLineSelection();
-							}
-						});
-					}catch(e){}
-				}
-			});
-		}
+		this.Init();
 	};
 
 	window.JCCodeEditor.prototype = {
+		Init: function()
+		{
+			var _this = this;
+
+			if (this.pTA.parentNode.offsetWidth <= 0 || this.pTA.parentNode.offsetHeight <= 0)
+			{
+				return setTimeout(function(){_this.Init();}, 100);
+			}
+
+			if (this.arConfig.forceSyntax && {'php': 1, 'js': 1, 'css': 1, 'sql': 1}[this.arConfig.forceSyntax])
+			{
+				this.syntaxName = this.arConfig.forceSyntax;
+			}
+			else
+			{
+				this.syntaxName = 'php'; // php | js | css | sql
+				this.arConfig.forceSyntax = false;
+			}
+
+			this.InitKeyEngine();
+			this.BuildSceleton();
+
+			if (BX.browser.IsIOS())
+				this.pInput.style.width = "0px";
+
+			if (!BX.browser.IsSafari() && !BX.browser.IsChrome())
+				this.pScroller.draggable = true;
+
+			this.pLinesCont.style.outline = "none";
+			this.FocusInput();
+
+			if (BX.browser.IsMac())
+			{
+				this.pScrollbar.style.zIndex = -2;
+				this.pScrollbar.style.visibility = "hidden";
+			}
+			else if (BX.browser.IsIE() && !BX.browser.IsIE9())
+			{
+				this.pScrollbar.style.minWidth = "18px";
+			}
+
+			try
+			{
+				this.GetCharWidth();
+			}
+			catch (e)
+			{
+				return;
+			}
+
+			// Delayed object wrap timeouts, making sure only one is active. blinker holds an interval.
+			this.pollDelayed = new Delayed();
+			this.highlight = new Delayed();
+
+			this.oDoc = new JCDocHolder([new JCLineHolder([new JCLine("")])]);
+			this.focused = false;
+			this.LoadSyntax();
+
+			this.oSel = {
+				from: {line: 0, ch: 0},
+				to: {line: 0, ch: 0},
+				inverted: false
+			};
+
+			this.lastClick = false;
+			this.lastDoubleClick = false;
+			this._lastScrollTop = 0;
+			this._lastStoppedKey = null;
+			this.suppressEdits = false;
+
+			this.callbacks = null;
+			this.arChanges = [];
+
+			this.displayOffset = 0;
+			this.showingFrom = 0;
+			this.showingTo = 0;
+			this.lastSizeC = 0;
+			this.bracketHighlighted = null;
+			this.maxLine = this.GetLine(0);
+			this.updateMaxLine = false;
+			this.maxLineChanged = true;
+			this._tabCache = {};
+			this.pollingFast = false;
+			this.goalColumn = null;
+
+			// Initialize the content.
+			this.Action(this.SetValue, this)(this.pTA.value || "");
+			this.updateInput = false;
+
+			this.oHistory = new History();
+
+			// Register our event handlers.
+			BX.bind(this.pScroller, "mousedown", this.Action(this.OnMouseDown, this));
+			BX.bind(this.pScroller, "dblclick", this.Action(this.OnDoubleClick, this));
+			//BX.bind(this.pLinesCont, "selectstart", preventDefault);
+			BX.bind(this.pLinesCont, "selectstart", BX.PreventDefault);
+			BX.bind(this.pScroller, "scroll", BX.proxy(this.OnScrollMain, this));
+			BX.bind(this.pScrollbar, "scroll", BX.proxy(this.OnScrollBar, this));
+			BX.bind(this.pScrollbar, "mousedown", function ()
+			{
+				if (_this.highlightMode && _this.focused)
+					setTimeout(_this.FocusInput, 0);
+			});
+
+			BX.bind(this.pInput, "keyup", this.Action(this.OnKeyUp, this));
+			BX.bind(this.pInput, "input", BX.proxy(this.FastPoll, this));
+			BX.bind(this.pInput, "keydown", this.Action(this.OnKeyDown, this));
+			BX.bind(this.pInput, "keypress", this.Action(this.OnKeyPress, this));
+			BX.bind(this.pInput, "focus", BX.proxy(this.OnFocus, this));
+			BX.bind(this.pInput, "blur", BX.proxy(this.OnBlur, this));
+
+			BX.bind(this.pScroller, "paste", function ()
+			{
+				_this.FocusInput();
+				_this.FastPoll();
+			});
+			BX.bind(this.pInput, "paste", BX.proxy(this.FastPoll, this));
+			BX.bind(this.pInput, "cut", this.Action(function(){_this.ReplaceSelection("");}, this));
+
+			setTimeout(BX.proxy(this.OnFocus,this), 20);
+
+			if (this.theme != 'dark')
+			{
+				this.theme = 'dark';
+				this.SwitchTheme();
+			}
+
+			if (!this.highlightMode)
+			{
+				this.highlightMode = true;
+				this.SwitchHightlightMode();
+			}
+
+			// Autosave handlers
+			var pForm = this.pTA.form;
+			if (pForm)
+			{
+				BX.addCustomEvent(pForm, 'onAutoSavePrepare', function(){
+					if (pForm && pForm.BXAUTOSAVE)
+					{
+						try{
+							BX.addCustomEvent(this, 'OnAfterActionSelectionChanged', function(){
+								pForm.BXAUTOSAVE.Init();
+							});
+
+							BX.addCustomEvent(pForm, 'onAutoSave', function (ob, data)
+							{
+								if (_this.highlightMode)
+									_this.Save();
+								data[_this.pTA.name] = _this.GetTAValue();
+							});
+
+							BX.addCustomEvent(pForm, 'onAutoSaveRestore', function (ob, data)
+							{
+								if (_this.highlightMode)
+								{
+									_this.Action(_this.SetValue, _this)(data[_this.pTA.name]);
+								}
+								else
+								{
+									_this.pTA.value = data[_this.pTA.name];
+									_this.CheckLineSelection();
+								}
+							});
+						}catch(e){}
+					}
+				});
+			}
+		},
+
 		BuildSceleton: function()
 		{
 			var _this = this;
@@ -255,7 +261,6 @@
 			this.pLineNumText = this.pLineNum.appendChild(BX.create("DIV", {props:{className: "bxce-hl-line-num-text"}}));
 			this.pHighlight = this.pMover.appendChild(BX.create("DIV", {props:{className: "bxce-highlight"}}));
 			this.pLinesCont = this.pHighlight.appendChild(BX.create("DIV", {props:{className: "bxce-lines-cnt"}}));
-
 			this.pMeasure = this.pLinesCont.appendChild(BX.create("DIV", {props:{className: "bxce-liner-cont"}}));
 			this.pCursor = this.pLinesCont.appendChild(BX.create("PRE", {props:{className: "bxce-cursor"}, text: "\u00a0"}));
 			this.pWidthForcer = this.pLinesCont.appendChild(BX.create("PRE", {props:{className: "bxce-cursor"}, style: {visibility: 'hidden'}, text: "\u00a0"}));
@@ -287,23 +292,7 @@
 			this.pThemeToggle.onclick = BX.proxy(this.SwitchTheme, this);
 			this.pThemeToggleText = this.pThemeToggle.childNodes[1];//
 
-			var w, h;
-			if (this.arConfig.width)
-				w = parseInt(this.arConfig.width);
-			if (this.arConfig.height)
-				h = parseInt(this.arConfig.height);
-
-			if (this.pDiv.parentNode && !w)
-				w = parseInt(this.pDiv.parentNode.offsetWidth) - (BX.browser.IsIE() ? 10 : 2);
-			if (this.pDiv.parentNode && !h)
-				h = parseInt(this.pDiv.parentNode.offsetHeight) - 2;
-
-			if (!w || isNaN(w) || h < 100)
-				w = 900;
-			if (!h || isNaN(h) || h < 100)
-				h = 400;
-
-			this.AdjustSceletonSize(w, h);
+			this.AdjustSceletonSize();
 		},
 
 		Action: function(func, obj)
@@ -780,6 +769,34 @@
 
 		AdjustSceletonSize: function(w, h)
 		{
+			var
+				_this = this,
+				w_ = w,
+				h_ = h;
+
+			if (!w || !h || w <= 0 || h <= 0)
+			{
+				if (this.arConfig.width)
+					w = parseInt(this.arConfig.width);
+				if (this.arConfig.height)
+					h = parseInt(this.arConfig.height);
+
+				if (this.pDiv.parentNode && !w)
+					w = parseInt(this.pDiv.parentNode.offsetWidth) - (BX.browser.IsIE() ? 10 : 2);
+				if (this.pDiv.parentNode && !h)
+					h = parseInt(this.pDiv.parentNode.offsetHeight) - 2;
+
+				if (!w || isNaN(w) || h < 100)
+					w = 900;
+				if (!h || isNaN(h) || h < 100)
+					h = 400;
+			}
+
+			if (w <= 0 || h <= 0)
+			{
+				return setTimeout(function(){_this.AdjustSceletonSize(w_, h_);}, 300);
+			}
+
 			w = parseInt(w);
 			h = parseInt(h);
 			var
@@ -2230,9 +2247,11 @@
 			}
 			this.pLineNum.style.display = "";
 
-			var resized = Math.abs((parseInt(this.pLinesCont.style.marginLeft) || 0) - this.pLineNum.offsetWidth) > 2;
-
-			this.pLinesCont.style.marginLeft = this.pLineNum.offsetWidth + "px";
+			var lineOffset = parseInt(this.pLineNum.offsetWidth);
+			if (lineOffset >= 53)
+				lineOffset = 53;
+			var resized = Math.abs((parseInt(this.pLinesCont.style.marginLeft) || 0) - lineOffset) > 2;
+			this.pLinesCont.style.marginLeft = lineOffset + "px";
 
 			this.lineNumDirty = false;
 			return resized;
@@ -3399,7 +3418,7 @@
 				this.bDisableTab = true;
 
 			var
-				endText, startText, tmp,
+				i, endText, startText, tmp,
 				tab = "\t",
 				taSel = this.GetTASelection(),
 				from = taSel.start,
@@ -3519,10 +3538,16 @@
 			if(!isNaN(taH) && taH >= 0)
 			{
 				this.pContTA.style.height = (taH + 2) + "px";
-				this.pTA.style.height = taH + "px";
+				this.pTA.style.height = (taH + 2) + "px";
 			}
 
 			taW = this.pTA.scrollWidth;
+			// Mantis: 48575
+			if (BX.browser.IsChrome())
+			{
+				taW += 18;
+			}
+
 			if (parseInt(this.pTA.style.width) < taW)
 			{
 				this.pTA.style.width = taW + "px";
@@ -3543,7 +3568,7 @@
 					if (!isNaN(h) && h >= 0)
 					{
 						this.pContTA.style.height = (h + 2) + "px";
-						this.pTA.style.height = h + "px";
+						this.pTA.style.height = (h + 2) + "px";
 					}
 				}
 			}
@@ -3683,9 +3708,10 @@
 
 		Undo: function()
 		{
-			this.OnBeforeAction();
+			// Mantis: 61354
+			//this.OnBeforeAction();
 			this.UndoRedo(this.oHistory.done, this.oHistory.undone);
-			this.OnAfterAction();
+			//this.OnAfterAction();
 		},
 
 //		Redo: function()
@@ -3814,6 +3840,7 @@
 		},
 		match: function (pattern, consume, caseInsensitive)
 		{
+			var match;
 			if (typeof pattern == "string")
 			{
 				var cased = function (str)
@@ -3827,13 +3854,13 @@
 					return true;
 				}
 			}
-			else
+			else if (pattern !== null)
 			{
-				var match = this.string.slice(this.pos).match(pattern);
+				match = this.string.slice(this.pos).match(pattern);
 				if (match && consume !== false)
 					this.pos += match[0].length;
-				return match;
 			}
+			return match;
 		},
 		current: function ()
 		{
@@ -4847,7 +4874,6 @@
 				}
 				else if (ch == "&")
 				{
-					var bAtom;
 					if (stream.eat("#"))
 						bAtom = stream.eat("x") ? (stream.eatWhile(/[a-fA-F\d]/) && stream.eat(";")) : (stream.eatWhile(/[\d]/) && stream.eat(";"));
 					else
@@ -5064,7 +5090,9 @@
 				}
 
 				if (type == "endTag" || type == "selfcloseTag")
+				{
 					return pass();
+				}
 
 				setStyle = "error";
 				return cont(attributes);
@@ -5082,7 +5110,9 @@
 			function attvalue(type)
 			{
 				if (type == "string")
+				{
 					return cont(attvaluemaybe);
+				}
 				if (type == "word" && arTags.allowUnquoted)
 				{
 					setStyle = "string";

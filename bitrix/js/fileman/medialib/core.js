@@ -744,6 +744,7 @@ BXMediaLib.prototype =
 					// Cliend Side
 					if (D.bNew)
 					{
+                        _this.bNoCollections = true;
 						_this.arCollections.push(oCol);
 						_this.BuildCollection(oCol, _this.arCollections.length - 1);
 					}
@@ -848,7 +849,6 @@ BXMediaLib.prototype =
 
 		D.typeId = this.curType.id || ''; // Set ML Type
 		D.pName.onchange(); // Set title
-		D.pName.focus();
 
 		jsFloatDiv.Show(this.EditCollDialog.pWnd, left, top, 5, false, false);
 		BX.bind(document, "keypress", window.MlEdColOnKeypress);
@@ -860,7 +860,7 @@ BXMediaLib.prototype =
 			_this = this,
 			D = {
 				width: 360,
-				height: 260,
+				height: 230,
 				pWnd: BX('mlsd_coll'),
 				pTitle: BX('mlsd_coll_title'),
 				pName: BX('mlsd_coll_name'),
@@ -1151,6 +1151,8 @@ BXMediaLib.prototype =
 				pDel: BX('mlsd_viewit_del'),
 				pEdit: BX('mlsd_viewit_edit'),
 				pLink: BX('mlvi_info_link'),
+                pCopyLink: BX('mlvi_info_copy_link'),
+                pCopyInput: BX('mlvi_info_copy_input'),
 				pExt: BX('mlvi_info_ext'),
 
 				Overlay: new BXOverlay({id: 'bxml_viewit_overlay'})
@@ -1180,6 +1182,7 @@ BXMediaLib.prototype =
 		this.ViewItDialog.bOpened = false;
 		this.bSubdialogOpened = false;
 		this.ViewItDialog.pWnd.style.display = 'none';
+        this.ViewItDialog.pCopyInput.style.display = 'none';
 		jsFloatDiv.Close(this.ViewItDialog.pWnd);
 		this.ViewItDialog.Overlay.Hide();
 		BX.unbind(document, "keypress", window.MlViewItOnKeypress);
@@ -1199,6 +1202,12 @@ BXMediaLib.prototype =
 
 		// Link
 		D.pLink.href = oItem.path;
+
+        D.pCopyLink.onclick = function() {
+            D.pCopyInput.value = oItem.path.substr(0,1) !== '/' ? oItem.path : window.location.protocol + '//' + window.location.host + oItem.path;
+            D.pCopyInput.style.display = 'block';
+            D.pCopyInput.select();
+        };
 
 		// Keywords
 		if (oItem.keywords.length > 0)
@@ -1664,6 +1673,7 @@ BXMediaLib.prototype =
 		D.pPCFileCont = D.pFrameDoc.getElementById("mlsd_load_cont");
 		D.pFDFileCont = D.pFrameDoc.getElementById("mlsd_select_cont");
 		D.pLoadFile = D.pFrameDoc.getElementById("ml_load_file");
+        D.pLoadMaxSize = D.pFrameDoc.getElementById("ml_load_max_size");
 		D.pChangeFileLink = D.pFrameDoc.getElementById("mlsd_fname_change");
 		D.pChangeFileLinkBack = D.pFrameDoc.getElementById("mlsd_fname_change_back");
 		D.pLoadPCLink = D.pFrameDoc.getElementById("mlsd_select_pc");
@@ -2192,7 +2202,7 @@ BXMediaLib.prototype =
 		});
 	},
 
-	CSDelCollection: function(id, childs)
+    CSDelCollection: function(id, childs, bEmpty)
 	{
 		var C = this.oCollections[id];
 		if (C)
@@ -2206,6 +2216,11 @@ BXMediaLib.prototype =
 
 			//1. Del from array
 			this.arCollections = BX.util.deleteFromArray(this.arCollections, C.ind);
+            for (col_id in this.oCollections)
+            {
+                if(this.oCollections[col_id] && this.oCollections[col_id].ind > C.ind)
+                    this.oCollections[col_id].ind--;
+            }
 
 			// Del from list
 			var pCont = C.pChildCont.parentNode;
@@ -2215,15 +2230,22 @@ BXMediaLib.prototype =
 				pCont.removeChild(C.pTitle);
 			}
 
-			var bEmpty = true;
-			for (var i = 0, l = pCont.childNodes.length; i < l; i++)
-			{
-				if (pCont.childNodes[i] && pCont.childNodes[i].className && pCont.childNodes[i].className.indexOf('ml-no-colls') == -1)
-				{
-					bEmpty = false;
-					break;
-				}
-			}
+            if (bEmpty === undefined)
+                bEmpty = true;
+
+            if (pCont.childNodes.length > 0)
+            {
+                for (var i = 0, l = pCont.childNodes.length; i < l; i++)
+                {
+                    if (pCont.childNodes[i] && pCont.childNodes[i].className && pCont.childNodes[i].className.indexOf('ml-no-colls') == -1)
+                    {
+                        bEmpty = false;
+                        break;
+                    }
+                }
+            }
+            else
+                bEmpty = false;
 
 			if (bEmpty)
 			{
@@ -2237,7 +2259,7 @@ BXMediaLib.prototype =
 			if (childs)
 			{
 				for (var i = 0, l = childs.length; i < l; i++)
-					this.CSDelCollection(childs[i], false);
+					this.CSDelCollection(childs[i], false, bEmpty);
 			}
 
 			if (childs !== false)
@@ -2302,7 +2324,17 @@ BXMediaLib.prototype =
 
 	CSEditItem: function(arItem, arColls)
 	{
-		if (!arItem || typeof arColls != 'object')
+        if(!arItem)
+        {
+            // Check size
+            if(parseInt(this.EditItemDialog.pLoadFile.files[0].size) > parseInt(this.EditItemDialog.pLoadMaxSize.value))
+            {
+                var fileSize = parseInt(this.EditItemDialog.pLoadMaxSize.value)/(1024*1024);
+                return alert(ML_MESS.ItFileSizeError.replace('#FILESIZE#', fileSize));
+            }
+        }
+
+        if (!arItem || typeof arColls != 'object')
 			return alert(ML_MESS.EditItemError);
 
 		var

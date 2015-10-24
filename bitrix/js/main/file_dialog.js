@@ -259,3 +259,4 @@ BXFileDialog.prototype =
 		}
 	}
 };
+

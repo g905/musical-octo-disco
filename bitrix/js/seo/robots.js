@@ -128,8 +128,7 @@ BX.seoParser.prototype.compile = function()
 		)
 		{
 			text += (text === '' ? '' : nn)
-				+ 'User-Agent: ' + this.contentData[i].name + nn
-				+ 'Disallow: ' + '# empty Disallow instruction SHOULD be there' + nn;
+				+ 'User-Agent: ' + this.contentData[i].name + nn;
 
 			for(j = 0; j < this.contentData[i].data.length; j++)
 			{
@@ -366,6 +365,7 @@ BX.seoEditor.prototype.addRule = function(rule, bSkipUniqueCheck)
 
 var tmpWindow = null;
 var arStandardDisallow = ['*/index.php', '/bitrix/', '/*show_include_exec_time=', '/*show_page_exec_time=', '/*show_sql_stat=', '/*bitrix_include_areas=', '/*clear_cache=', '/*clear_cache_session=', '/*ADD_TO_COMPARE_LIST', '/*ORDER_BY', '/*PAGEN', '/*?print=', '/*&print=', '/*print_course=', '/*?action=', '/*&action=', '/*register=', '/*forgot_password=', '/*change_password=', '/*login=', '/*logout=', '/*auth=', '/*backurl=','/*back_url=', '/*BACKURL=','/*BACK_URL=', '/*back_url_admin=', '/*?utm_source='];
+var arStandardAllow = ['/bitrix/components/', '/bitrix/cache/', '/bitrix/js/', '/bitrix/templates/', '/bitrix/panel/'];
 
 function getActionWindow()
 {
@@ -461,6 +461,7 @@ ACTIONS.push({
 		{
 			var rules = [];
 			var disallow_list = [];
+			var allow_list = [];
 			var editorRules = editor.getRules('Disallow');
 			var i;
 
@@ -472,11 +473,28 @@ ACTIONS.push({
 				}
 			}
 
+			editorRules = editor.getRules('Allow');
+			for(i = 0; i < editorRules.length; i++)
+			{
+				if(typeof editorRules[1] != 'undefined' && editorRules[1] !== '')
+				{
+					allow_list.push(editorRules[1]);
+				}
+			}
+
 			for(i = 0; i < arStandardDisallow.length; i++)
 			{
 				if(!BX.util.in_array(arStandardDisallow[i], disallow_list))
 				{
 					editor.addRule(['Disallow', arStandardDisallow[i]]);
+				}
+			}
+
+			for(i = 0; i < arStandardAllow.length; i++)
+			{
+				if(!BX.util.in_array(arStandardAllow[i], allow_list))
+				{
+					editor.addRule(['Allow', arStandardAllow[i]]);
 				}
 			}
 

@@ -8,7 +8,7 @@ BX.TagsWindowArea = function(tags, params)
 	this.objId = ++BX.TagsWindowArea.__conter;
 	this.maxTagId = 0;
 	this.mode = BX.TagsWindowArea.mode.defaultMode;
-	
+
 	this.tagsContainer = BX.create("div",  { props : { className : "popup-tags-content" + (BX.browser.IsIE() ? " popup-tags-content-ie" : "")  },
 			html : '<table cellspacing="0"> \
 				<tr><td class="popup-tags-left-top-cell"></td><td class="popup-tags-right-top-cell"></td></tr> \
@@ -95,7 +95,7 @@ BX.TagsWindowArea.prototype.addTag = function(tag)
 	tag.name = BX.util.trim(tag.name);
 	if (tag.name.length < 1 || this.indexOfTagName(tag.name) > -1)
 		return null;
-	
+
 	tag.id = tag.id ? tag.id : ++this.maxTagId;
 	tag.selected = tag.selected && tag.selected === true ? true : false;
 
@@ -104,7 +104,7 @@ BX.TagsWindowArea.prototype.addTag = function(tag)
 	tag.editTextbox = null;
 
 	this.tags.unshift(tag);
-	
+
 	return tag;
 };
 
@@ -131,7 +131,7 @@ BX.TagsWindowArea.prototype.selectAllTags = function(selected, arTagsFilter)
 	if (BX.type.isArray(arTagsFilter))
 	{
 		for (i = 0, length = this.tags.length; i < length; i++)
-			this.tags[i].selected = BX.util.in_array(this.tags[i], arTagsFilter) ? selected : !selected;	
+			this.tags[i].selected = BX.util.in_array(this.tags[i], arTagsFilter) ? selected : !selected;
 	}
 	else
 	{
@@ -214,7 +214,7 @@ BX.TagsWindowArea.prototype.redraw = function(mode, params)
 {
 	if (mode)
 		this.setMode(mode);
-	
+
 	if (this.mode == BX.TagsWindowArea.mode.highlightMode)
 	{
 	    this._disableAddButton(false);
@@ -311,7 +311,7 @@ BX.TagsWindowArea.prototype.__resize = function(selectedCnt, unselectedCnt)
 	if (ie7 || (document.documentMode && document.documentMode <= 7))
 		this.tagsContainer.style.paddingRight = "0";
 
-	
+
 	if (selectedCnt == 0 || unselectedCnt == 0)
 	{
 		this.middleCell.style.height = "1px";
@@ -373,7 +373,7 @@ BX.TagsWindowArea.prototype._renderHighlight = function(params)
 		if (firstWord === null && BX.hasClass(tagItem, "popup-tags-item-highlight-mode"))
 			firstWord = tagItem;
 	}
-	
+
 	if (this.tagsContainer.offsetHeight == 200 && firstWord !== null)
 		this.tagsContainer.scrollTop = firstWord.offsetTop;
 };
@@ -416,7 +416,7 @@ BX.TagsWindowArea.prototype.cancelEdit = function()
 		return;
 
 	for (var i = 0, length = this.tags.length; i < length; i++)
-		this.tags[i].markToDelete = false;	
+		this.tags[i].markToDelete = false;
 };
 
 BX.TagsWindowArea.prototype.focusTextbox = function()
@@ -429,7 +429,7 @@ BX.TagsWindowArea.prototype.addTextboxTag = function()
 {
 	if (this.mode == BX.TagsWindowArea.mode.editMode)
 		return null;
-	
+
 	var tagNames = BX.util.trim(this.newTagTexbox.value);
 	if (tagNames.length < 1)
 		return null;
@@ -547,7 +547,7 @@ BX.TagsWindowArea.prototype.__wordwrap = function(text, length, separator, encod
     var words = text.split(" ");
 	for (var i = 0; i < words.length; i++)
 	{
-		var word = words[i]; 
+		var word = words[i];
 		if (word.length > length)
 		{
 			var matches = word.match(new RegExp(".{0," + length + "}", "g"));
@@ -580,7 +580,7 @@ BX.TagsWindowArea.prototype.createTagItem = function(tag, highlightWord)
 {
 	var tagName = tag.name;
 	var tagId = "popup-tags-item-" + this.objId + "-" + tag.id;
-	
+
 	if (this.mode == BX.TagsWindowArea.mode.editMode)
 	{
 		var tagTextbox = BX.create("input", {
@@ -596,7 +596,7 @@ BX.TagsWindowArea.prototype.createTagItem = function(tag, highlightWord)
 				BX.create("div", {
 					props : { className : "popup-tags-item-edit-mode-wrapper" },
 					children: [
-							
+
 						/*BX.create("input", {
 							props : { className: "popup-tags-item-checkbox", type: "checkbox", id : tagId, checked : tag.selected, defaultChecked : tag.selected,  disabled : true}
 						}),*/
@@ -638,7 +638,7 @@ BX.TagsWindowArea.prototype.createTagItem = function(tag, highlightWord)
 				BX.create("label", { props : { htmlFor : tagId }, html :  tagName })
 			]
 		});
-		
+
 	}
 };
 
@@ -823,9 +823,10 @@ var TagsWindowEditButton = function(params)
 		this.buttonNode.setAttribute("hideFocus", "hidefocus");
 }
 
-BX.extend(TagsWindowEditButton, BX.PopupWindowButton);	
+BX.extend(TagsWindowEditButton, BX.PopupWindowButton);
 
 })(window);
+
 
 
 

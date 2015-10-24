@@ -88,13 +88,11 @@ JCIBlockProperty.prototype.Init = function()
 JCIBlockProperty.prototype.GetPropInfo = function(ID)
 {
 	if (0 > this.intERROR)
-	{
-		return;
-	}
+		return {};
 
 	ID = this.PREFIX + ID;
 
-	var arResult = {
+	return {
 		'PROPERTY_TYPE' : this.FORM_DATA[ID+'_PROPERTY_TYPE'].value,
 		'NAME' : this.FORM_DATA[ID+'_NAME'].value,
 		'ACTIVE' : (this.FORM_DATA[ID+'_ACTIVE_Y'].checked ? this.FORM_DATA[ID+'_ACTIVE_Y'].value : this.FORM_DATA[ID+'_ACTIVE_N'].value),
@@ -104,7 +102,6 @@ JCIBlockProperty.prototype.GetPropInfo = function(ID)
 		'CODE' : this.FORM_DATA[ID+'_CODE'].value,
 		'PROPINFO': this.FORM_DATA[ID+'_PROPINFO'].value
 	};
-	return arResult;
 };
 
 JCIBlockProperty.prototype.SetPropInfo = function(ID,arProp,formsess)
@@ -154,14 +151,11 @@ JCIBlockProperty.prototype.SetPropInfo = function(ID,arProp,formsess)
 JCIBlockProperty.prototype.GetProperty = function(strName)
 {
 	if (0 > this.intERROR)
-	{
-		return;
-	}
+		return '';
 
 	if (!strName || !this[strName])
-	{
-		return;
-	}
+		return '';
+
 	return this[strName];
 };
 
@@ -622,6 +616,7 @@ JCIBlockGroupField.prototype.preparePost = function()
 	var i;
 	var values = [];
 	values[values.length] = {name : 'ajax_action', value : 'section_property'};
+	values[values.length] = {name : 'sessid', value : BX.bitrix_sessid()};
 	this.gatherInputsValues(values, document.getElementsByName('IBLOCK_SECTION[]'));
 
 	var toReload = BX.findChildren(this.form, {'tag' : 'tr', 'class' : 'bx-in-group'}, true);
@@ -822,13 +817,13 @@ JCInheritedPropertiesTemplates.prototype.updateInheritedPropertiesTemplates = fu
 
 JCInheritedPropertiesTemplates.prototype.updateInheritedPropertiesValues = function(startup, force)
 {
-	var i, space;
+	var i, space, input, values, f, k, obj_ta, clearValues;
 
 	if (startup)
 	{
 		for (i = 0; i < ipropTemplates.length; i++)
 		{
-			var space = BX('space_' + ipropTemplates[i].ID);
+			space = BX('space_' + ipropTemplates[i].ID);
 			if (space)
 				ipropTemplates[i].SPACE = space.value;
 		}
@@ -836,7 +831,7 @@ JCInheritedPropertiesTemplates.prototype.updateInheritedPropertiesValues = funct
 
 	for (i = 0; i < ipropTemplates.length; i++)
 	{
-		var input = BX(ipropTemplates[i].INPUT_ID);
+		input = BX(ipropTemplates[i].INPUT_ID);
 		if (!input)
 			return;
 
@@ -854,11 +849,11 @@ JCInheritedPropertiesTemplates.prototype.updateInheritedPropertiesValues = funct
 		)
 		{
 			values = [];
-			f = new JCIBlockGroupField();
+			f = new JCIBlockGroupField(BX(this.form));
 			f.gatherInputsValues(values, BX.findChildren(BX(this.form), null, true));
-			for (var k = 0; k < ipropTemplates.length; k++)
+			for (k = 0; k < ipropTemplates.length; k++)
 			{
-				var obj_ta = BX(ipropTemplates[k].INPUT_ID);
+				obj_ta = BX(ipropTemplates[k].INPUT_ID);
 				if (obj_ta && obj_ta.readOnly)
 				{
 					values[values.length] = {name : obj_ta.name, value : obj_ta.value}
@@ -870,25 +865,33 @@ JCInheritedPropertiesTemplates.prototype.updateInheritedPropertiesValues = funct
 				f.values2post(values),
 				function(data)
 				{
-					var DATA = [];
+					var DATA = [], data_test, j, k, div;
 					if (BX.type.isNotEmptyString(data))
 					{
-						var data_test = BX.parseJSON(data);
+						data_test = BX.parseJSON(data);
 						if (data_test)
 						{
 							eval('DATA = ' + data);
 						}
 					}
-					for (var j = 0; j < DATA.length; j++)
+					for (j = 0; j < DATA.length; j++)
 					{
-						for (var k = 0; k < ipropTemplates.length; k++)
+						if (DATA[j].htmlId)
 						{
-							if (ipropTemplates[k].ID == DATA[j].id)
+							if (BX(DATA[j].htmlId))
+								BX(DATA[j].htmlId).innerHTML = DATA[j].value;
+						}
+						else
+						{
+							for (k = 0; k < ipropTemplates.length; k++)
 							{
-								var div = BX(ipropTemplates[k].RESULT_ID);
-								if (div)
-									div.innerHTML = DATA[j].value;
-								break;
+								if (ipropTemplates[k].ID == DATA[j].id)
+								{
+									div = BX(ipropTemplates[k].RESULT_ID);
+									if (div)
+										div.innerHTML = DATA[j].value;
+									break;
+								}
 							}
 						}
 					}
@@ -896,7 +899,7 @@ JCInheritedPropertiesTemplates.prototype.updateInheritedPropertiesValues = funct
 			);
 			if (!startup)
 			{
-				var clearValues = BX('IPROPERTY_CLEAR_VALUES');
+				clearValues = BX('IPROPERTY_CLEAR_VALUES');
 				if (clearValues)
 				{
 					clearValues.value = "Y";
@@ -911,12 +914,16 @@ JCInheritedPropertiesTemplates.prototype.updateInheritedPropertiesValues = funct
 
 	for (i = 0; i < ipropTemplates.length; i++)
 	{
-		ipropTemplates[i].TEMPLATE = BX(ipropTemplates[i].INPUT_ID).value;
-
-		space = BX('space_' + ipropTemplates[i].ID);
-		if (space)
+		obj_ta = BX(ipropTemplates[i].INPUT_ID);
+		if (obj_ta)
 		{
-			ipropTemplates[i].SPACE = space.value;
+			ipropTemplates[i].TEMPLATE = obj_ta.value;
+
+			space = BX('space_' + ipropTemplates[i].ID);
+			if (space)
+			{
+				ipropTemplates[i].SPACE = space.value;
+			}
 		}
 	}
 
@@ -980,4 +987,100 @@ JCInheritedPropertiesTemplates.prototype.asciiOnly = function(el)
 			el.value = '';
 		}
 	}
+};
+
+function JCPopupEditor(width, height)
+{
+	this.width = width;
+	this.height = height;
+	this.popup_editor_dialog = null;
+	this.input = null;
+}
+
+JCPopupEditor.prototype.openEditor = function (hiddenId, maxLength)
+{
+	if (!this.popup_editor_dialog)
+	{
+		this.popup_editor_dialog = new BX.CDialog({
+			content: '<div width="100%" id="popup_editor_container"></div>',
+			buttons: this.getButtons(),
+			width: this.width,
+			height: this.height
+		});
+		var popup_editor_container = BX('popup_editor_container');
+		var popup_editor_start   = BX('popup_editor_start');
+		popup_editor_container.parentNode.appendChild(popup_editor_start);
+		popup_editor_container.parentNode.removeChild(popup_editor_container);
+		popup_editor_start.style.display = '';
+		LoadLHE_popup_editor_id();
+	}
+	this.popup_editor_dialog.Show();
+	this.input = BX(hiddenId);
+	popup_editor.SetEditorContent(this.input.value);
+	popup_editor.SetFocus();
+	this.startCharCounter();
+}
+
+JCPopupEditor.prototype.getButtons = function ()
+{
+	var _this = this;
+	var btnOK = new BX.CWindowButton({
+		title: BX.message('JS_CORE_WINDOW_SAVE'),
+		id: 'savebtn',
+		name: 'savebtn',
+		className: BX.browser.IsIE() && BX.browser.IsDoctype() && !BX.browser.IsIE10() ? '' : 'adm-btn-save',
+		action: function()
+		{
+			_this.stopCharCounter();
+			this.parentWindow.Hide();
+			popup_editor.SetView('html');
+			_this.input.value = popup_editor.GetEditorContent();
+			_this.input.onchange();
+		}
+	});
+	var btnClose = new BX.CWindowButton({
+		title: BX.message('JS_CORE_WINDOW_CLOSE'),
+		id: 'closebtn',
+		name: 'closebtn',
+		action: function () {
+			_this.stopCharCounter();
+			//this.parentWindow.Close();
+			this.parentWindow.Hide();
+		}
+	});
+	return [btnOK, btnClose];
+}
+
+JCPopupEditor.prototype.startCharCounter = function()
+{
+	if (!this.charCounterContainer)
+	{
+		this.charCounterContainer = BX.create('SPAN');
+		this.charCounterContainer.style.display = 'inline';
+		this.popup_editor_dialog.PARTS.BUTTONS_CONTAINER.appendChild(this.charCounterContainer);
+	}
+
+	if (!this.charCounterTimer)
+	{
+		this.charCounterTimer = setInterval(BX.delegate(function(){
+			this.updateCharCounter();
+		}, this), 500);
+	}
+};
+
+JCPopupEditor.prototype.updateCharCounter = function()
+{
+	var len = popup_editor.GetEditorContent().length;
+	this.charCounterContainer.innerHTML = len;
+	if (len > 255 && !this.charCounterContainer.style.color)
+		this.charCounterContainer.style.color = 'red';
+	if (len <= 255 && this.charCounterContainer.style.color)
+		this.charCounterContainer.style.color = '';
+};
+
+JCPopupEditor.prototype.stopCharCounter = function()
+{
+	if (this.charCounterTimer)
+		clearInterval(this.charCounterTimer);
+	this.charCounterTimer = null;
 };

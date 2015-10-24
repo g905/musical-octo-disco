@@ -75,14 +75,15 @@ tr.heading_dialog td {color:#525355 !important; text-align:center !important; fo
 table.dialogprops tr td {padding: 5px 0px 5px 0px !important;}
 
 td.popupmenu {border:1px solid #B6B6B6 !important; padding:1px !important; background-color:#FCFCFC !important; background-image:url(/bitrix/themes/.default/images/menu_gutter.gif) !important; background-repeat:repeat-y !important;}
-td.popupmenu table.popupitem {width:100% !important; margin:1px !important; cursor:default !important;}
-td.popupmenu table.popupitemover {margin:0px !important; border:1px solid #AEB6C2 !important; background-color:#CEDAEE !important;}
-td.popupmenu table.popupitem td.gutter {width: 20px !important;}
-td.popupmenu table.popupitem td.gutter div{width:20px !important; height:100% !important; background-position:0 0 !important;}
-td.popupmenu table.popupitem td.item {padding:3px 5px 3px 9px !important; font-size:11px !important; white-space: nowrap !important;}
-td.popupmenu table.popupitem td.default {font-weight:bold !important;}
-td.popupmenu table.popupitem td.disabled {color:#939393 !important;}
+td.popupmenu div.popupitem {width:100% !important; margin:1px !important; cursor:default !important;}
+td.popupmenu div.popupitemover {margin:0px !important; border:1px solid #AEB6C2 !important; background-color:#CEDAEE !important;}
+td.popupmenu div.popupitem td.gutter {width: 22px !important;}
+td.popupmenu div.popupitem td.item {padding:3px 5px 3px 9px !important; font-size:11px !important; white-space: nowrap !important;}
+td.popupmenu div.popupitem td.default {font-weight:bold !important;}
+td.popupmenu div.popupitem td.disabled {color:#939393 !important;}
 td.popupmenu div.popupseparator {margin:1px 0px 1px 30px; background-color:#B6B6B6; height:1px; overflow:hidden;}
+td.popupmenu div.popupitem div.icon {width:22px; height:20px; background-position:center; background-repeat:no-repeat;}
+td.popupmenu div.popupitem div.checked {background-image:url(images/checkbox.gif) !important;}
 
 form#file_dialog{padding:0px !important; margin:0px !important;}
 td#__bx_tab_cont{height:53px !important; vertical-align: top !important;}
@@ -114,3 +115,4 @@ table.add2menuTable td, table#add2menuTable_check td {padding: 8px !important;}
 div.bxfd-win-cont{overflow: auto; height: 100%; width: 544px;}
 
 iframe.bxfd-sys-frame{position: absolute; z-index: 2495; left: -2000px; top: -2000px; visibility: hidden;}
+

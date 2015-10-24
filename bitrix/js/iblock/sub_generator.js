@@ -1,66 +1,66 @@
 function JCIBlockGenerator(arParams)
 {
-    if(!arParams) return;
+	if(!arParams) return;
 
-    this.intERROR = 0;
-    this.intIMAGE_ROW_ID = 0;
-    this.PREFIX = arParams.PREFIX;
-    this.PREFIX_TR = this.PREFIX+'ROW_';
-    this.PROP_COUNT_ID = arParams.PROP_COUNT_ID;
-    this.TABLE_PROP_ID = arParams.TABLE_PROP_ID;
-    this.AR_ALL_PROPERTIES = arParams.AR_ALL_PROPERTIES;
-    this.AR_FILE_PROPERTIES = arParams.AR_FILE_PROPERTIES;
-    this.IMAGE_TABLE_ID = arParams.IMAGE_TABLE_ID;
-    this.CELLS = [];
-    this.CELL_CENT = [];
-    this.PROPERTY_MAP = [];
-    this.CHECKED_MAP = [];
-    this.SELECTED_PROPERTIES = [];
-    this.lockProperties = false;
+	this.intERROR = 0;
+	this.intIMAGE_ROW_ID = 0;
+	this.PREFIX = arParams.PREFIX;
+	this.PREFIX_TR = this.PREFIX+'ROW_';
+	this.PROP_COUNT_ID = arParams.PROP_COUNT_ID;
+	this.TABLE_PROP_ID = arParams.TABLE_PROP_ID;
+	this.AR_ALL_PROPERTIES = arParams.AR_ALL_PROPERTIES;
+	this.AR_FILE_PROPERTIES = arParams.AR_FILE_PROPERTIES;
+	this.IMAGE_TABLE_ID = arParams.IMAGE_TABLE_ID;
+	this.CELLS = [];
+	this.CELL_CENT = [];
+	this.PROPERTY_MAP = [];
+	this.CHECKED_MAP = [];
+	this.SELECTED_PROPERTIES = [];
+	this.lockProperties = false;
 
-    BX.ready(BX.delegate(this.Init, this));
+	BX.ready(BX.proxy(this.Init, this));
 }
 
 JCIBlockGenerator.prototype.Init = function()
 {
-    this.PROP_TBL = BX(this.TABLE_PROP_ID);
+	var i,
+		tmpMap,
+		j;
 
-    if (!this.PROP_TBL)
-    {
-        this.intERROR = -1;
-        return;
-    }
-    this.PROP_COUNT = BX(this.PROP_COUNT_ID);
+	this.PROP_TBL = BX(this.TABLE_PROP_ID);
 
-    if (!this.PROP_COUNT)
-    {
-        this.intERROR = -1;
-        return;
-    }
+	if (!this.PROP_TBL)
+	{
+		this.intERROR = -1;
+		return;
+	}
+	this.PROP_COUNT = BX(this.PROP_COUNT_ID);
 
-    for(var i = 0; i < this.AR_ALL_PROPERTIES.length; i++)
-    {
-        var tmpMap = [];
-        var tmpCheckedMap = [];
-        if(this.AR_ALL_PROPERTIES[i].hasOwnProperty('VALUE'))
-        {
-            for(var j = 0; j < this.AR_ALL_PROPERTIES[i]["VALUE"].length; j++)
-            {
-                tmpMap[this.AR_ALL_PROPERTIES[i]["VALUE"][j]["ID"]] = (this.AR_ALL_PROPERTIES[i]["VALUE"][j]["VALUE"]);
-                tmpCheckedMap[this.AR_ALL_PROPERTIES[i]["VALUE"][j]["ID"]] = 'Y';
-            }
-        }
-        this.PROPERTY_MAP[this.AR_ALL_PROPERTIES[i]["ID"]] = (tmpMap);
-        this.CHECKED_MAP[this.AR_ALL_PROPERTIES[i]["ID"]] = (tmpCheckedMap);
-    }
+	if (!this.PROP_COUNT)
+	{
+		this.intERROR = -1;
+		return;
+	}
+
+	for (i = 0; i < this.AR_ALL_PROPERTIES.length; i++)
+	{
+		tmpMap = [];
+		if (this.AR_ALL_PROPERTIES[i].hasOwnProperty('VALUE'))
+		{
+			for (j = 0; j < this.AR_ALL_PROPERTIES[i]["VALUE"].length; j++)
+				tmpMap[this.AR_ALL_PROPERTIES[i]["VALUE"][j]["ID"]] = (this.AR_ALL_PROPERTIES[i]["VALUE"][j]["VALUE"]);
+		}
+		this.PROPERTY_MAP[this.AR_ALL_PROPERTIES[i]["ID"]] = (tmpMap);
+		this.CHECKED_MAP[this.AR_ALL_PROPERTIES[i]["ID"]] = [];
+	}
 };
 
 JCIBlockGenerator.prototype.addPropertyTable = function(id)
 {
-    if (0 > this.intERROR || BX("property_table"+id))
-        return;
+	if (0 > this.intERROR || BX("property_table"+id))
+		return;
 
-    this.PROP_TBL = BX(this.TABLE_PROP_ID);
+	this.PROP_TBL = BX(this.TABLE_PROP_ID);
 
     var numberOfProperties = Number(BX("generator_property_table_max_id").value);
     if(numberOfProperties && numberOfProperties < this.AR_ALL_PROPERTIES.length && numberOfProperties > 0)
@@ -72,6 +72,7 @@ JCIBlockGenerator.prototype.addPropertyTable = function(id)
 
     var content = BX.create('div', {
         props: {id : 'property_td_'+id, className: 'adm-shop-table-wrap'},
+		style: { verticalAlign: 'top' },
         children: [
             BX.create('table', {
                 props : {
@@ -150,7 +151,7 @@ JCIBlockGenerator.prototype.addPropertyTable = function(id)
                                         props : {
                                             type : "checkbox",
                                             id : "checked_all_"+id,
-                                            checked : true,
+                                            checked : false,
                                             className : "adm-designed-checkbox"
                                         },
                                         events : {
@@ -180,16 +181,8 @@ JCIBlockGenerator.prototype.addPropertyTable = function(id)
 
     this.PROP_TBL.appendChild(content);
     BX("generator_property_table_max_id").value = Number(BX("generator_property_table_max_id").value) + 1;
-    this.AR_ALL_PROPERTIES[id]['USE'] = 'Y';
-    var tmpCheckedMap = [];
-    if(this.AR_ALL_PROPERTIES[id].hasOwnProperty('VALUE'))
-    {
-        for(var j = 0; j < this.AR_ALL_PROPERTIES[id]["VALUE"].length; j++)
-        {
-            tmpCheckedMap[this.AR_ALL_PROPERTIES[id]["VALUE"][j]["ID"]] = 'Y';
-        }
-    }
-    this.CHECKED_MAP[this.AR_ALL_PROPERTIES[id]["ID"]] = (tmpCheckedMap);
+    this.AR_ALL_PROPERTIES[id]['USE'] = 'N';
+	this.CHECKED_MAP[this.AR_ALL_PROPERTIES[id]["ID"]] = [];
     if(BX('property_table'+id) && this.AR_ALL_PROPERTIES[id]["VALUE"])
     {
         for(var i = 0; i < this.AR_ALL_PROPERTIES[id]["VALUE"].length; i++)
@@ -229,7 +222,7 @@ JCIBlockGenerator.prototype.addPropertyTable = function(id)
                                 props : {
                                     type : "checkbox",
                                     id : "PROPERTY_CHECK_"+this.AR_ALL_PROPERTIES[id]["VALUE"][i]['PROPERTY_ID']+"_"+i,
-                                    checked : true,
+                                    checked : false,
                                     name : "PROPERTY_CHECK["+this.AR_ALL_PROPERTIES[id]["VALUE"][i]['PROPERTY_ID']+"]["+this.AR_ALL_PROPERTIES[id]["VALUE"][i]['ID']+"]",
                                     className : "adm-designed-checkbox property_value_checkbox"+id
                                 },
@@ -257,9 +250,10 @@ JCIBlockGenerator.prototype.addPropertyTable = function(id)
 
 JCIBlockGenerator.prototype.deleteTd = function(id)
 {
-    var deleteTd = BX('property_td_'+id);
-    var prevSibling =  BX('property_table'+id).parentNode.previousSibling;
-    var nextSibling = BX('property_table'+id).parentNode.nextSibling;
+	var deleteTd = BX('property_td_'+id),
+		prevSibling =  BX('property_table'+id).parentNode.previousSibling,
+		nextSibling = BX('property_table'+id).parentNode.nextSibling;
+
     if(prevSibling)
         var prevSeparator = BX('property_table'+id).parentNode.previousSibling.className == 'adm-shop-table-increase';
     if(nextSibling)
@@ -357,14 +351,15 @@ JCIBlockGenerator.prototype.checkboxMapManage = function(e)
 
 JCIBlockGenerator.prototype.addPropertyImages = function()
 {
-    this.disableControls();
-    var postData = [];
-    postData["PROPERTY_CHECK"] = this.CHECKED_MAP;
-    postData["PROPERTY_VALUE"] = this.PROPERTY_MAP;
-    postData["AJAX_MODE"] = 'Y';
-    postData["sessid"] = BX.bitrix_sessid();
-    BX.showWait('ib_seg_add_images_button');
-    BX.ajax.post('/bitrix/admin/iblock_subelement_generator.php', postData, BX.proxy(this.fPropertyImagesResult, this));
+	this.disableControls();
+	var postData = {
+		"PROPERTY_CHECK": this.CHECKED_MAP,
+		"PROPERTY_VALUE": this.PROPERTY_MAP,
+		"AJAX_MODE": 'Y',
+		"sessid": BX.bitrix_sessid()
+	};
+	BX.showWait('ib_seg_add_images_button');
+	BX.ajax.post('/bitrix/admin/iblock_subelement_generator.php', postData, BX.proxy(this.fPropertyImagesResult, this));
 };
 
 JCIBlockGenerator.prototype.fPropertyImagesResult = function(result)

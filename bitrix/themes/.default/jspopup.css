@@ -22,7 +22,7 @@ div#bx_admin_form table.edit-form tr.top td.right {border:0px !important; backgr
 div#bx_admin_form table.edit-form tr.bottom td {border-bottom:1px solid #ABB6D7 !important;}
 div#bx_admin_form table.edit-form tr.bottom td.left {border:0px !important; background-image:url(/bitrix/themes/.default/images/edit/lb.gif) !important; height:2px !important; width:2px !important;}
 div#bx_admin_form table.edit-form tr.bottom td.right {border:0px !important; background-image:url(/bitrix/themes/.default/images/edit/rb.gif) !important; height:2px !important; width:2px !important;} */
-div#bx_admin_form table.edit-form td.content {/*padding:7px 2px 2px 2px !important;*/padding: 0px !important;}
+div#bx_admin_form table.edit-form td.content {padding:7px 2px 2px 2px !important;}
 div#bx_admin_form table.edit-form div.buttons {margin:4px 0px 0px 0px !important; padding:5px; background-color:#F8F9FC; background-image:url(/bitrix/themes/.default/images/edit/buttons_bg.gif); border:1px solid #CED6EC; text-align:center !important;}
 
 
@@ -49,7 +49,7 @@ div#bx_admin_form table.edit-tabs td.tab-left-hover div.empty {width:2px; height
 div#bx_admin_form table.edit-tabs td.tab-right-hover div.empty {width:8px; height:21px;  background-position: top left; background-repeat: repeat-x; background-image:url(/bitrix/themes/.default/images/edit/tab_r_hov.gif);}
 div#bx_admin_form table.edit-tabs td.tab-right-last-hover div.empty {width:10px; height:21px;  background-position: top left; background-repeat: repeat-x;  background-image:url(/bitrix/themes/.default/images/edit/tab_r_last_hov.gif);}
 div#bx_admin_form table.edit-tabs td.tab-hover {padding:0px 4px 0px 5px !important; vertical-align:middle !important; height:21px !important; background-position: top left !important; background-repeat: repeat-x !important; background-image:url(/bitrix/themes/.default/images/edit/tab_bg_hov.gif) !important;}
-div#bx_admin_form table.edit-tabs a.context-button {display:block; box-sizing:border-box; -moz-box-sizing:border-box; -webkit-box-sizing:border-box; background-repeat:no-repeat; background-position:3px 3px; height:18px; width:18px; border:0px; margin:1px;}
+div#bx_admin_form table.edit-tabs a.context-button {display:block; box-sizing:border-box; -moz-box-sizing:border-box; background-repeat:no-repeat; background-position:3px 3px; height:18px; width:18px; border:0px; margin:1px;}
 div#bx_admin_form table.edit-tabs a.context-button:hover {width:20px; height:20px; margin:0px; border:1px solid #AEB6C2; background-color:#DBE3F2;}
 
 /* Tab inside edit form */
@@ -86,7 +86,7 @@ div#bx_admin_form table.edit-tab-title td.delimiter-top {background-position:lef
 div#bx_admin_form div.view-tab-container {}
 div#bx_admin_form div.view-tab-container table.edit-tab-title {margin-bottom:5px !important;}
 div#bx_admin_form div.view-tab-content {border:1px solid #ABB6D7; padding:5px; background-color:#F9FAFD; font-size:11px;}
-div#bx_admin_form div.view-tab {height:23px; float:left; bottom:-1px; position:relative; padding:5px; color:#555556; font-size:11px; font-weight:bold; white-space:nowrap; box-sizing:border-box; -moz-box-sizing:border-box; -webkit-box-sizing:border-box;}
+div#bx_admin_form div.view-tab {height:23px; float:left; bottom:-1px; position:relative; padding:5px; color:#555556; font-size:11px; font-weight:bold; white-space:nowrap; box-sizing:border-box; -moz-box-sizing:border-box;}
 div#bx_admin_form div.view-tab-active {border:1px solid #ABB6D7; border-bottom:none; border-top-color:#8B94BA; background-color:#F9FAFD; padding:4px 4px 5px 4px; background-image:url(/bitrix/themes/.default/images/tabs/active_bg.gif); background-position:left top; background-repeat:repeat-x;}
 div#bx_admin_form div.view-tab-delimiter{overflow:hidden; float:left; width:2px; height:13px; background-color:#ABB6D7; margin:6px 0px 4px 0px;}
 div#bx_admin_form div.view-tab-hide-delimiter{background-color:transparent;}
@@ -120,3 +120,4 @@ div#bx_admin_form div.lamp-green-s {background-image:url(/bitrix/themes/.default
 div#bx_admin_form div.lamp-grey {background-image:url(/bitrix/themes/.default/images/lamp/grey.gif);}
 div#bx_admin_form div.lamp-red {background-image:url(/bitrix/themes/.default/images/lamp/red.gif);}
 div#bx_admin_form div.lamp-yellow {background-image:url(/bitrix/themes/.default/images/lamp/yellow.gif);}
+

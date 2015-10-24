@@ -70,7 +70,7 @@ BX.localStorage.prototype.prefix = function()
 {
 	if (!_prefix)
 	{
-		_prefix = 'bx' + BX.message('USER_ID') + '-' + (BX.message('SITE_ID')||'admin') + '-';
+		_prefix = 'bx' + BX.message('USER_ID') + '-' + (BX.message.SITE_ID? BX.message('SITE_ID'): 'admin') + '-';
 	}
 
 	return _prefix;
@@ -478,7 +478,16 @@ if (_support)
 		BX.localStorage.instance();
 	};
 	BX.bind(_target, 'storage', _checkFFnIE8);
-	localStorage.setItem(_key, null);
+
+	try
+	{
+		localStorage.setItem(_key, null);
+	}
+	catch(e)
+	{
+		_support = false;
+		BX.localStorage.instance();
+	}
 }
 else if (BX.browser.IsIE7())
 {
@@ -487,3 +496,4 @@ else if (BX.browser.IsIE7())
 }
 
 })(window);
+

@@ -175,8 +175,8 @@ Init: function(arConfig)
 	this.AddButtons();
 
 	// Check if ALIGN tags allowed
-	this.parseAlign = !!(this.buttonsIndex['Justify'] || this.buttonsIndex['JustifyLeft']);
-	this.parseTable = !!this.buttonsIndex['Table'];
+	this.parseAlign = !this.arConfig.bBBCode || !!(this.buttonsIndex['Justify'] || this.buttonsIndex['JustifyLeft']);
+	this.parseTable = !this.arConfig.bBBCode || !!this.buttonsIndex['Table'];
 
 	if (!this.parseAlign || !this.parseTable)
 	{

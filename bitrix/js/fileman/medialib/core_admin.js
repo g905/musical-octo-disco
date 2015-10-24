@@ -717,7 +717,7 @@ BXMedialibAdmin.prototype =
 			_this = this,
 			D = {
 				width: 360,
-				height: 260,
+				height: 230,
 				pWnd: BX('mlsd_coll'),
 				pTitle: BX('mlsd_coll_title'),
 				pName: BX('mlsd_coll_name'),
@@ -893,6 +893,7 @@ BXMedialibAdmin.prototype =
 		if (oItem.type == 'image' && tmb_path) // For small images
 			tmbImg.style.backgroundImage = 'url(\'' + tmb_path + '\')';
 
+        oItem.trueHeight = Params.Item.height;
 		if (!oItem.thumb_path || !oItem.width || !oItem.height)
 		{
 			BX.addClass(tmbImg, 'ml-item-no-thumb');
@@ -1056,6 +1057,8 @@ BXMedialibAdmin.prototype =
 				pDel: BX('mlsd_viewit_del'),
 				pEdit: BX('mlsd_viewit_edit'),
 				pLink: BX('mlvi_info_link'),
+				pCopyLink: BX('mlvi_info_copy_link'),
+				pCopyInput: BX('mlvi_info_copy_input'),
 				pExt: BX('mlvi_info_ext'),
 
 				Overlay: new BXOverlay({id: 'bxml_viewit_overlay'})
@@ -1084,7 +1087,10 @@ BXMedialibAdmin.prototype =
 	{
 		this.ViewItDialog.bOpened = false;
 		this.ViewItDialog.pWnd.style.display = 'none';
-		jsFloatDiv.Close(this.ViewItDialog.pWnd);
+		this.ViewItDialog.pCopyInput.style.display = 'none';
+        if (player = BX.findChild(BX('mlsd_item_cont'), {"tag" : "div"}, false) && typeof jwplayer !== 'undefined')
+            jwplayer(player.id).stop();
+        jsFloatDiv.Close(this.ViewItDialog.pWnd);
 		this.ViewItDialog.Overlay.Hide();
 		BX.unbind(document, "keypress", window.MlViewItOnKeypress);
 	},
@@ -1104,6 +1110,12 @@ BXMedialibAdmin.prototype =
 		// Link
 		//D.pLink.href = oItem.path;
 		D.pLink.onclick = function () { jsUtils.Redirect([], 'fileman_file_download.php?path='+BX.util.urlencode(oItem.path)); };
+
+        D.pCopyLink.onclick = function() {
+            D.pCopyInput.value = oItem.path.substr(0,1) !== '/' ? oItem.path : window.location.protocol + '//' + window.location.host + oItem.path;
+            D.pCopyInput.style.display = 'block';
+            D.pCopyInput.select();
+        };
 
 		// Keywords
 		if (oItem.keywords.length > 0)
@@ -1143,7 +1155,7 @@ BXMedialibAdmin.prototype =
 		if (oItem.file_size)
 			Details += '<br />' + ML_MESS.FileSize + ': ' + oItem.file_size;
 		if (oItem.width && oItem.height)
-			Details += '<br />' + ML_MESS.ImageSize + ': ' + oItem.width + ' x ' + oItem.height + ' px';
+			Details += '<br />' + ML_MESS.ImageSize + ': ' + oItem.width + ' x ' + oItem.trueHeight + ' px';
 
 		D.pDetails.innerHTML = Details;
 
@@ -1373,7 +1385,7 @@ BXMedialibAdmin.prototype =
 			if (oItem.width && oItem.height)
 			{
 				D.pSize.style.display = 'block';
-				D.pSize.innerHTML = oItem.width + " x " + oItem.height;
+				D.pSize.innerHTML = oItem.width + " x " + oItem.trueHeight;
 			}
 			else
 			{
@@ -1495,6 +1507,7 @@ BXMedialibAdmin.prototype =
 		D.pPCFileCont = D.pFrameDoc.getElementById("mlsd_load_cont");
 		D.pFDFileCont = D.pFrameDoc.getElementById("mlsd_select_cont");
 		D.pLoadFile = D.pFrameDoc.getElementById("ml_load_file");
+        D.pLoadMaxSize = D.pFrameDoc.getElementById("ml_load_max_size");
 		D.pChangeFileLink = D.pFrameDoc.getElementById("mlsd_fname_change");
 		D.pChangeFileLinkBack = D.pFrameDoc.getElementById("mlsd_fname_change_back");
 		D.pLoadPCLink = D.pFrameDoc.getElementById("mlsd_select_pc");
@@ -2063,6 +2076,16 @@ BXMedialibAdmin.prototype =
 
 	CSEditItem: function(arItem, arColls)
 	{
+        if(!arItem)
+        {
+            // Check size
+            if(parseInt(this.EditItemDialog.pLoadFile.files[0].size) > parseInt(this.EditItemDialog.pLoadMaxSize.value))
+            {
+                var fileSize = parseInt(this.EditItemDialog.pLoadMaxSize.value)/(1024*1024);
+                return alert(ML_MESS.ItFileSizeError.replace('#FILESIZE#', fileSize));
+            }
+        }
+
 		if (!arItem || typeof arColls != 'object')
 			return alert(ML_MESS.EditItemError);
 

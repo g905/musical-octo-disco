@@ -17,7 +17,7 @@
 	{
 		BX.frameCache.localStorage = new BX.localStorageIE8();
 	}
-	else if (window.localStorage)
+	else if (typeof(localStorage) !== "undefined")
 	{
 		BX.frameCache.localStorage = new BX.localStorage();
 	}
@@ -108,7 +108,9 @@
 		if (window.frameRequestFail)
 		{
 			BX.ready(function() {
-				BX.onCustomEvent("onFrameDataRequestFail", [window.frameRequestFail]);
+				setTimeout(function() {
+					BX.onCustomEvent("onFrameDataRequestFail", [window.frameRequestFail]);
+				}, 0);
 			});
 		}
 
@@ -268,20 +270,24 @@
 		}
 	};
 
-	BX.frameCache.update = function(makeRequest)
+	BX.frameCache.update = function(makeRequest, noInvoke)
 	{
+		noInvoke = !!noInvoke;
 		makeRequest = typeof(makeRequest) == "undefined" ? true : makeRequest;
 		if (makeRequest)
 		{
 			this.requestData();
 		}
 
-		BX.ready(BX.proxy(function() {
-			if (!this.frameData)
-			{
-				this.invokeCache();
-			}
-		}, this));
+		if (!noInvoke)
+		{
+			BX.ready(BX.proxy(function() {
+				if (!this.frameData)
+				{
+					this.invokeCache();
+				}
+			}, this));
+		}
 	};
 
 	BX.frameCache.invokeCache = function()
@@ -387,18 +393,36 @@
 		}
 		catch (e)
 		{
+			BX.ready(function() {
+				setTimeout(function() {
+					BX.onCustomEvent("onFrameDataRequestFail", [{
+						error: true,
+						reason: "bad_eval",
+						response: response
+					}]);
+				}, 0);
+			});
+
+			return;
+		}
+
+		if (this.frameData && BX.type.isNotEmptyString(this.frameData.redirect_url))
+		{
+			window.location = this.frameData.redirect_url;
+			return;
+		}
+
+		if (this.frameData && this.frameData.error === true)
+		{
 			BX.ready(BX.proxy(function() {
-				BX.onCustomEvent("onFrameDataRequestFail", [{
-					error: true,
-					reason: "bad_eval",
-					response: response
-				}]);
+				setTimeout(BX.proxy(function() {
+					BX.onCustomEvent("onFrameDataRequestFail", [this.frameData]);
+				}, this), 0);
 			}, this));
 
 			return;
 		}
 
-		BX.frameCache.checkRedirect(this.frameData);
 		BX.frameCache.setCompositeVars(this.frameData);
 		BX.ready(BX.proxy(function() {
 			this.handleResponse(this.frameData);
@@ -411,12 +435,19 @@
 		if (!this.frameData)
 		{
 			var items = resultSet.items;
-			for (var i = 0; i < items.length; i++)
+			if (items.length > 0)
 			{
-				items[i].PROPS = JSON.parse(items[i].PROPS);
-			}
+				for (var i = 0; i < items.length; i++)
+				{
+					items[i].PROPS = JSON.parse(items[i].PROPS);
+				}
 
-			this.insertBlocks(items, true);
+				this.insertBlocks(items, true);
+			}
+			else
+			{
+				this.update(true, true);
+			}
 		}
 	};
 
@@ -453,7 +484,7 @@
 			}
 		}
 
-		BX.onCustomEvent("onFrameDataProcessed", [blocks]);
+		BX.onCustomEvent("onFrameDataProcessed", [blocks, fromCache]);
 		this.lastReplacedBlocks = blocks;
 	};
 
@@ -493,6 +524,12 @@
 	BX.frameCache.writeCacheWithID = function(id, content, hash, props)
 	{
 		BX.frameCache.openDatabase();
+
+		if (typeof props == "object")
+		{
+			props = JSON.stringify(props)
+		}
+
 		this.cacheDataBase.getRows(
 			{
 				tableName: this.tableParams.tableName,
@@ -512,7 +549,11 @@
 									},
 									filter: {
 										id: id
+									},
+									fail:function(e){
+										//console.error("Update cache error: ", e);
 									}
+
 								}
 							);
 						}
@@ -521,7 +562,8 @@
 							this.cacheDataBase.addRow(
 								{
 									tableName: this.tableParams.tableName,
-									insertFields: {
+									insertFields:
+									{
 										id: id,
 										content: content,
 										hash: hash,
@@ -544,8 +586,9 @@
 								hash: hash,
 								props : props
 							},
-							success: function(res)
+							fail: function(error)
 							{
+								//console.error("Add cache error: ", error);
 							}
 						}
 					);
@@ -653,15 +696,8 @@
 		}
 	};
 
-	BX.frameCache.checkRedirect = function(response)
-	{
-		if (response && BX.type.isNotEmptyString(response.redirect_url))
-		{
-			window.location = response.redirect_url;
-		}
-	};
-
 	//initialize
 	BX.frameCache.init();
 
 })(window);
+

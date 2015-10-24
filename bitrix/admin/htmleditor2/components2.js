@@ -777,7 +777,7 @@ function BXComponents2Taskbar()
 						};
 					};
 					var oCallBack = getFunction({
-						popertyID : propertyID,
+						propertyID : propertyID,
 						propertyParams: arPropertyParams,
 						//getElements : getComponentParamsElements,
 						getElements : function(){return oTaskbar.GetPropFieldElements(pPropTsb);},

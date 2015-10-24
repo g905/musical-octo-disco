@@ -754,7 +754,6 @@ Hour2Str: function(i, ampm)
 
 CheckClick: function(e)
 {
-	//debugger;
 	if (this.bRecalculateCoordinates || this.bInline)
 		return;
 	if(!e)

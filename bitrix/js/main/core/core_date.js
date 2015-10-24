@@ -1190,7 +1190,7 @@ BX.JCCalendar = function()
 
 		if (!!params && !params.bSaveValue)
 		{
-			this.value.setHours(this.value.getHours() + direction);
+			this.value.setUTCHours(this.value.getUTCHours() + direction);
 		}
 		else if (!isNaN(h))
 		{
@@ -1203,13 +1203,13 @@ BX.JCCalendar = function()
 			}
 
 			bChanged = true;
-			this.value.setHours(h % 24);
+			this.value.setUTCHours(h % 24);
 		}
 
 		if (!isNaN(m))
 		{
 			bChanged = true;
-			this.value.setMinutes(m % 60);
+			this.value.setUTCMinutes(m % 60);
 		}
 
 		if (bChanged)
@@ -1220,7 +1220,7 @@ BX.JCCalendar = function()
 
 	this._set_layer = function()
 	{
-		var layerId = parseInt(this.value.getFullYear() + '' + BX.util.str_pad_left(this.value.getMonth()+'', 2, "0"));
+		var layerId = parseInt(this.value.getUTCFullYear() + '' + BX.util.str_pad_left(this.value.getUTCMonth()+'', 2, "0"));
 
 		if (!this._layers[layerId])
 		{
@@ -1231,7 +1231,7 @@ BX.JCCalendar = function()
 		if (this._current_layer)
 		{
 			var v = new Date(this.value.valueOf());
-			v.setHours(0); v.setMinutes(0);
+			v.setUTCHours(0); v.setUTCMinutes(0);
 
 			var cur_value = BX.findChild(this._layers[layerId], {
 					tag: 'A',
@@ -1324,20 +1324,20 @@ BX.JCCalendar = function()
 		});
 
 		var month_start = new Date(this.value);
-		month_start.setHours(0);
-		month_start.setMinutes(0);
+		month_start.setUTCHours(0);
+		month_start.setUTCMinutes(0);
 
-		month_start.setDate(1);
+		month_start.setUTCDate(1);
 
-		if (month_start.getDay() != this.weekStart)
+		if (month_start.getUTCDay() != this.weekStart)
 		{
-			var d = month_start.getDay() - this.weekStart;
+			var d = month_start.getUTCDay() - this.weekStart;
 			d += d < 0 ? 7 : 0;
-			month_start.setDate(month_start.getDate()-d);
+			month_start.setUTCDate(month_start.getUTCDate()-d);
 		}
 
-		var cur_month = this.value.getMonth(),
-			cur_day = this.value.getDate(),
+		var cur_month = this.value.getUTCMonth(),
+			cur_day = this.value.getUTCDate(),
 			s = '';
 		for (var i = 0; i < this.numRows; i++)
 		{
@@ -1347,11 +1347,11 @@ BX.JCCalendar = function()
 
 			for (var j = 0; j < 7; j++)
 			{
-				d = month_start.getDate();
-				var wd = month_start.getDay();
+				d = month_start.getUTCDate();
+				var wd = month_start.getUTCDay();
 				var className = 'bx-calendar-cell';
 
-				if (cur_month != month_start.getMonth())
+				if (cur_month != month_start.getUTCMonth())
 					className += ' bx-calendar-date-hidden';
 				else if (cur_day == d)
 					className += ' bx-calendar-active';
@@ -1362,7 +1362,7 @@ BX.JCCalendar = function()
 
 				s += '<a href="javascript:void(0)" class="'+className+'" data-date="' + month_start.valueOf() + '">' + d + '</a>';
 
-				month_start.setDate(month_start.getDate()+1);
+				month_start.setUTCDate(month_start.getUTCDate()+1);
 			}
 			s += '</div>';
 		}
@@ -1374,12 +1374,12 @@ BX.JCCalendar = function()
 
 	this._prev = function()
 	{
-		this.SetMonth(this.value.getMonth()-1);
+		this.SetMonth(this.value.getUTCMonth()-1);
 	};
 
 	this._next = function()
 	{
-		this.SetMonth(this.value.getMonth()+1);
+		this.SetMonth(this.value.getUTCMonth()+1);
 	};
 
 	this._menu_month_content = function()
@@ -1390,7 +1390,7 @@ BX.JCCalendar = function()
 			months += '<a href="javascript:void(0)" class="bx-calendar-month'+(i == cur_month ? ' bx-calendar-month-active' : '')+'" onclick="BX.calendar.get().SetMonth('+i+')">'+BX.message('MONTH_' + (i+1))+'</a>';
 		}
 
-		return '<div class="bx-calendar-month-popup"><div class="bx-calendar-month-title" onclick="BX.calendar.get().popup_month.close();">'+BX.message('MONTH_' + (this.value.getMonth()+1))+'</div><div class="bx-calendar-month-content">'+months+'</div></div>';
+		return '<div class="bx-calendar-month-popup"><div class="bx-calendar-month-title" onclick="BX.calendar.get().popup_month.close();">'+BX.message('MONTH_' + (this.value.getUTCMonth()+1))+'</div><div class="bx-calendar-month-content">'+months+'</div></div>';
 	};
 
 	this._menu_month = function()
@@ -1409,12 +1409,12 @@ BX.JCCalendar = function()
 				}
 			);
 
-			this.popup_month.BXMONTH = this.value.getMonth();
+			this.popup_month.BXMONTH = this.value.getUTCMonth();
 		}
-		else if (this.popup_month.BXMONTH != this.value.getMonth())
+		else if (this.popup_month.BXMONTH != this.value.getUTCMonth())
 		{
 			this.popup_month.setContent(this._menu_month_content());
-			this.popup_month.BXMONTH = this.value.getMonth();
+			this.popup_month.BXMONTH = this.value.getUTCMonth();
 		}
 
 		this.popup_month.show();
@@ -1422,11 +1422,11 @@ BX.JCCalendar = function()
 
 	this._menu_year_content = function()
 	{
-		var s = '<div class="bx-calendar-year-popup"><div class="bx-calendar-year-title" onclick="BX.calendar.get().popup_year.close();">'+this.value.getFullYear()+'</div><div class="bx-calendar-year-content" id="bx-calendar-year-content">';
+		var s = '<div class="bx-calendar-year-popup"><div class="bx-calendar-year-title" onclick="BX.calendar.get().popup_year.close();">'+this.value.getUTCFullYear()+'</div><div class="bx-calendar-year-content" id="bx-calendar-year-content">';
 
 		for (var i=-3; i <= 3; i++)
 		{
-			s += '<a href="javascript:void(0)" class="bx-calendar-year-number'+(i==0?' bx-calendar-year-active':'')+'" onclick="BX.calendar.get().SetYear('+(this.value.getFullYear()-i)+')">'+(this.value.getFullYear()-i)+'</a>';
+			s += '<a href="javascript:void(0)" class="bx-calendar-year-number'+(i==0?' bx-calendar-year-active':'')+'" onclick="BX.calendar.get().SetYear('+(this.value.getUTCFullYear()-i)+')">'+(this.value.getUTCFullYear()-i)+'</a>';
 		}
 
 		s += '</div><input type="text" class="bx-calendar-year-input" onkeyup="if(this.value>=1900&&this.value<=2100)BX.calendar.get().SetYear(this.value);" maxlength="4" /></div>';
@@ -1450,12 +1450,12 @@ BX.JCCalendar = function()
 				}
 			);
 
-			this.popup_year.BXYEAR = this.value.getFullYear();
+			this.popup_year.BXYEAR = this.value.getUTCFullYear();
 		}
-		else if (this.popup_year.BXYEAR != this.value.getFullYear())
+		else if (this.popup_year.BXYEAR != this.value.getUTCFullYear())
 		{
 			this.popup_year.setContent(this._menu_year_content());
-			this.popup_year.BXYEAR = this.value.getFullYear();
+			this.popup_year.BXYEAR = this.value.getUTCFullYear();
 		}
 
 		this.popup_year.show();
@@ -1463,26 +1463,29 @@ BX.JCCalendar = function()
 
 	this._check_date = function(v)
 	{
-		if (BX.type.isString(v))
-			v = BX.parseDate(v);
+		var res = v;
 
-		if (!BX.type.isDate(v) || isNaN(v.valueOf()))
+		if (BX.type.isString(v))
 		{
-			v = new Date();
+			res = BX.parseDate(v, true);
+		}
+
+		if (!BX.type.isDate(res) || isNaN(res.valueOf()))
+		{
+			res = BX.date.convertToUTC(new Date());
 			if (this.params.bHideTime)
 			{
-				v.setHours(0);
-				v.setMinutes(0);
+				res.setUTCHours(0);
+				res.setUTCMinutes(0);
 			}
 		}
 
-		//v = BX.date.convertToUTC(v);
-		v.setMilliseconds(0);
-		v.setSeconds(0);
+		res.setUTCMilliseconds(0);
+		res.setUTCSeconds(0);
 
-		v.BXCHECKED = true;
+		res.BXCHECKED = true;
 
-		return v;
+		return res;
 	};
 };
 
@@ -1578,12 +1581,12 @@ BX.JCCalendar.prototype.Show = function(params)
 	if (this.params.value)
 	{
 		this.SetValue(this.params.value);
-		bHideTime = this.value.getHours() <= 0 && this.value.getMinutes() <= 0;
+		bHideTime = this.value.getUTCHours() <= 0 && this.value.getUTCMinutes() <= 0;
 	}
 	else if (this.params.field)
 	{
 		this.SetValue(this.params.field.value);
-		bHideTime = this.value.getHours() <= 0 && this.value.getMinutes() <= 0;
+		bHideTime = this.value.getUTCHours() <= 0 && this.value.getUTCMinutes() <= 0;
 	}
 	else if (!!this.params.currentTime)
 	{
@@ -1591,7 +1594,7 @@ BX.JCCalendar.prototype.Show = function(params)
 	}
 	else
 	{
-		this.SetValue(new Date());
+		this.SetValue();
 	}
 
 	if (!!this.params.bTime)
@@ -1620,7 +1623,7 @@ BX.JCCalendar.prototype.Show = function(params)
 
 BX.JCCalendar.prototype.SetDay = function(d)
 {
-	this.value.setDate(d);
+	this.value.setUTCDate(d);
 	return this.SetValue(this.value);
 };
 
@@ -1629,16 +1632,16 @@ BX.JCCalendar.prototype.SetMonth = function(m)
 	if (this.popup_month)
 		this.popup_month.close();
 
-	this.value.setMonth(m);
+	this.value.setUTCMonth(m);
 
 	if(m < 0)
 		m += 12;
 	else if (m >= 12)
 		m -= 12;
 
-	while(this.value.getMonth() > m)
+	while(this.value.getUTCMonth() > m)
 	{
-		this.value.setDate(this.value.getDate()-1);
+		this.value.setUTCDate(this.value.getUTCDate()-1);
 	}
 
 	return this.SetValue(this.value);
@@ -1648,16 +1651,16 @@ BX.JCCalendar.prototype.SetYear = function(y)
 {
 	if (this.popup_year)
 		this.popup_year.close();
-	this.value.setFullYear(y);
+	this.value.setUTCFullYear(y);
 	return this.SetValue(this.value);
 };
 
 BX.JCCalendar.prototype.SetDate = function(v, bSet)
 {
 	v = this._check_date(v);
-	v.setHours(this.value.getHours());
-	v.setMinutes(this.value.getMinutes());
-	v.setSeconds(this.value.getSeconds());
+	v.setUTCHours(this.value.getUTCHours());
+	v.setUTCMinutes(this.value.getUTCMinutes());
+	v.setUTCSeconds(this.value.getUTCSeconds());
 
 	if (this.params.bTime && !bSet)
 	{
@@ -1674,12 +1677,12 @@ BX.JCCalendar.prototype.SetValue = function(v)
 {
 	this.value = (v && v.BXCHECKED) ? v : this._check_date(v);
 
-	this.PARTS.MONTH.innerHTML = BX.message('MONTH_' + (this.value.getMonth()+1));
-	this.PARTS.YEAR.innerHTML = this.value.getFullYear();
+	this.PARTS.MONTH.innerHTML = BX.message('MONTH_' + (this.value.getUTCMonth()+1));
+	this.PARTS.YEAR.innerHTML = this.value.getUTCFullYear();
 
 	if (!!this.params.bTime)
 	{
-		var h = this.value.getHours();
+		var h = this.value.getUTCHours();
 		if (this.bAmPm)
 		{
 			if (h >= 12)
@@ -1699,7 +1702,7 @@ BX.JCCalendar.prototype.SetValue = function(v)
 		}
 
 		this.PARTS.TIME_INPUT_H.value = BX.util.str_pad_left(h.toString(), 2, "0");
-		this.PARTS.TIME_INPUT_M.value = BX.util.str_pad_left(this.value.getMinutes().toString(), 2, "0");
+		this.PARTS.TIME_INPUT_M.value = BX.util.str_pad_left(this.value.getUTCMinutes().toString(), 2, "0");
 	}
 
 	this._set_layer();
@@ -1717,7 +1720,7 @@ BX.JCCalendar.prototype.SaveValue = function()
 	var bSetValue = true;
 	if (!!this.params.callback)
 	{
-		var res = this.params.callback.apply(this, [this.value]);
+		var res = this.params.callback.apply(this, [new Date(this.value.valueOf()+this.value.getTimezoneOffset()*60000)]);
 		if (res === false)
 			bSetValue = false;
 	}
@@ -1728,7 +1731,7 @@ BX.JCCalendar.prototype.SaveValue = function()
 
 		if (this.params.field)
 		{
-			this.params.field.value = BX.calendar.ValueToString(this.value, bTime);
+			this.params.field.value = BX.calendar.ValueToString(this.value, bTime, true);
 			BX.fireEvent(this.params.field, 'change');
 		}
 
@@ -1736,7 +1739,7 @@ BX.JCCalendar.prototype.SaveValue = function()
 
 		if (!!this.params.callback_after)
 		{
-			this.params.callback_after.apply(this, [this.value, bTime]);
+			this.params.callback_after.apply(this, [new Date(this.value.valueOf()+this.value.getTimezoneOffset()*60000), bTime]);
 		}
 	}
 

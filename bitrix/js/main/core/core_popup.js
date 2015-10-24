@@ -275,6 +275,8 @@ BX.PopupWindow.prototype.getBindElementPos = function(bindElement)
 		var popupWidth = this.popupContainer.offsetWidth;
 		var popupHeight = this.popupContainer.offsetHeight;
 
+		this.bindOptions.forceTop = true;
+
 		return {
 			left : windowSize.innerWidth/2 - popupWidth/2 + windowScroll.scrollLeft,
 			top : windowSize.innerHeight/2 - popupHeight/2 + windowScroll.scrollTop,
@@ -536,10 +538,13 @@ BX.PopupWindow.prototype.show = function()
 	{
 		setTimeout(
 			BX.proxy(function() {
-				this.isAutoHideBinded = true;
-				BX.bind(this.popupContainer, "click", this.cancelBubble);
-				BX.bind(document, "click", BX.proxy(this.close, this));
-			}, this), 0
+				if (this.isShown())
+				{
+					this.isAutoHideBinded = true;
+					BX.bind(this.popupContainer, "click", this.cancelBubble);
+					BX.bind(document, "click", BX.proxy(this.close, this));
+				}
+			}, this), 100
 		);
 	}
 };
@@ -1042,7 +1047,7 @@ BX.PopupMenuWindow.prototype.__createItem = function(item, position)
 	{
 		item.layout.item = BX.create(!!item.href ? "a" : "span", {
 			props : { className: "menu-popup-item" +  (BX.type.isNotEmptyString(item.className) ? " " + item.className : " menu-popup-no-icon")},
-			attrs : { title : item.title ? item.title : "", onclick: item.onclick && BX.type.isString(item.onclick) ? item.onclick : "" },
+			attrs : { title : item.title ? item.title : "", onclick: item.onclick && BX.type.isString(item.onclick) ? item.onclick : "", target : item.target ? item.target : "" },
 			events : item.onclick && BX.type.isFunction(item.onclick) ? { click : BX.proxy(this.onItemClick, {obj : this, item : item }) } : null,
 			children : [
 				BX.create("span", { props : { className: "menu-popup-item-left"} }),
@@ -1473,3 +1478,4 @@ function _checkEscPressed(zIndex, callback)
 
 
 })(window);
+

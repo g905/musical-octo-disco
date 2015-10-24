@@ -1118,3 +1118,4 @@ BX.ready(function() {
 //BX.addCustomEvent('onWindowUnRegister', BX.admin.panel.setZIndex);
 
 })(window);
+

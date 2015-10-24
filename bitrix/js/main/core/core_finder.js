@@ -22,19 +22,48 @@ BX.Finder = function(container, context, panels, lang)
 	BX.Finder.disabledElement = [];
 	BX.Finder.searchTimeout = null;
 	BX.Finder.loadPlace = {};
-	
+
 	if (BX.Finder.context == 'access')
-	{	
+	{
 		BX.Finder.elements = BX.findChildren(container, { className : "bx-finder-element" }, true);
 		for (var i = 0; i < BX.Finder.elements.length; i++)
 		{
 			BX.Finder.mapElements[i] = BX.Finder.elements[i].getAttribute('rel');
 			BX.Finder.onDisableItem(i);
 		}
-			
+
 		BX.addCustomEvent(BX.Access, "onSelectProvider", BX.Finder.onSelectProvider);
 		BX.addCustomEvent(BX.Access, "onDeleteItem", BX.Finder.onDeleteItem);
 		BX.addCustomEvent(BX.Access, "onAfterPopupShow", BX.Finder.onAfterPopupShow);
+	}
+
+	BX.Finder.dBScheme = {
+		stores: [
+			{
+				name: 'users',
+				autoIncrement: true,
+				indexes: [
+					{
+						name: 'id',
+						keyPath: 'id',
+						unique: true
+					},
+					{
+						name: 'checksum',
+						keyPath: 'checksum',
+						unique: true
+					}
+				]
+			}
+		],
+		version: "1"
+	};
+
+	BX.Finder.dBVersion = false;
+
+	if (BX.Finder.context == 'destination')
+	{
+		BX.addCustomEvent("initFinderDb", BX.Finder.checkInitFinderDb);
 	}
 }
 
@@ -93,7 +122,7 @@ BX.Finder.onAddItem = function(provider, type, element)
 	{
 		elementTextBox = BX.findChild(element, { className : "bx-finder-company-department-check-text" }, true);
 	}
-	
+
 	if (type == 'structure-checkbox')
 		elementText = elementTextBox.getAttribute('rel');
 	else
@@ -123,7 +152,7 @@ BX.Finder.onDeleteItem = function(arParams)
 BX.Finder.onAfterPopupShow = function()
 {
 	if (BX.Finder.context == 'access')
-	{			
+	{
 		for (var i = 0; i < BX.Finder.mapElements.length; i++)
 			BX.Finder.onDisableItem(i);
 
@@ -174,7 +203,7 @@ BX.Finder.onUnDisableItem = function()
 	{
 		if (typeof(BX.Finder.disabledId[i]) == 'undefined')
 			continue;
-			
+
 		if (BX.Finder.context == 'access' && !BX.Access.showSelected && BX.Access.obAlreadySelected[BX.Finder.disabledId[i]])
 			continue;
 
@@ -189,16 +218,16 @@ BX.Finder.onUnDisableItem = function()
 BX.Finder.SwitchTab = function(currentTab, bSearchFocus)
 {
 	var tabsContent = BX.findChildren(
-		BX.findChild(currentTab.parentNode.parentNode, { tagName : "div", className : "bx-finder-box-tabs-content"}),
+		BX.findChild(currentTab.parentNode.parentNode, { tagName : "td", className : "bx-finder-box-tabs-content-cell"}, true),
 		{ tagName : "div" }
 	);
 
 	if (!tabsContent)
 		return false;
-		
+
 	if (bSearchFocus !== false)
 		bSearchFocus = true;
-		
+
 	var tabIndex = 0;
 	var tabs = BX.findChildren(currentTab.parentNode, { tagName : "a" });
 	for (var i = 0; i < tabs.length; i++)
@@ -233,9 +262,9 @@ BX.Finder.OpenCompanyDepartment = function(provider, id, department)
 		BX.toggleClass(nextDiv, "bx-finder-company-department-children-opened");
 
 	if (!BX.Finder.loadPlace[id])
-	{	
+	{
 		BX.Finder.loadPlace[id] = BX.findChild(nextDiv, { className : "bx-finder-company-department-employees" });
-			
+
 		if (BX.Finder.context == 'access')
 			var ajaxSendUrl = '/bitrix/tools/access_dialog.php';
 		else
@@ -251,20 +280,20 @@ BX.Finder.OpenCompanyDepartment = function(provider, id, department)
 			data: {'mode': 'ajax', 'action' : 'structure-item', 'provider' : provider, 'item' : id, 'sessid': BX.bitrix_sessid(), 'site_id': BX.message('SITE_ID')||''},
 			onsuccess: function(data)	{
 				BX.Finder.loadPlace[id].innerHTML = data;
-							
+
 				newElements = BX.findChildren(BX.Finder.loadPlace[id], { className : "bx-finder-element" }, true);
 				for (var i = 0; i < newElements.length; i++)
-				{	
+				{
 					BX.Finder.elements.push(newElements[i]);
 					BX.Finder.mapElements.push(newElements[i].getAttribute('rel'));
 					BX.Finder.onDisableItem(BX.Finder.mapElements.length-1);
 				}
-				
+
 			},
-			onfailure: function(data)	{} 
+			onfailure: function(data)	{}
 		});
 	}
-	
+
 	return false;
 }
 
@@ -275,7 +304,7 @@ BX.Finder.OpenItemFolder = function(department)
 	var nextDiv = BX.findNextSibling(department, { tagName : "div"} );
 	if (BX.hasClass(nextDiv, "bx-finder-company-department-children"))
 		BX.toggleClass(nextDiv, "bx-finder-company-department-children-opened");
-	
+
 	return false;
 }
 
@@ -284,10 +313,10 @@ BX.Finder.Search = function(element, provider)
 
 	if (!BX.Finder.searchTab[provider])
 		BX.Finder.searchTab[provider] = BX.findChild(element.parentNode.parentNode, { className : "bx-finder-box-tab-search" }, true);
-		
+
 	BX.Finder.SwitchTab(BX.Finder.searchTab[provider], false);
-	
-	
+
+
 	if (!BX.Finder.searchPanel[provider])
 		BX.Finder.searchPanel[provider] = BX.findChild(element.parentNode.parentNode, { className : "bx-finder-box-tab-content-selected" }, true);
 
@@ -298,7 +327,7 @@ BX.Finder.Search = function(element, provider)
 		var ajaxSendUrl = location.href.split('#');
 		ajaxSendUrl = ajaxSendUrl[0];
 	}
-	
+
 	clearTimeout(BX.Finder.searchTimeout);
 	if (element.value != '')
 	{
@@ -328,10 +357,10 @@ BX.Finder.Search = function(element, provider)
 					else
 					{
 						BX.Finder.searchPanel[provider].innerHTML = data;
-						
+
 						newElements = BX.findChildren(BX.Finder.searchPanel[provider], { className : "bx-finder-element" }, true);
 						for (var i = 0; i < newElements.length; i++)
-						{	
+						{
 							BX.Finder.elements.push(newElements[i]);
 							BX.Finder.mapElements.push(newElements[i].getAttribute('rel'));
 							BX.Finder.onDisableItem(BX.Finder.mapElements.length-1);
@@ -339,9 +368,221 @@ BX.Finder.Search = function(element, provider)
 					}
 					clearTimeout(BX.Finder.searchTimeout);
 				},
-				onfailure: function(data)	{} 
+				onfailure: function(data)	{}
 			});
 		}, 500);
 	}
 }
+
+BX.Finder.checkInitFinderDb = function(obDestination, name, version)
+{
+	if (
+		typeof version == 'undefined'
+		|| parseInt(version) <= 0
+	)
+	{
+		version = 2;
+	}
+
+	BX.Finder.dBVersion = parseInt(version);
+
+	BX.indexedDB({
+		name: 'BX.Finder' + BX.Finder.dBVersion + '.' + BX.message('USER_ID'),
+		oScheme: BX.Finder.dBScheme.stores,
+		version: BX.Finder.dBScheme.version,
+		callback: function (dbObject)
+		{
+			if (typeof dbObject == 'object')
+			{
+				obDestination.obClientDb = dbObject;
+
+				BX.indexedDB.count(dbObject, 'users', {
+					callback: function(count)
+					{
+						if (parseInt(count) > 0) // already not empty
+						{
+							BX.Finder.initFinderDb(obDestination);
+						}
+						else
+						{
+							BX.addCustomEvent("onFinderAjaxLoadAll", BX.Finder.onFinderAjaxLoadAll);
+
+							BX.Finder.loadAll({
+								ob: obDestination,
+								name: name,
+								callback: function()
+								{
+									BX.Finder.initFinderDb(obDestination);
+
+									if (BX.Finder.dBVersion > 1)
+									{
+										for (var i = 1; i < BX.Finder.dBVersion; i++)
+										{
+											BX.indexedDB.deleteDatabase('BX.Finder' + i + '.' + BX.message('USER_ID'))
+										}
+									}
+								}
+							});
+						}
+					}
+				});
+			}
+		}
+	});
+}
+
+BX.Finder.initFinderDb = function(obDestination)
+{
+	BX.indexedDB({
+		name: 'BX.Finder' + BX.Finder.dBVersion + '.' + BX.message('USER_ID'),
+		oScheme: BX.Finder.dBScheme.stores,
+		version: BX.Finder.dBScheme.version,
+		callback: function(dbObject)
+		{
+			if (typeof dbObject == 'object')
+			{
+				BX.indexedDB.openCursor(dbObject, 'users', {}, {
+					callback: function(cursorValue)
+					{
+						if (typeof obDestination.obClientDbData.users == 'undefined')
+						{
+							obDestination.obClientDbData.users = {};
+							BX.addCustomEvent("findEntityByName", BX.Finder.findEntityByName);
+							BX.addCustomEvent("syncClientDb", BX.Finder.syncClientDb);
+							BX.addCustomEvent("removeClientDbObject", BX.Finder.removeClientDbObject);
+						}
+
+						obDestination.obClientDbData.users[cursorValue.id] = cursorValue;
+						BX.Finder.addSearchIndex(obDestination, cursorValue);
+					}
+				});
+
+				BX.addCustomEvent("onFinderAjaxSuccess", BX.Finder.onFinderAjaxSuccess);
+			}
+		}
+	});
+}
+
+BX.Finder.addSearchIndex = function(obDestination, ob)
+{
+	var partsSearchText = ob.name.toLowerCase().split(" ");
+	for (var i in partsSearchText)
+	{
+		if (typeof obDestination.obClientDbDataSearchIndex[partsSearchText[i]] == 'undefined')
+		{
+			obDestination.obClientDbDataSearchIndex[partsSearchText[i]] = [];
+		}
+
+		if (!BX.util.in_array(ob.id, partsSearchText[i]))
+		{
+			obDestination.obClientDbDataSearchIndex[partsSearchText[i]].push(ob.id);
+		}
+	}
+}
+
+BX.Finder.findEntityByName = function(obDestination, obSearch, oParams, oResult)
+{
+	var keysFiltered = Object.keys(obDestination.obClientDbDataSearchIndex).filter(function(key) {
+		return (key.indexOf(obSearch.searchString) === 0);
+	});
+
+	if (
+		keysFiltered.length <= 0
+		&& BX.message('LANGUAGE_ID') == 'ru'
+		&& BX.correctText
+	)
+	{
+		obSearch.searchString = BX.correctText(obSearch.searchString);
+		keysFiltered = Object.keys(obDestination.obClientDbDataSearchIndex).filter(function(key) {
+			return (key.indexOf(obSearch.searchString) === 0);
+		});
+	}
+
+	var arResult = [];
+	for (var key in keysFiltered)
+	{
+		BX.util.array_merge(arResult, obDestination.obClientDbDataSearchIndex[keysFiltered[key]]);
+	}
+
+	oResult[obSearch.searchString] = BX.util.array_unique(arResult);
+}
+
+BX.Finder.onFinderAjaxSuccess = function(data, obDestination)
+{
+	if (typeof data.USERS != 'undefined')
+	{
+		for (var key in data.USERS)
+		{
+			oUser = data.USERS[key];
+			if (
+				typeof obDestination.obClientDbData.users == 'undefined'
+				|| typeof obDestination.obClientDbData.users[oUser.id] == 'undefined'
+				|| obDestination.obClientDbData.users[oUser.id].checksum != oUser.checksum
+			)
+			{
+				BX.indexedDB.updateValue(obDestination.obClientDb, 'users', oUser);
+
+				if (typeof obDestination.obClientDbData.users == 'undefined')
+				{
+					obDestination.obClientDbData.users = [];
+				}
+				obDestination.obClientDbData.users[oUser.id] = oUser;
+				BX.Finder.addSearchIndex(obDestination, oUser);
+			}
+		}
+	}
+}
+
+BX.Finder.onFinderAjaxLoadAll = function(data, obDestination)
+{
+	if (typeof data.USERS != 'undefined')
+	{
+		for (var key in data.USERS)
+		{
+			oUser = data.USERS[key];
+			BX.indexedDB.updateValue(obDestination.obClientDb, 'users', oUser);
+		}
+	}
+}
+
+
+BX.Finder.syncClientDb = function(obDestination, name, oDbData, oAjaxData)
+{
+	if (
+		typeof oDbData != 'undefined'
+		&& typeof oAjaxData != 'undefined'
+	)
+	{
+		for (var key in oDbData)
+		{
+			if (!BX.util.in_array(oDbData[key], oAjaxData))
+			{
+				BX.indexedDB.deleteValueByIndex(obDestination.obClientDb, 'users', 'id', oDbData[key], {});
+				delete obDestination.obItems[name].users[oDbData[key]];
+				obDestination.deleteItem(oDbData[key], 'users', name);
+			}
+		}
+	}
+}
+
+BX.Finder.removeClientDbObject = function(obDestination, id, type)
+{
+	if (
+		typeof type != 'undefined'
+		&& type == 'users'
+	)
+	{
+		BX.indexedDB.deleteValueByIndex(obDestination.obClientDb, 'users', 'id', id, {});
+	}
+}
+
+BX.Finder.loadAll = function(params)
+{
+	BX.onCustomEvent('loadAllFinderDb', [ params ]);
+	if (typeof BX.SocNetLogDestination.loadAll != 'function')
+	{
+		BX.Finder.initFinderDb(params.ob);
+	}
+}
+
 })(window);

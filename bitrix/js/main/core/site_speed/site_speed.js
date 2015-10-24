@@ -6,7 +6,7 @@ BX.Main.SiteSpeed = (function() {
 	var SiteSpeed = function(privateKey, accountId) {
 		this.privateKey = privateKey;
 		this.accountId = accountId;
-		this.statServerUrl = "http://www.1c-bitrix.ru/buy_tmp/ba.php";
+		this.statServerUrl = document.location.protocol + "//www.1c-bitrix.ru/buy_tmp/ba.php";
 		this.invervals = [
 			{ title : BX.message("JS_SITE_SPEED_VERY_FAST"), color: "#d0df6c", inverval : 500},
 			{ title : BX.message("JS_SITE_SPEED_FAST"), color: "#b3c636", inverval : 1000},
@@ -181,6 +181,10 @@ BX.Main.SiteSpeed = (function() {
 			"pathToImages":"/bitrix/js/main/amcharts/3.3/images/",
 			"dataProvider": dataProvider,
 			"startDuration": 1,
+			"balloon": {
+				"maxWidth": 700,
+				"textAlign": "left"
+			},
 			"graphs": [{
 				"balloonText": "<b>[[category]]: [[value]]</b>",
 				"balloonFunction" : BX.proxy(function(dataItem, amGraph) {
@@ -330,6 +334,10 @@ BX.Main.SiteSpeed = (function() {
 				}]
 			},
 			"dataProvider": data,
+			"balloon": {
+				"maxWidth": 700,
+				"textAlign": "left"
+			},
 			"graphs": [
 				{
 					"hidden": true,
@@ -473,11 +481,11 @@ BX.Main.SiteSpeed = (function() {
 
 		table +=
 			'<tr>' +
-				'<th>' + BX.message("JS_SITE_SPEED_PAGE") + '</th>' +
-				'<th>' + BX.message("JS_SITE_SPEED_INTERACTIVE") + '</th>' +
-				'<th>' + BX.message("JS_SITE_SPEED_RESPONSE") + '</th>' +
-				'<th>' + BX.message("JS_SITE_SPEED_PROCESSING") + '</th>' +
-				'<th>' + BX.message("JS_SITE_SPEED_COMPOSITE") + '</th>' +
+				'<th class="site-speed-page-column">' + BX.message("JS_SITE_SPEED_PAGE") + '</th>' +
+				'<th class="site-speed-interactive-column">' + BX.message("JS_SITE_SPEED_INTERACTIVE") + '</th>' +
+				'<th class="site-speed-response-column">' + BX.message("JS_SITE_SPEED_RESPONSE") + '</th>' +
+				'<th class="site-speed-processing-column">' + BX.message("JS_SITE_SPEED_PROCESSING") + '</th>' +
+				'<th class="site-speed-composite-column">' + BX.message("JS_SITE_SPEED_COMPOSITE") + '</th>' +
 				'</tr>';
 
 		hits.sort(function(a, b) {
@@ -500,11 +508,11 @@ BX.Main.SiteSpeed = (function() {
 			var hit = hits[i];
 			table +=
 				'<tr>' +
-					'<td><b>' + (i+1) + '.&nbsp;' + BX.util.htmlspecialchars(decodeURIComponent(hit["ru"])) + '</b></td>' +
-					'<td>' + BX.Main.SiteSpeed.formatMilliseconds(hit["dit"], 3) + '</td>' +
-					'<td>' + BX.Main.SiteSpeed.formatMilliseconds(hit["srt"], 3) + '</td>' +
-					'<td>' + BX.Main.SiteSpeed.formatMilliseconds(hit["prc"], 3) + '</td>' +
-					'<td>' + (hit["com"] == 1 ? BX.message("JS_SITE_SPEED_COMPOSITE_YES") : BX.message("JS_SITE_SPEED_COMPOSITE_NO")) + '</td>' +
+					'<td class="site-speed-page-column">' + (i+1) + '.&nbsp;' + BX.util.htmlspecialchars(decodeURIComponent(hit["ru"])) + '</td>' +
+					'<td class="site-speed-interactive-column">' + BX.Main.SiteSpeed.formatMilliseconds(hit["dit"], 3) + '</td>' +
+					'<td class="site-speed-response-column">' + BX.Main.SiteSpeed.formatMilliseconds(hit["srt"], 3) + '</td>' +
+					'<td class="site-speed-processing-column">' + BX.Main.SiteSpeed.formatMilliseconds(hit["prc"], 3) + '</td>' +
+					'<td class="site-speed-composite-column">' + (hit["com"] == 1 ? BX.message("JS_SITE_SPEED_COMPOSITE_YES") : BX.message("JS_SITE_SPEED_COMPOSITE_NO")) + '</td>' +
 					'</tr>';
 		}
 		table += '</table>';

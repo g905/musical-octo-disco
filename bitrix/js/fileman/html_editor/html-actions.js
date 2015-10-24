@@ -101,7 +101,7 @@
 
 			if (!bSilent)
 			{
-				this.editor.On("OnBeforeCommandExec", [isContentAction]);
+				this.editor.On("OnBeforeCommandExec", [isContentAction, action, oAction]);
 			}
 
 			if (isContentAction)
@@ -128,7 +128,7 @@
 
 			if (!bSilent)
 			{
-				this.editor.On("OnAfterCommandExec", [isContentAction]);
+				this.editor.On("OnAfterCommandExec", [isContentAction, action]);
 			}
 
 			return result;
@@ -216,6 +216,7 @@
 				insertLineBreak: this.GetInsertLineBreak(),
 				insertTable: this.GetInsertTable(),
 				removeLink: this.GetRemoveLink(),
+				insertHr: this.GetInsertHr(),
 				// Lists
 				insertOrderedList: this.GetInsertList({bOrdered: true}),
 				insertUnorderedList: this.GetInsertList({bOrdered: false}),
@@ -236,6 +237,7 @@
 				quote: this.GetQuote(),
 				code: this.GetCode(),
 				insertSmile: this.GetInsertSmile(),
+				tableOperation: this.GetTableOperation(),
 
 				// Bbcodes actions
 				formatBbCode: this.GetFormatBbCode()
@@ -574,7 +576,7 @@
 					}
 					if (className)
 					{
-						BX.addClass(node, className);
+						node.className = className;
 					}
 					if (arStyle && arStyle.length > 0)
 					{
@@ -606,8 +608,10 @@
 
 					if (blockElement) // Same block element
 					{
+						var wholeBlockSelected = range.startContainer == blockElement.firstChild && range.endContainer == blockElement.lastChild;
+
 						// Divs and blockquotes can be inside each other
-						if (BX.util.in_array(nodeName, nestedBlockTags))
+						if (BX.util.in_array(nodeName, nestedBlockTags) && params.nestedBlocks !== false)
 						{
 							// create new div
 							blockElement = _this.document.createElement(nodeName || DEFAULT_NODE_NAME);
@@ -619,14 +623,83 @@
 							// Select line with wrap
 							_this.editor.selection.Surround(blockElement);
 							_this.editor.selection.SelectNode(blockElement);
+							_this.editor.util.SetCss(blockElement, arStyle);
+
+							var nextBr = _this.editor.util.GetNextNotEmptySibling(blockElement);
+							if (nextBr && nextBr.nodeName == 'BR')
+								BX.remove(nextBr);
+
+							setTimeout(function()
+							{
+								if (blockElement)
+								{
+									_this.editor.selection.SelectNode(blockElement);
+								}
+							}, 50);
+						}
+						else if (params && params.splitBlock && !wholeBlockSelected)
+						{
+							var childBlock = _this.document.createElement(nodeName || DEFAULT_NODE_NAME);
+
+							_this.editor.selection.Surround(childBlock);
+							_this.editor.selection.SelectNode(childBlock);
+
+							if (className)
+								childBlock.className = className;
+
+							_this.editor.util.SetCss(childBlock, arStyle);
+
+							if (blockElement && blockElement.lastChild)
+							{
+								var _range = range.cloneRange();
+								_range.setStartAfter(childBlock);
+								_range.setEndAfter(blockElement.lastChild);
+
+								var afterBlock = blockElement.cloneNode(false);
+								_this.editor.selection.SetSelection(_range);
+								_this.editor.selection.Surround(afterBlock);
+
+								var firstBr = _this.editor.selection._GetNonTextFirstChild(afterBlock);
+								if (firstBr && firstBr.nodeName == 'BR')
+									BX.remove(firstBr);
+							}
+
+							_this.editor.selection.SetSelection(range);
+
+							setTimeout(function()
+							{
+								if (childBlock)
+								{
+									_this.editor.selection.SelectNode(childBlock);
+								}
+							}, 50);
 						}
 						else
 						{
 							_this.editor.util.SetCss(blockElement, arStyle);
+							if (className)
+							{
+								blockElement.className = className;
+
+								// Bug workaround for bug with rendering in Firefox
+								if (BX.browser.IsFirefox())
+								{
+									var tmpId = "bx-editor-temp-" + Math.round(Math.random() * 1000000);
+									blockElement.id = tmpId;
+									blockElement.parentNode.innerHTML = blockElement.parentNode.innerHTML;
+									blockElement = _this.editor.GetIframeElement(tmpId);
+									if (blockElement)
+										blockElement.removeAttribute("id");
+								}
+							}
+
 							setTimeout(function()
 							{
-								_this.editor.selection.SelectNode(blockElement);
-							}, 10);
+								if (blockElement)
+								{
+									_this.editor.selection.SelectNode(blockElement);
+								}
+							}, 50);
 						}
 					}
 					else
@@ -634,7 +707,6 @@
 						// Find other block element and rename it (<h2></h2> => <h1></h1>)
 						if (nodeName === null || BX.util.in_array(nodeName, blockTags))
 						{
-							//allNodes = range.getNodes([1]);
 							blockElement = false;
 							selectedNode = _this.editor.selection.GetSelectedNode();
 
@@ -890,8 +962,10 @@
 				},
 				_this = this;
 
-			function checkAndCleanNode(node)
+			function checkAndCleanNode(node, doc)
 			{
+				if (!node)
+					return;
 				var nodeName = node.nodeName;
 				if (FORMAT_NODES_INLINE[nodeName])
 				{
@@ -995,7 +1069,7 @@
 				return false;
 			}
 
-			function cleanNodes(nodes)
+			function cleanNodes(nodes, doc)
 			{
 				if (nodes && nodes.length > 0)
 				{
@@ -1010,7 +1084,7 @@
 					sorted = sorted.sort(function(a, b){return b.nesting - a.nesting});
 					for (i = 0, len = sorted.length; i < len; i++)
 					{
-						checkAndCleanNode(sorted[i].node);
+						checkAndCleanNode(sorted[i].node, doc);
 					}
 				}
 			}
@@ -1045,153 +1119,193 @@
 				return nodes;
 			}
 
+			function getNodesFromTo(nodeStart, nodeEnd)
+			{
+				var list = [];
+				if (nodeStart && (!nodeEnd || nodeStart == nodeEnd))
+				{
+					list.push(nodeStart);
+				}
+				else if (!nodeStart && nodeEnd)
+				{
+					list.push(nodeEnd);
+				}
+
+				return list;
+			}
+
+
 			return {
 				exec: function(action, value)
 				{
 					var range = _this.editor.selection.GetRange();
 
-					if (range && !_this.editor.iframeView.IsEmpty())
+					if (!range || _this.editor.iframeView.IsEmpty())
+						return;
+
+					var
+						bSurround = true,
+						i,
+						textNodes, textNode, node, tmpNode,
+						nodes = range.getNodes([1]),
+						doc = _this.editor.GetIframeDoc();
+
+					// Range is collapsed or text node is selected
+					if (nodes.length == 0)
 					{
-						var
-							bSurround = true,
-							i,
-							textNodes, textNode, node, tmpNode,
-							nodes = range.getNodes([1]),
-							doc = _this.editor.GetIframeDoc();
+						textNodes = range.getNodes([3]);
 
-						// Range is collapsed or text node is selected
-						if (nodes.length == 0)
+						if (textNodes && textNodes.length == 1)
 						{
-							textNodes = range.getNodes([3]);
-
-							if (textNodes && textNodes.length == 1)
-							{
-								textNode = textNodes[0];
-							}
-
-							if (!textNode && range.startContainer == range.endContainer)
-							{
-								if (range.startContainer.nodeType == 3)
-								{
-									textNode = range.startContainer;
-								}
-								else
-								{
-									bSurround = false;
-									nodes = _selectAndGetNodes(range.startContainer);
-								}
-							}
-
-							if (textNode && nodes.length == 0)
-							{
-								node = getUnitaryParent(textNode);
-								if (node && (node.nodeName != 'BODY' || range.collapsed))
-								{
-									bSurround = false;
-									nodes = _selectAndGetNodes(node);
-								}
-							}
+							textNode = textNodes[0];
 						}
-						else
+
+						if (!textNode && range.startContainer == range.endContainer)
 						{
-							var
-								updateSel = false,
-								clearRanges = [],
-								startTableCheck = checkTableNode(range.startContainer),
-								endTableCheck = checkTableNode(range.endContainer);
-
-							if (startTableCheck)
+							if (range.startContainer.nodeType == 3)
 							{
-								clearRanges.push(
-									{
-										startContainer: range.startContainer,
-										startOffset: range.startOffset,
-										end: startTableCheck
-									}
-								);
-
-								range.setStartAfter(startTableCheck);
-								updateSel = true;
+								textNode = range.startContainer;
 							}
-
-							if (endTableCheck)
+							else
 							{
-								updateSel = true;
-								clearRanges.push(
-									{
-										start: endTableCheck,
-										endContainer: range.endContainer,
-										endOffset: range.endOffset
-									}
-								);
-								range.setEndBefore(endTableCheck);
-							}
-
-							if (updateSel)
-							{
-								_this.editor.selection.SetSelection(range);
-								nodes = range.getNodes([1]);
+								bSurround = false;
+								nodes = _selectAndGetNodes(range.startContainer);
 							}
 						}
 
-						if (bSurround)
+						if (textNode && nodes.length == 0)
 						{
-							tmpNode = doc.createElement("span");
-							_this.editor.selection.Surround(tmpNode, range);
-							nodes = _selectAndGetNodes(tmpNode);
-						}
-
-						if (nodes && nodes.length > 0)
-						{
-							_this.editor.selection.ExecuteAndRestoreSimple(function()
+							node = getUnitaryParent(textNode);
+							if (node && (node.nodeName != 'BODY' || range.collapsed))
 							{
-								cleanNodes(nodes);
-							});
-						}
-
-						if (clearRanges && clearRanges.length > 0)
-						{
-							var
-								_range = range.cloneRange();
-
-							for (i = 0; i < clearRanges.length; i++)
-							{
-								if (clearRanges[i].start)
-								{
-									_range.setStartBefore(clearRanges[i].start);
-								}
-								else
-								{
-									_range.setStart(clearRanges[i].startContainer, clearRanges[i].startOffset);
-								}
-								if (clearRanges[i].end)
-								{
-									_range.setEndAfter(clearRanges[i].end);
-								}
-								else
-								{
-									_range.setEnd(clearRanges[i].endContainer,  clearRanges[i].endOffset);
-								}
-								_this.editor.selection.SetSelection(_range);
-								cleanNodes(_range.getNodes([1]));
+								bSurround = false;
+								nodes = _selectAndGetNodes(node);
 							}
-
-							_this.editor.selection.SetSelection(range);
-						}
-
-						if (bSurround && tmpNode && tmpNode.parentNode)
-						{
-							if (checkParentList(tmpNode))
-							{
-								_this.editor.selection.SelectNode(tmpNode);
-							}
-
-							_this.editor.selection.ExecuteAndRestoreSimple(function()
-							{
-								_this.editor.util.ReplaceWithOwnChildren(tmpNode);
-							});
 						}
 					}
+					else
+					{
+						var
+							updateSel = false,
+							clearRanges = [],
+							startTableCheck = checkTableNode(range.startContainer),
+							endTableCheck = checkTableNode(range.endContainer);
+
+						if (startTableCheck)
+						{
+							clearRanges.push(
+								{
+									startContainer: range.startContainer,
+									startOffset: range.startOffset,
+									end: startTableCheck
+								}
+							);
+
+							range.setStartAfter(startTableCheck);
+							updateSel = true;
+						}
+
+						if (endTableCheck)
+						{
+							updateSel = true;
+							clearRanges.push(
+								{
+									start: endTableCheck,
+									endContainer: range.endContainer,
+									endOffset: range.endOffset
+								}
+							);
+							range.setEndBefore(endTableCheck);
+						}
+
+
+						var
+							startList = _this.editor.util.FindParentEx(range.startContainer, function(n){return n.nodeName == "UL" || n.nodeName == "OL" || n.nodeName == "MENU";}, doc.body),
+							endList = _this.editor.util.FindParentEx(range.endContainer, function(n){return n.nodeName == "UL" || n.nodeName == "OL" || n.nodeName == "MENU";}, doc.body);
+							//listNodes = getNodesFromTo(startList, endList);
+
+						if (startList)
+						{
+							range.setStartBefore(startList);
+							if (!endList)
+								range.setEndAfter(startList);
+							updateSel = true;
+						}
+
+						if (endList)
+						{
+							updateSel = true;
+							range.setEndAfter(endList);
+							if (!startList)
+								range.setStartBefore(endList);
+						}
+
+						if (updateSel)
+						{
+							_this.editor.selection.SetSelection(range);
+							nodes = range.getNodes([1]);
+						}
+					}
+
+					if (bSurround)
+					{
+						tmpNode = doc.createElement("span");
+						_this.editor.selection.Surround(tmpNode, range);
+						nodes = _selectAndGetNodes(tmpNode);
+					}
+
+					if (nodes && nodes.length > 0)
+					{
+						_this.editor.selection.ExecuteAndRestoreSimple(function()
+						{
+							cleanNodes(nodes, doc);
+						});
+					}
+
+					if (clearRanges && clearRanges.length > 0)
+					{
+						var
+							_range = range.cloneRange();
+
+						for (i = 0; i < clearRanges.length; i++)
+						{
+							if (clearRanges[i].start)
+							{
+								_range.setStartBefore(clearRanges[i].start);
+							}
+							else
+							{
+								_range.setStart(clearRanges[i].startContainer, clearRanges[i].startOffset);
+							}
+							if (clearRanges[i].end)
+							{
+								_range.setEndAfter(clearRanges[i].end);
+							}
+							else
+							{
+								_range.setEnd(clearRanges[i].endContainer,  clearRanges[i].endOffset);
+							}
+							_this.editor.selection.SetSelection(_range);
+							cleanNodes(_range.getNodes([1]), doc);
+						}
+
+						_this.editor.selection.SetSelection(range);
+					}
+
+					if (bSurround && tmpNode && tmpNode.parentNode)
+					{
+						if (checkParentList(tmpNode))
+						{
+							_this.editor.selection.SelectNode(tmpNode);
+						}
+
+						_this.editor.selection.ExecuteAndRestoreSimple(function()
+						{
+							_this.editor.util.ReplaceWithOwnChildren(tmpNode);
+						});
+					}
+
+					_this.actions.formatBlock.exec('formatBlock', null);
 				},
 				state: BX.DoNothing,
 				value: BX.DoNothing
@@ -1570,7 +1684,7 @@
 							}
 						}
 
-						links = _this.actions.formatInline.state(action, value, "a");
+						links = value.node ? [value.node] : _this.actions.formatInline.state(action, value, "a");
 						if (links)
 						{
 							// Selection contains links
@@ -1585,7 +1699,7 @@
 								}
 							}
 
-							if (linksCount === 1 && lastLink && !lastLink.querySelector("*") && params.text != '')
+							if (linksCount === 1 && lastLink && (lastLink.querySelector && !lastLink.querySelector("*")) && params.text != '')
 							{
 								_this.editor.util.SetTextContent(lastLink, params.text);
 							}
@@ -1612,7 +1726,14 @@
 							// Create LINKS
 							_this.actions.formatInline.exec(action, value, "A", false, tmpClass);
 
-							links = _this.document.querySelectorAll("A." + tmpClass);
+							if (_this.document.querySelectorAll)
+							{
+								links = _this.document.querySelectorAll("A." + tmpClass);
+							}
+							else
+							{
+								links = [];
+							}
 
 							for (i = 0; i < links.length; i++)
 							{
@@ -1635,7 +1756,7 @@
 									_this.editor.util.SetTextContent(link, params.text || params.href);
 								}
 
-								if (!link.querySelector("*") && isEmpty) // Link is empty
+								if (link.querySelector && !link.querySelector("*") && isEmpty) // Link is empty
 								{
 									_this.editor.util.SetTextContent(link, params.text || params.href);
 								}
@@ -1754,6 +1875,9 @@
 			return {
 				exec: function(action, value)
 				{
+					if (value.src == '')
+						return;
+
 					// Only for bbCode == true
 					if (_this.editor.bbCode && _this.editor.synchro.IsFocusedOnTextarea())
 					{
@@ -1778,6 +1902,7 @@
 					{
 						var attr, appAttr;
 						image.removeAttribute("class");
+						image.setAttribute('data-bx-orig-src', params.src || '');
 
 						for (attr in params)
 						{
@@ -1947,6 +2072,27 @@
 			};
 		},
 
+		GetInsertHr: function()
+		{
+			var
+				_this = this,
+				html = "<hr>" + (BX.browser.IsOpera() ? " " : "");
+
+			return {
+				exec: function(action)
+				{
+					_this.actions.insertHTML.exec("insertHTML", html);
+					if (BX.browser.IsChrome() || BX.browser.IsSafari() || BX.browser.IsIE10())
+					{
+						_this.editor.selection.ScrollIntoView();
+					}
+				},
+
+				state: BX.DoNothing,
+				value: BX.DoNothing
+			};
+		},
+
 		GetInsertTable: function()
 		{
 			var
@@ -1990,7 +2136,7 @@
 				{
 					if (params.hasOwnProperty(attr) && BX.util.in_array(attr, ATTRIBUTES))
 					{
-						if (params[attr] == '' || params[attr] == undefined)
+						if (params[attr] === '' || params[attr] == undefined)
 						{
 							table.removeAttribute(attr);
 						}
@@ -2130,6 +2276,17 @@
 							}
 							applyAttributes(table, params);
 							_this.editor.selection.InsertNode(table);
+
+							var nextNode = _this.editor.util.GetNextNotEmptySibling(table);
+							if (!nextNode)
+							{
+								_this.editor.util.InsertAfter(BX.create('BR', {}, _this.document), table);
+							}
+
+							if (nextNode && nextNode.nodeName == 'BR' && !nextNode.nextSibling)
+							{
+								_this.editor.util.InsertAfter(_this.editor.util.GetInvisibleTextNode(), nextNode);
+							}
 						}
 						else
 						{
@@ -2260,6 +2417,15 @@
 					lastChild = listItem.lastChild;
 					while (firstChild = listItem.firstChild)
 					{
+						// Custom bullit items
+						if (firstChild.nodeName == 'I' && firstChild.innerHTML == '' && firstChild.className != '')
+						{
+							BX.remove(firstChild);
+							firstChild = listItem.firstChild;
+							if (!firstChild)
+								break;
+						}
+
 						bAppendBr = firstChild === lastChild &&
 							!_this.editor.util.IsBlockElement(firstChild) &&
 							firstChild.nodeName !== "BR";
@@ -2339,7 +2505,7 @@
 					node = _this.editor.selection.GetSelectedNode();
 				}
 
-				if (!node)
+				if (!node || node.nodeName == 'BODY')
 				{
 					var
 						range = _this.editor.selection.GetRange(),
@@ -2352,20 +2518,66 @@
 					else
 					{
 						var
-							i, n, onlyList = true, list, parentList,
+							i, onlyList = true, list, parentList,
 							nodes = range.getNodes([1]),
 							l = nodes.length;
 
-						for (i = 0; i < l; i++)
+						if (commonAncestor)
 						{
-							parentList = BX.findParent(nodes[i], isListNode, commonAncestor);
-							if (!parentList || (list && parentList != list))
+							list = parentList = BX.findParent(commonAncestor, isListNode, _this.document.body);
+						}
+
+						if (!parentList)
+						{
+							for (i = 0; i < l; i++)
 							{
-								onlyList = false;
-								break;
+								parentList = BX.findParent(nodes[i], isListNode, commonAncestor);
+								if (!parentList || (list && parentList != list))
+								{
+									onlyList = false;
+									break;
+								}
+								list = parentList;
+							}
+						}
+
+						if (!list)
+						{
+							var
+								_list = false;
+							for (i = 0; i < l; i++)
+							{
+								if (isListNode(nodes[i]))
+								{
+									_list = nodes[i];
+									break;
+								}
 							}
 
-							list = parentList;
+							if (_list)
+							{
+								var ok = true;
+								for (i = 0; i < l; i++)
+								{
+									if (nodes[i] == _list ||
+										BX.findParent(nodes[i], function(n){return n === _list;}, _this.document.body) ||
+										nodes[i].nodeName == 'BR' ||
+										_this.editor.util.IsEmptyNode(nodes[i])
+										)
+									{
+									}
+									else
+									{
+										ok = false;
+										break;
+									}
+								}
+
+								if (ok)
+								{
+									list = _list;
+								}
+							}
 						}
 
 						if (list)
@@ -2376,6 +2588,93 @@
 				}
 
 				return node && node.nodeName == tag ? node : BX.findParent(node, {tagName: tag}, _this.document.body);
+			}
+
+
+			function customBullit(list, bullitParams)
+			{
+				if (!list)
+					return false;
+
+				if (!bullitParams)
+					bullitParams = {tag: 'I', remove: true};
+
+				var i, node, fch, doc = list.ownerDocument;
+				for (i = 0; i < list.childNodes.length; i++)
+				{
+					node = list.childNodes[i];
+					if (node && node.nodeType == 1 && node.nodeName == 'LI')
+					{
+						fch = node.firstChild;
+						// Custom bullit already here
+						if (fch.nodeName == bullitParams.tag && fch.innerHTML == '')
+						{
+							if (bullitParams.remove)
+								BX.remove(fch);
+							else
+								fch.className = bullitParams.className;
+						}
+						else // Add custom bullits to the list
+						{
+							node.insertBefore(BX.create(bullitParams.tag, {props: {className: bullitParams.className}}, doc), fch);
+						}
+					}
+				}
+			}
+
+			function getCustomBullitClass(list)
+			{
+				if (!list)
+					return false;
+
+				var i, node, fch;
+				for (i = 0; i < list.childNodes.length; i++)
+				{
+					node = list.childNodes[i];
+					if (node && node.nodeType == 1 && node.nodeName == 'LI')
+					{
+						fch = node.firstChild;
+						if (fch.nodeName == 'I' && fch.innerHTML == '' && fch.className !== '')
+						{
+							return fch.className;
+						}
+					}
+				}
+
+				return false;
+			}
+
+			function checkCustomBullitList(list, bullitClass, setFocusAfterLastBullit)
+			{
+				if (list && (list.nodeName == 'UL' || list.nodeName == 'OL'))
+				{
+					var i, node, fch, doc = list.ownerDocument, lastBullit;
+					for (i = 0; i < list.childNodes.length; i++)
+					{
+						node = list.childNodes[i];
+						if (node && node.nodeType == 1 && node.nodeName == 'LI')
+						{
+							fch = node.firstChild;
+							if (fch.nodeName == 'I' && fch.innerHTML == '' && fch.className !== '')
+							{
+								if (!bullitClass)
+									bullitClass = fch.className;
+							}
+							else if (fch.nodeName == 'I' && fch.innerHTML == '' && bullitClass)
+							{
+								fch.className = bullitClass;
+								lastBullit = fch;
+							}
+							else if(fch && bullitClass)
+							{
+								lastBullit = node.insertBefore(BX.create('I', {props: {className: bullitClass}}, doc), fch);
+							}
+						}
+					}
+
+					if (setFocusAfterLastBullit && lastBullit)
+						_this.editor.selection._MoveCursorAfterNode(lastBullit);
+				}
 			}
 
 			return {
@@ -2420,6 +2719,16 @@
 								isEmpty = tempElement.innerHTML === "" || tempElement.innerHTML === _this.editor.INVISIBLE_SPACE;
 								_this.editor.selection.ExecuteAndRestoreSimple(function()
 								{
+									// mantis #54087
+									var i, spans = tempElement.getElementsByTagName('SPAN');
+									for (i = spans.length - 1; i >= 0; i--)
+									{
+										// Clean spans without classes styles and id's
+										if (!spans[i].className && !spans[i].id && !spans[i].style.cssText)
+										{
+											_this.editor.util.ReplaceWithOwnChildren(spans[i]);
+										}
+									}
 									list = convertToList(tempElement, listTag);
 								});
 
@@ -2461,7 +2770,7 @@
 									}
 								}
 
-								if (isEmpty && list)
+								if (isEmpty && list && list.querySelector)
 								{
 									_this.editor.selection.SelectNode(list.querySelector("li"));
 								}
@@ -2486,18 +2795,23 @@
 					}
 				},
 
-				state: function(action, params)
+				state: function()
 				{
 					return getSelectedList(listTag) || false;
 				},
 
-				value: BX.DoNothing
+				value: BX.DoNothing,
+
+				customBullit: customBullit,
+				getCustomBullitClass: getCustomBullitClass,
+				checkCustomBullitList: checkCustomBullitList
 			};
 		},
 
 		GetAlign: function()
 		{
 			var
+				CLASS_NAME_TMP = 'bx-align-tmp',
 				LIST_ALIGN_ATTR = 'data-bx-checked-align-list',
 				DEFAULT_VALUE = 'left',
 				TABLE_NODES = {TD: 1, TR: 1, TH: 1, TABLE: 1, TBODY: 1, CAPTION: 1, COL: 1, COLGROUP: 1, TFOOT: 1, THEAD: 1},
@@ -2715,7 +3029,6 @@
 							bookmark = _this.editor.selection.GetBookmark(),
 							selectedNode = _this.editor.selection.GetSelectedNode();
 
-
 						if (selectedNode)
 						{
 							if (_this.editor.util.IsBlockNode(selectedNode))
@@ -2901,7 +3214,28 @@
 							}
 							else if (range.collapsed)
 							{
-								res = _this.actions.formatBlock.exec('formatBlock', 'P', null, {textAlign: value});
+								res = _this.actions.formatBlock.exec('formatBlock', 'P', CLASS_NAME_TMP, {textAlign: value});
+
+								// Selection workaround mantis:53937
+								var
+									focusNode,
+									alignNodes = _this.document.querySelectorAll("." + CLASS_NAME_TMP);
+
+								for (i = 0; i <= alignNodes.length; i++)
+								{
+									BX.removeClass(alignNodes[i], CLASS_NAME_TMP);
+									if (i == 0)
+									{
+										focusNode = alignNodes[i].firstNode;
+										if (!focusNode)
+											focusNode = alignNodes[i].appendChild(_this.editor.util.GetInvisibleTextNode());
+										setTimeout(function()
+										{
+											if (focusNode)
+												_this.editor.selection.SetAfter(focusNode);
+										}, 100);
+									}
+								}
 							}
 							else
 							{
@@ -2934,11 +3268,9 @@
 								{
 									tagName = _this.editor.bbCode ? 'DIV' : 'P';
 
-									res = _this.actions.formatBlock.exec('formatBlock', tagName, null, {textAlign: value}, {leaveChilds: true});
-
+									res = _this.actions.formatBlock.exec('formatBlock', tagName, null, {textAlign: value}, {leaveChilds: true, splitBlock: true});
 									if (res && typeof res == 'object' && res.nodeName == tagName)
 									{
-
 										var
 											iter = 0, maxIter = 2000, prev,
 											child, newPar, createNewPar = false;
@@ -2990,6 +3322,13 @@
 											BX.remove(res.nextSibling);
 										}
 										_this.editor.util.ReplaceWithOwnChildren(res);
+
+										// Selection workaround mantis:53937
+										setTimeout(function()
+										{
+											if (newPar)
+												_this.editor.selection.SelectNode(newPar);
+										}, 100);
 									}
 								}
 
@@ -3093,8 +3432,37 @@
 		{
 			var _this = this;
 			return {
-				exec: function(action, value)
+				exec: function(action)
 				{
+					// Mantis bug workaround: #59811
+					var rng = _this.editor.selection.GetRange();
+					if (rng && rng.collapsed && rng.endContainer == rng.startContainer && BX.util.in_array(rng.startContainer.nodeName, ['TD', 'TR', 'TH']) && arguments[1] !== rng.startContainer.nodeName)
+					{
+						var
+							id = 'bxed_bogus_node_59811',
+							focusNode = rng.startContainer.appendChild(BX.create('SPAN', {props: {id: id}, html: '&nbsp;'}, _this.document));is_text = _this.editor.util.GetInvisibleTextNode();
+
+						if (focusNode)
+						{
+							rng.setStartBefore(focusNode);
+							rng.setEndAfter(focusNode);
+							_this.editor.selection.SetSelection(rng);
+
+							return setTimeout(function()
+							{
+								_this.actions.indent.exec(action, rng.startContainer.nodeName);
+
+								var focusNode = _this.editor.GetIframeElement(id);
+								if (focusNode)
+								{
+									_this.editor.selection.SetAfter(focusNode);
+									BX.remove(focusNode);
+								}
+
+							}, 0);
+						}
+					}
+
 					if (_this.IsSupportedByBrowser(action))
 					{
 						_this.document.execCommand(action);
@@ -3107,21 +3475,39 @@
 					var range = _this.editor.selection.GetRange();
 					if (range)
 					{
-						var i, nodes = range.getNodes([1]);
-						if (range.collapsed && range.startContainer && nodes.length == 0)
-						{
-							var bq = BX.findParent(range.startContainer, {tag: 'BLOCKQUOTE'});
-							bq.removeAttribute('style');
-							var invis_text = _this.editor.util.GetInvisibleTextNode();
-							bq.appendChild(invis_text);
-							_this.editor.selection.SetAfter(invis_text);
-						}
+						var bqCnt = 0, i, nodes = range.getNodes([1]);
 
 						for (i = 0; i < nodes.length; i++)
 						{
 							if (nodes[i].nodeName == 'BLOCKQUOTE')
 							{
+								bqCnt++;
 								nodes[i].removeAttribute('style');
+							}
+						}
+
+						if (range.startContainer)
+						{
+							var
+								invis_text,
+								bq = false,
+								node = range.startContainer;
+							while (node)
+							{
+								node = BX.findParent(node, {tag: 'BLOCKQUOTE'}, _this.document.body);
+								if (node)
+								{
+									if (!bq)
+										bq = node;
+									node.removeAttribute('style');
+								}
+							}
+
+							if (bq)
+							{
+								invis_text = _this.editor.util.GetInvisibleTextNode();
+								bq.appendChild(invis_text);
+								_this.editor.selection.SetAfter(invis_text);
 							}
 						}
 					}
@@ -3239,11 +3625,17 @@
 		{
 			var
 				_this = this,
-				blockTags = _this.editor.GetBlockTags();
+				styleSel = this.editor.toolbar.controls.StyleSelector,
+				classList = styleSel ? styleSel.checkedClasses : [],
+				tagList = styleSel ? styleSel.checkedTags : [];
 
 			function isNodeSuitable(node)
 			{
-				if (node && node.nodeType == 1 && node.nodeName !== 'BODY' && BX.util.in_array(node.nodeName, blockTags))
+				if (node && node.nodeType == 1 && node.nodeName !== 'BODY' &&
+					(
+						BX.util.in_array(node.nodeName, tagList) ||
+						BX.util.in_array(node.className, classList)
+					))
 				{
 					return !_this.editor.GetBxTag(node.id).tag;
 				}
@@ -3255,7 +3647,7 @@
 				{
 					if (!value) // Clear font style
 					{
-						return _this.actions.formatBlock.exec('formatBlock', null);
+						return _this.actions.removeFormat.exec('removeFormat');
 					}
 					else if (typeof value === 'string') // Tag name - H1, H2
 					{
@@ -3263,7 +3655,51 @@
 					}
 					else if (typeof value === 'object') // class name from template-s css
 					{
-						//return _this.actions.formatInline.exec(action, value, "span", {fontFamily: value});
+						// Handle font awesome list
+						if (value.tag == 'UL')
+						{
+							var list = _this.actions.insertUnorderedList.state();
+							if (list && value.className && value.className.indexOf('~~') !== -1)
+							{
+								var cn = value.className.split('~~');
+								if (cn && cn.length >=2 )
+								{
+									var
+										listClass = cn[0],
+										bullitClass = cn[1];
+
+									list.className = listClass;
+									_this.actions.insertUnorderedList.customBullit(list, {tag: 'I', className: bullitClass, html: ''});
+								}
+							}
+							else if (list)
+							{
+								list.className = value.className || '';
+								_this.actions.insertUnorderedList.customBullit(list, false);
+							}
+						}
+						else if (value.tag)
+						{
+							var
+								className = value.className,
+								tag = value.tag.toUpperCase();
+
+							// Inline
+							if (tag == 'SPAN')
+							{
+								//command, value, tagName, arStyle, cssClass, params)
+								_this.actions.formatInline.exec(action, value, tag, false, className);
+							}
+							else //if (tag == 'P')
+							{
+								_this.actions.formatBlock.exec('formatBlock', tag, className, null, {nestedBlocks: false});
+							}
+						}
+
+						if (!_this.editor.util.FirstLetterSupported())
+						{
+							_this.editor.parser.FirstLetterCheckNodes('', '', true);
+						}
 					}
 				},
 
@@ -3298,7 +3734,6 @@
 
 					return result;
 				},
-
 				value: BX.DoNothing
 			};
 		},
@@ -3475,15 +3910,18 @@
 					{
 						_this.actions.formatInline.exec(action, value, "span", false, TEMP_CLASS);
 
-						var tmpSpanNodes = _this.editor.GetIframeDoc().querySelectorAll('.' + TEMP_CLASS);
-						if (tmpSpanNodes)
+						if (document.querySelectorAll)
 						{
-							for (i = 0; i < tmpSpanNodes.length; i++)
+							var tmpSpanNodes = _this.editor.GetIframeDoc().querySelectorAll('.' + TEMP_CLASS);
+							if (tmpSpanNodes)
 							{
-								node = tmpSpanNodes[i];
-								if (BX.util.trim(node.innerHTML) == '')
+								for (i = 0; i < tmpSpanNodes.length; i++)
 								{
-									_this.editor.util.ReplaceWithOwnChildren(node);
+									node = tmpSpanNodes[i];
+									if (BX.util.trim(node.innerHTML) == '')
+									{
+										_this.editor.util.ReplaceWithOwnChildren(node);
+									}
 								}
 							}
 						}
@@ -3498,19 +3936,22 @@
 							adjustNodeStyle(existNodes[i], value.className, value.style);
 						}
 
-						tmpSpanNodes = _this.editor.GetIframeDoc().querySelectorAll('.' + TEMP_CLASS);
-						if (tmpSpanNodes)
+						if (document.querySelectorAll)
 						{
-							for (i = 0; i < tmpSpanNodes.length; i++)
+							tmpSpanNodes = _this.editor.GetIframeDoc().querySelectorAll('.' + TEMP_CLASS);
+							if (tmpSpanNodes)
 							{
-								node = tmpSpanNodes[i];
-								if (node.getAttribute(STATUS_ATTR) == 'GET_RID_OF')
+								for (i = 0; i < tmpSpanNodes.length; i++)
 								{
-									_this.editor.util.ReplaceWithOwnChildren(tmpSpanNodes[i]);
-								}
-								else
-								{
-									adjustNodeStyle(tmpSpanNodes[i], value.className, value.style);
+									node = tmpSpanNodes[i];
+									if (node.getAttribute(STATUS_ATTR) == 'GET_RID_OF')
+									{
+										_this.editor.util.ReplaceWithOwnChildren(tmpSpanNodes[i]);
+									}
+									else
+									{
+										adjustNodeStyle(tmpSpanNodes[i], value.className, value.style);
+									}
 								}
 							}
 						}
@@ -3631,16 +4072,62 @@
 					{
 						if(sel)
 						{
+							if (!range && _this.editor.selection.lastCheckedRange && _this.editor.selection.lastCheckedRange.range)
+							{
+								range = _this.editor.selection.lastCheckedRange.range;
+							}
 							_this.editor.iframeView.Focus();
 							if (range)
+							{
 								_this.editor.selection.SetSelection(range);
-							_this.editor.InsertHtml('<blockquote class="bxhtmled-quote">' + sel + '</blockquote>' + _this.editor.INVISIBLE_SPACE, range);
+							}
+
+							var quoteId = 'bxq_' + Math.round(Math.random() * 1000000);
+
+							// Bug in Chrome - when you press enter but it put carret on the prev string
+							// Chrome 43.0.2357 in Mac puts visible space instead of invisible
+							if (BX.browser.IsMac() && BX.browser.IsChrome())
+							{
+								var tmpId = "bx-editor-temp-" + Math.round(Math.random() * 1000000);
+								_this.editor.InsertHtml('<blockquote id="' + quoteId + '" class="bxhtmled-quote">' + sel + '</blockquote>' + '<span><span id="' + tmpId + '">' + _this.editor.INVISIBLE_SPACE + '</span></span>', range);
+
+								setTimeout(function()
+								{
+									var tmpElement = _this.editor.GetIframeElement(tmpId);
+									if (tmpElement)
+									{
+										_this.editor.selection.SetAfter(tmpElement.parentNode);
+										BX.remove(tmpElement);
+									}
+								}, 0);
+							}
+							else
+							{
+								_this.editor.InsertHtml('<blockquote id="' + quoteId + '" class="bxhtmled-quote">' + sel + '</blockquote>' + _this.editor.INVISIBLE_SPACE, range);
+							}
+
+							setTimeout(function()
+							{
+								var quote = _this.editor.GetIframeElement(quoteId);
+								if (quote)
+								{
+									var prev = quote.previousSibling;
+									if (prev && prev.nodeType == 3 && _this.editor.util.IsEmptyNode(prev) &&
+										prev.previousSibling && prev.previousSibling.nodeName == 'BR')
+									{
+										BX.remove(prev);
+									}
+									quote.id = null;
+								}
+							}, 0);
 						}
 						else
 						{
 							res = _this.actions.formatBlock.exec('formatBlock', 'blockquote', 'bxhtmled-quote', false, {range: range});
 						}
 					}
+
+					range = null;
 					return res;
 				},
 				state: function()
@@ -3667,11 +4154,20 @@
 						var codeElement = _this.actions.code.state();
 						if (codeElement)
 						{
-							_this.editor.selection.ExecuteAndRestoreSimple(function()
+							var innerHtml = BX.util.trim(codeElement.innerHTML);
+							if (innerHtml == '<br>' || innerHtml === '')
 							{
-								codeElement.className = '';
-								codeElement = _this.editor.util.RenameNode(codeElement, 'P');
-							});
+								_this.editor.selection.SetAfter(codeElement);
+								BX.remove(codeElement);
+							}
+							else
+							{
+								_this.editor.selection.ExecuteAndRestoreSimple(function()
+								{
+									codeElement.className = '';
+									codeElement = _this.editor.util.RenameNode(codeElement, 'P');
+								});
+							}
 						}
 						else
 						{
@@ -3701,7 +4197,7 @@
 					if (_this.editor.bbCode && _this.editor.synchro.IsFocusedOnTextarea())
 					{
 						_this.editor.textareaView.Focus();
-						_this.editor.textareaView.WrapWith(false, false, smile.code);
+						_this.editor.textareaView.WrapWith(false, false, " " + smile.code + " ");
 					}
 					else
 					{
@@ -3714,9 +4210,18 @@
 								title: smile.name || smile.code
 							}});
 							_this.editor.SetBxTag(smileImg, {tag: "smile", params: smile});
+							if (smile.width)
+								smileImg.style.width = parseInt(smile.width) + 'px';
+							if (smile.height)
+								smileImg.style.height = parseInt(smile.height) + 'px';
 							_this.editor.selection.InsertNode(smileImg);
 
-							_this.editor.selection.SetAfter(smileImg);
+							var textBefore = _this.editor.iframeView.document.createTextNode(' ');
+							smileImg.parentNode.insertBefore(textBefore, smileImg);
+							var textAfer = _this.editor.iframeView.document.createTextNode(' ');
+							_this.editor.util.InsertAfter(textAfer, smileImg);
+
+							_this.editor.selection.SetAfter(textAfer);
 							setTimeout(function(){_this.editor.selection.SetAfter(smileImg);}, 10);
 						}
 					}
@@ -3725,6 +4230,836 @@
 				value: BX.DoNothing
 			};
 		},
+
+		GetTableOperation: function()
+		{
+			var
+				_this = this,
+				newCellHtml = '&nbsp;';
+
+			function createTableMatrix(oTable)
+			{
+				var aRows = oTable.rows;
+				// Row and Column counters.
+				var
+					arMatrix = [],
+					i, // index
+					c, j, oCell, rs, cs,
+					iColSpan, iRowSpan,
+					r = -1; // row
+
+				for (i = 0; i < aRows.length; i++)
+				{
+					r++;
+					if (!arMatrix[r])
+					{
+						arMatrix[r] = [];
+					}
+
+					c = -1;
+
+					for (j = 0; j < aRows[i].cells.length; j++)
+					{
+						oCell = aRows[i].cells[j];
+
+						c++;
+						while (arMatrix[r][c])
+						{
+							c++;
+						}
+
+						iColSpan = isNaN(oCell.colSpan) ? 1 : oCell.colSpan;
+						iRowSpan = isNaN(oCell.rowSpan) ? 1 : oCell.rowSpan;
+
+						for(rs = 0; rs < iRowSpan; rs++)
+						{
+							if (!arMatrix[r + rs])
+							{
+								arMatrix[r + rs] = [];
+							}
+
+							for (cs = 0; cs < iColSpan; cs++)
+							{
+								arMatrix[r + rs][c + cs] = aRows[i].cells[j];
+							}
+						}
+
+						c += iColSpan - 1;
+					}
+				}
+				return arMatrix;
+			}
+
+			function getIndexes(oCell, arMatrix)
+			{
+				var
+					i, j,
+					arIndexes = [];
+
+				for (i = 0; i < arMatrix.length; i++)
+				{
+					for (j = 0, l = arMatrix[i].length; j < l; j++)
+					{
+						if (arMatrix[i][j] == oCell)
+						{
+							arIndexes.push({r : i, c : j});
+						}
+					}
+				}
+				return arIndexes;
+			}
+
+			function getCellIndexInfo(ind)
+			{
+				var
+					rows = [], cols = [],
+					indInfo = {
+						cells: 0
+					},
+					ii;
+
+				for(ii = 0; ii < ind.length; ii++)
+				{
+					indInfo.cells++;
+					indInfo.maxRow = ii === 0 ? ind[ii].r : Math.max(ind[ii].r, indInfo.maxRow);
+					indInfo.minRow = ii === 0 ? ind[ii].r : Math.min(ind[ii].r, indInfo.minRow);
+					indInfo.maxCol = ii === 0 ? ind[ii].c : Math.max(ind[ii].c, indInfo.maxCol);
+					indInfo.minCol = ii === 0 ? ind[ii].c : Math.min(ind[ii].c, indInfo.minCol);
+
+					if (!BX.util.in_array(ind[ii].r, rows))
+						rows.push(ind[ii].r);
+
+					if (!BX.util.in_array(ind[ii].c, cols))
+						cols.push(ind[ii].c);
+				}
+
+				indInfo.rows = rows.length;
+				indInfo.cols = cols.length;
+
+				return indInfo;
+			}
+
+			function findAndPushAndUniqueCell(cells, node, table)
+			{
+				if (node)
+				{
+					node = getParentCell(node, table);
+
+					if (node && !BX.util.in_array(node, cells))
+						cells.push(node);
+				}
+
+				return cells;
+			}
+
+			function getSelectedCells(range, table)
+			{
+				var cells = [], cell;
+
+				if (BX.browser.IsFirefox())
+				{
+					var
+						i, rng, start, end,
+						sel = rangy.getNativeSelection(_this.editor.sandbox.GetWindow());
+
+					for (i = 0; i < sel.rangeCount; i++)
+					{
+						rng = sel.getRangeAt(i);
+
+						start = rng.startContainer.nodeType === 1 ? rng.startContainer.childNodes[rng.startOffset] : rng.startContainer;
+						end = rng.endContainer.nodeType === 1 ? rng.endContainer.childNodes[rng.endOffset] : rng.endContainer;
+
+						cells = findAndPushAndUniqueCell(cells, start, table);
+						cells = findAndPushAndUniqueCell(cells, end, table);
+					}
+				}
+				else
+				{
+					if (range.collapsed)
+					{
+						cell = getParentCell(range.startContainer);
+						cells = findAndPushAndUniqueCell(cells, cell, table);
+					}
+					else
+					{
+						var nodes = range.getNodes([1]);
+						for (i = 0; i < nodes.length; i++)
+						{
+							if (nodes[i].nodeName == 'TD' || nodes[i].nodeName == 'TH')
+							{
+								cells = findAndPushAndUniqueCell(cells, nodes[i], table);
+							}
+						}
+					}
+				}
+
+				return cells;
+			}
+
+			function insertColumn(element, table, actionType)
+			{
+				var td = BX.findParent(element, {tag: 'TD'});
+
+				if (!td)
+					return;
+
+				var
+					tr = td.parentNode,
+					cellInd = actionType == 'insertColumnLeft' ? td.cellIndex : td.cellIndex + 1,
+					rowInd = tr.rowIndex,
+					mtx = createTableMatrix(table),
+					arInd = getIndexes(td, mtx);
+
+				tr.insertCell(cellInd).innerHTML = newCellHtml;
+
+				var
+					r, ind, i, c, j,
+					curFullCellInd = actionType == 'insertColumnLeft' ? arInd[0].c : arInd[0].c + 1;
+
+				for (j = 0; j < table.rows.length; j++)
+				{
+					r = table.rows[j];
+					if (r.rowIndex == rowInd)
+					{
+						continue;
+					}
+
+					ind = 0;
+					i = 0;
+					for(i = 0; i < r.cells.length; i++)
+					{
+						c = r.cells[i];
+						arInd = getIndexes(c, mtx);
+						if (arInd[0].c >= curFullCellInd)
+						{
+							ind = c.cellIndex;
+							break;
+						}
+						ind = i + 1;
+					}
+
+					r.insertCell(ind).innerHTML = '&nbsp;';
+				}
+			}
+
+			function insertRow(element, table, actionType)
+			{
+				var tr = BX.findParent(element, {tag: 'TR'});
+				if (!tr || !table)
+					return;
+
+				var
+					i, newCell,
+					rowInd = actionType == 'insertRowUpper' ? tr.rowIndex : tr.rowIndex + 1,
+					newRow = table.insertRow(rowInd);
+
+				for(i = 0; i < tr.cells.length; i++)
+				{
+					newCell = newRow.insertCell(i);
+					newCell.innerHTML = newCellHtml;
+					newCell.colSpan = tr.cells[i].colSpan;
+				}
+			}
+
+			function insertCell(element, table, actionType)
+			{
+				var td = getParentCell(element, table);
+				if (!td || !table)
+					return;
+
+				var
+					tr = td.parentNode,
+					cellInd = actionType == 'insertCellLeft' ? td.cellIndex : td.cellIndex + 1;
+
+				tr.insertCell(cellInd).innerHTML = newCellHtml;
+			}
+
+			function getParentCell(node, table)
+			{
+				if (node.nodeName == 'TD' || node.nodeName == 'TH')
+					return node;
+
+				return BX.findParent(node, function(n)
+				{
+					return n.nodeName == 'TD' || n.nodeName == 'TH'
+				}, table);
+			}
+
+
+			function getMergeState(cells, table)
+			{
+				var
+					indInfo, i,
+					mtx = createTableMatrix(table),
+					firstIndInfo = getCellIndexInfo(getIndexes(cells[0], mtx)),
+					lastIndInfo = firstIndInfo,
+					gaps = false,
+					sameRow = true,
+					sameCol = true;
+
+				for(i = 1; i < cells.length; i++)
+				{
+					indInfo = getCellIndexInfo(getIndexes(cells[i], mtx));
+					sameRow = sameRow && indInfo.rows == firstIndInfo.rows && indInfo.maxRow == firstIndInfo.maxRow  && indInfo.minRow == firstIndInfo.minRow;
+					sameCol = sameCol && indInfo.cols == firstIndInfo.cols && indInfo.maxCol == firstIndInfo.maxCol  && indInfo.minCol == firstIndInfo.minCol;
+
+					gaps = gaps ||
+						(sameRow && Math.abs(indInfo.minCol - lastIndInfo.maxCol) > 1)
+						||
+						(sameCol && Math.abs(indInfo.minRow - lastIndInfo.maxRow) > 1)
+						||
+						!sameRow && !sameCol;
+
+					lastIndInfo = indInfo;
+				}
+
+				return {
+					sameCol : sameCol,
+					sameRow: sameRow,
+					gaps: gaps
+				};
+			}
+
+			function canBeMerged(cells, range, table)
+			{
+				if (!cells)
+					cells = getSelectedCells(range, table);
+
+				if (!cells || cells.length < 2)
+					return false;
+
+				var mergeState = getMergeState(cells, table);
+				return !mergeState.gaps && (!mergeState.sameRow && mergeState.sameCol || mergeState.sameRow && !mergeState.sameCol);
+			}
+
+			function canBeMergedWithRight(range, table)
+			{
+				var cells = getSelectedCells(range, table);
+				if (!cells || cells.length !== 1)
+					return false;
+
+				var
+					mtx = createTableMatrix(table),
+					ind = getIndexes(cells[0], mtx);
+
+				if (ind.length < 1)
+					return false;
+
+				var
+					i, rightTd,
+					maxCol = ind[ind.length - 1].c, // Max col
+					res = true, c;
+
+				for (i = 0; i < ind.length; i++)
+				{
+					if (ind[i].c == maxCol)
+					{
+						if (mtx[ind[i].r] && mtx[ind[i].r][ind[i].c + 1])
+						{
+							c = mtx[ind[i].r][ind[i].c + 1];
+
+							if (rightTd === undefined)
+								rightTd = c;
+							else if (rightTd !== c)
+								res = false;
+						}
+						else
+						{
+							res = false;
+						}
+					}
+				}
+
+				res = res && rightTd && canBeMerged([cells[0], rightTd], range, table);
+
+				return res;
+			}
+
+			function canBeMergedWithBottom(range, table)
+			{
+				var cells = getSelectedCells(range, table);
+				if (!cells || cells.length !== 1)
+					return false;
+
+				var
+					mtx = createTableMatrix(table),
+					ind = getIndexes(cells[0], mtx);
+
+				if (ind.length < 1)
+					return false;
+
+				var
+					i, bottomTd,
+					maxRow = ind[ind.length - 1].r, // Max row
+					res = true, c;
+
+				for (i = 0; i < ind.length; i++)
+				{
+					if (ind[i].r == maxRow)
+					{
+						if (mtx[maxRow + 1] && mtx[maxRow + 1][ind[i].c])
+						{
+							c = mtx[maxRow + 1][ind[i].c];
+							if (bottomTd === undefined)
+								bottomTd = c;
+							else if (bottomTd !== c)
+								res = false;
+						}
+						else
+						{
+							res = false;
+						}
+					}
+				}
+
+				res = res && bottomTd && canBeMerged([cells[0], bottomTd], range, table);
+
+				return res;
+			}
+
+			function mergeCells(range, table, cells)
+			{
+				if (!cells)
+					cells = getSelectedCells(range, table);
+
+				if (cells.length < 2)
+					return;
+
+				var
+					mergeState = getMergeState(cells, table),
+					i, tr,
+					newCellColSpan = 0,
+					newCellRowSpan = 0,
+					newCellContent = '';
+
+				// Horizontal cells
+				if (mergeState.sameRow && !mergeState.sameCol && !mergeState.gaps)
+				{
+					for(i = 0; i < cells.length; i++)
+					{
+						newCellContent += ' ' + BX.util.trim(cells[i].innerHTML);
+						tr = cells[i].parentNode;
+						newCellColSpan += cells[i].colSpan;
+
+						if (i > 0)
+							tr.removeChild(cells[i]);
+					}
+
+					cells[0].colSpan = newCellColSpan;
+					cells[0].innerHTML = BX.util.trim(newCellContent);
+				}
+				// vertical cells
+				else if (!mergeState.sameRow && mergeState.sameCol && !mergeState.gaps)
+				{
+					for(i = 0; i < cells.length; i++)
+					{
+						newCellContent += ' ' + BX.util.trim(cells[i].innerHTML);
+						tr = cells[i].parentNode;
+						newCellRowSpan += cells[i].rowSpan;
+
+						if (i > 0)
+							tr.removeChild(cells[i]);
+					}
+
+					cells[0].rowSpan = newCellRowSpan;
+					cells[0].innerHTML = BX.util.trim(newCellContent);
+				}
+				else
+				{
+					alert(BX.message('BXEdTableMergeError'));
+				}
+			}
+
+			function mergeRightCell(range, table)
+			{
+				var cells = getSelectedCells(range, table);
+
+				if (!cells || cells.length !== 1)
+					return false;
+
+				var tr = BX.findParent(cells[0], {tag: 'TR'}, table);
+
+				if (cells[0].cellIndex < tr.cells.length - 1)
+				{
+					cells.push(tr.cells[cells[0].cellIndex + 1]);
+				}
+
+				return mergeCells(range, table, cells);
+			}
+
+			function mergeBottomCell(range, table)
+			{
+				var cells = getSelectedCells(range, table);
+				if (!cells || cells.length !== 1)
+					return false;
+
+				var
+					mtx = createTableMatrix(table),
+					ind = getIndexes(cells[0], mtx),
+					i, bottomTd,
+					maxRow = ind[ind.length - 1].r, // Max row
+					res = true, c;
+
+				for (i = 0; i < ind.length; i++)
+				{
+					if (ind[i].r == maxRow)
+					{
+						if (mtx[maxRow + 1] && mtx[maxRow + 1][ind[i].c])
+						{
+							c = mtx[maxRow + 1][ind[i].c];
+							if (bottomTd === undefined)
+								bottomTd = c;
+							else if (bottomTd !== c)
+								res = false;
+						}
+						else
+						{
+							res = false;
+						}
+					}
+				}
+
+				if (res)
+				{
+					cells.push(bottomTd);
+					return mergeCells(range, table, cells);
+				}
+			}
+
+			function mergeRow(range, table)
+			{
+				var cells = getSelectedCells(range, table);
+				if (!cells || cells.length !== 1)
+					return false;
+
+				var
+					i, newCells = [],
+					tr = cells[0].parentNode;
+
+				for(i = 0; i < tr.cells.length; i++)
+				{
+					newCells.push(tr.cells[i]);
+				}
+
+				return mergeCells(range, table, newCells);
+			}
+
+			function mergeColumn(range, table)
+			{
+				var cells = getSelectedCells(range, table);
+				if (!cells || cells.length !== 1)
+					return false;
+
+				var
+					i, j, newCells = [],
+					mtx = createTableMatrix(table),
+					indInfo = getCellIndexInfo(getIndexes(cells[0], mtx));
+
+				for (i = 0; i < mtx.length; i++)
+				{
+					for (j = indInfo.minCol; j <= indInfo.minCol; j++)
+					{
+						newCells = findAndPushAndUniqueCell(newCells, mtx[i][j], table);
+					}
+				}
+
+				return mergeCells(range, table, newCells);
+			}
+
+			function splitHorizontally(range, table)
+			{
+				var cells = getSelectedCells(range, table);
+
+				if (!cells || cells.length != 1)
+					return false;
+
+				var
+					i, j,
+					realInd = 0,
+					realIndI,
+					trI,
+					newCell,
+					colSpan = cells[0].colSpan,
+					tr = cells[0].parentNode;
+
+				for(i = 0; i <= cells[0].cellIndex; i++)
+					realInd += tr.cells[i].colSpan;
+
+				if (colSpan > 1)
+				{
+					cells[0].colSpan--;
+				}
+				else
+				{
+					for(j = 0; j < table.rows.length; j++)
+					{
+						if (j == tr.rowIndex)
+							continue;
+
+						realIndI = 0;
+						trI = table.rows[j];
+
+						i = 0;
+						while (realIndI < realInd && i < trI.cells.length)
+							realIndI += trI.cells[i++].colSpan;
+
+						trI.cells[--i].colSpan += 1;
+					}
+				}
+				newCell = tr.insertCell(cells[0].cellIndex + 1);
+				newCell.rowSpan = cells[0].rowSpan;
+				newCell.innerHTML = newCellHtml;
+			}
+
+			function splitVertically(range, table)
+			{
+				var cells = getSelectedCells(range, table);
+
+				if (!cells || cells.length != 1)
+					return false;
+
+				var
+					i, r, c, row, cell,
+					indI,
+					fullRowInd, realCellInd,
+					mtx = createTableMatrix(table),
+					ind = getIndexes(cells[0], mtx),
+					tr = cells[0].parentNode,
+					//maxCellCount = arTMX[0].length; //max count of cell in table
+					curRowIndex = tr.rowIndex,
+					curCellIndex = cells[0].cellIndex,
+					curFullRowInd = ind[0].r,
+					curFullCellInd = ind[0].c,
+					bOneW = true,
+					bOneH = true;
+
+				for(i = 1; i < ind.length; i++)
+				{
+					if (ind[i].r != curFullRowInd)
+						bOneH = false;
+					if (ind[i].c != curFullCellInd)
+						bOneW = false;
+				}
+
+				if (bOneH) // if rowSpan == 1 and we have to split this cell
+				{
+					var
+						newRow = table.insertRow(tr.rowIndex + 1),
+						newCell = newRow.insertCell(-1);
+
+					newCell.innerHTML = newCellHtml;
+					if (!bOneW)
+						newCell.colSpan = cells[0].colSpan;
+
+
+					for(r = 0; r <= curFullRowInd; r++)
+					{
+						row = table.rows[r];
+						for(c = 0; c < row.cells.length; c++)
+						{
+							cell = row.cells[c];
+							if (r == curRowIndex && c == curCellIndex)
+								continue;
+
+							fullRowInd = r; // oRow.rowIndex
+							if (cell.rowSpan > 1)
+								fullRowInd += cell.rowSpan - 1;
+
+							if (fullRowInd >= curFullRowInd)
+								cell.rowSpan++;
+						}
+					}
+				}
+				else // If cell has rowspan > 1
+				{
+					row = table.rows[curRowIndex + --cells[0].rowSpan];
+					realCellInd = false;
+					for(c = 0; c < row.cells.length; c++)
+					{
+						indI = getIndexes(row.cells[c], mtx);
+						for(i = 0; i < indI.length; i++)
+						{
+							if (indI[i].c > curCellIndex)
+								realCellInd = 0;
+							else if (indI[i].c + 1 == curCellIndex)
+								realCellInd = row.cells[c].cellIndex + 1;
+
+							if (realCellInd !== false)
+								break;
+						}
+					}
+
+					newCell = row.insertCell(realCellInd);
+					newCell.innerHTML = newCellHtml;
+					if (!bOneW)
+						newCell.colSpan = cells[0].colSpan;
+				}
+			}
+
+			// Remove
+			function removeColumn(range, table)
+			{
+				var cells = getSelectedCells(range, table);
+				if (!cells || cells.length != 1)
+					return false;
+				var cell = cells[0];
+
+				if (!cell)
+					return false;
+
+				var
+					tr, td,
+					mtx = createTableMatrix(table),
+					ind = getIndexes(cell, mtx),
+					j;
+
+				for (j = 0; j < mtx.length; j++)
+				{
+					td = mtx[j][ind[0].c];
+					if (td && td.parentNode)
+					{
+						tr = td.parentNode;
+						BX.remove(td);
+						if (tr.cells.length == 0)
+							BX.remove(tr);
+					}
+				}
+
+				if (table.rows.length == 0)
+					BX.remove(table);
+			}
+
+			function removeRow(range, table)
+			{
+				var cells = getSelectedCells(range, table);
+				if (!cells || cells.length != 1)
+					return false;
+				var cell = cells[0];
+
+
+				if (!cell)
+					return false
+
+				BX.remove(cell.parentNode);
+
+				if (table.rows.length == 0)
+					BX.remove(table);
+			}
+
+			function removeCell(range, table, cell)
+			{
+				if (!cell)
+				{
+					var cells = getSelectedCells(range, table);
+					if (!cells || cells.length != 1)
+						return false;
+					cell = cells[0];
+				}
+
+				if (!cell)
+					return false;
+
+				var tr = cell.parentNode;
+				BX.remove(cell);
+
+				if (tr.cells.length == 0)
+					BX.remove(tr);
+
+				if (table.rows.length == 0)
+					BX.remove(table);
+			}
+
+			function removeSelectedCells(range, table)
+			{
+				var cells = getSelectedCells(range, table);
+				if (!cells || cells.length == 1)
+					return false;
+
+				var i, tr;
+				for (i = 0; i < cells.length; i++)
+				{
+					tr = cells[i].parentNode;
+					BX.remove(cells[i]);
+
+					if (tr.cells.length == 0)
+						BX.remove(tr);
+				}
+
+				if (table.rows.length == 0)
+					BX.remove(table);
+			}
+
+			return {
+				exec: function(action, value)
+				{
+					var node = value.range.commonAncestorContainer;
+
+					switch (value.actionType)
+					{
+						// Insert
+						case 'insertColumnLeft':
+						case 'insertColumnRight':
+							insertColumn(node, value.tableNode, value.actionType);
+							break;
+						case 'insertRowUpper':
+						case 'insertRowLower':
+							insertRow(node, value.tableNode, value.actionType);
+							break;
+						case 'insertCellLeft':
+						case 'insertCellRight':
+							insertCell(node, value.tableNode, value.actionType);
+							break;
+
+						// Remove
+						case 'removeColumn':
+							removeColumn(value.range, value.tableNode);
+							break;
+						case 'removeRow':
+							removeRow(value.range, value.tableNode);
+							break;
+						case 'removeCell':
+							removeCell(value.range, value.tableNode);
+							break;
+						case 'removeSelectedCells':
+							removeSelectedCells(value.range, value.tableNode);
+							break;
+
+						// Merge
+						case 'mergeSelectedCells':
+							mergeCells(value.range, value.tableNode);
+							break;
+						case 'mergeRightCell':
+							mergeRightCell(value.range, value.tableNode);
+							break;
+						case 'mergeBottomCell':
+							mergeBottomCell(value.range, value.tableNode);
+							break;
+						case 'mergeRow':
+							mergeRow(value.range, value.tableNode);
+							break;
+						case 'mergeColumn':
+							mergeColumn(value.range, value.tableNode);
+							break;
+
+						// split
+						case 'splitHorizontally':
+							splitHorizontally(value.range, value.tableNode);
+							break;
+						case 'splitVertically':
+							splitVertically(value.range, value.tableNode);
+							break;
+					}
+
+				},
+				state: BX.DoNothing,
+				value: BX.DoNothing,
+				getSelectedCells: getSelectedCells,
+				canBeMerged: canBeMerged,
+				canBeMergedWithRight: canBeMergedWithRight,
+				canBeMergedWithBottom: canBeMergedWithBottom
+			};
+		},
+
 
 		GetFormatBbCode: function()
 		{
@@ -3751,5 +5086,5 @@
 		}
 	};
 
-	top.BXEditorActions = window.BXEditorActions = BXEditorActions;
+	window.BXEditorActions = BXEditorActions;
 })();

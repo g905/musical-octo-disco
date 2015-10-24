@@ -321,22 +321,36 @@
 	height: 31px;
 	vertical-align: top;
 	width: 51px;
+	background: url(/bitrix/images/main/composite/sprite-1x.png) no-repeat right 0;
+}
+
+@media
+only screen and (-webkit-min-device-pixel-ratio: 2),
+only screen and (min--moz-device-pixel-ratio: 2),
+only screen and (-o-min-device-pixel-ratio: 2/1),
+only screen and (min-device-pixel-ratio: 2),
+only screen and (min-resolution: 192dpi),
+only screen and (min-resolution: 2dppx) {
+	.adm-composite-btn-logo-img {
+		background-image: url(/bitrix/images/main/composite/sprite-2x.png);
+		background-size: 42px 124px;
+	}
 }
 
 .adm-composite-btn-logo-white {
-	background: url(/bitrix/images/main/composite/bx-white-logo.png) no-repeat right 5px;
-}
-
-.adm-composite-btn-logo-grey {
-	background: url(/bitrix/images/main/composite/bx-grey-logo.png) no-repeat right 5px;
+	background-position: right 0;
 }
 
 .adm-composite-btn-logo-red {
-	background: url(/bitrix/images/main/composite/bx-red-logo.png) no-repeat right 5px;
+	background-position: right -62px;
 }
 
 .adm-composite-btn-logo-black {
-	background: url(/bitrix/images/main/composite/bx-black-logo.png) no-repeat right 5px;
+	background-position: right -31px;
+}
+
+.adm-composite-btn-logo-grey {
+	background-position: right -93px;
 }
 
 .adm-composite-btn-logo-radio {

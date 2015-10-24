@@ -1764,8 +1764,7 @@ BX.CDialog.prototype.Show = function(bNotRegister)
 
 				this.SetContent(data || '&nbsp;');
 				this.Show();
-			}, this),
-			processScriptsConsecutive: true
+			}, this)
 		});
 	}
 	else
@@ -1916,9 +1915,17 @@ BX.CAdminDialog.prototype.SetContent = function(html)
 
 BX.CAdminDialog.prototype.__adjustSizeEx = function()
 {
-	var new_height = BX.firstChild(this.PARTS.CONTENT_DATA).offsetHeight;
-	if (new_height)
-		this.PARTS.CONTENT_DATA.style.height = new_height + 'px';
+	var ob = this.PARTS.CONTENT_DATA.firstChild,
+		new_height = 0;
+	while (ob)
+	{
+		new_height += ob.offsetHeight
+			+ parseInt(BX.style(ob, 'margin-top'))
+			+ parseInt(BX.style(ob, 'margin-bottom'));
+		ob = BX.nextSibling(ob);
+	 if (new_height)
+	 	this.PARTS.CONTENT_DATA.style.height = new_height + 'px';
+	}
 };
 
 BX.CAdminDialog.prototype.__expandGetSize = function()
@@ -3954,3 +3961,4 @@ BX.adminInformer = {
 };
 
 })(window);
+

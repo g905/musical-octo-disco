@@ -12,7 +12,7 @@ div.bx-editor-dialog-cont .table td{padding: 0px;}
 .bxedtoolbar td, div.global_toolbar_button td{padding:0px !important;background-image: url(/bitrix/images/fileman/htmledit2/toolbarbg.gif) !important;}
 table.bxedmainframe .bxedtoolbarset, table.bxedmainframe .bxedtaskbarset{background: url(/bitrix/images/fileman/htmledit2/toolbarsetbg.gif) repeat transparent!important; vertical-align: top; padding: 0 !important;}
 .bxedmainframe td .bxedtaskbarset td{background-color: #F4F3F1 !important; background-image: none;}
-textarea.bxeditor-textarea{display: none; width: 100%; border-width: 0; background-color: #ffffff;box-shadow:none;border-radius: 0 !important; padding: 0 !important; max-height: none!important; max-width: none!important;}
+textarea.bxeditor-textarea{display: none; width: 100%; border-width: 0; background-color: #ffffff;box-shadow:none;border-radius: 0 !important; padding: 0 !important; max-height: none!important; max-width: none!important;line-height: normal;}
 
 #bx-admin-prefix .bxedmainframe .bxedtoolbarset .bxed-toolbar-inner{width: auto;}
 .bxedtoolbarset .bxed-toolbar-inner tr td{background: transparent;}

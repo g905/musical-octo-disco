@@ -458,7 +458,7 @@ BX.file_input.prototype.OnSelectFromMedialib = function(file)
 
 BX.file_input.prototype.OnSelectFromFileDialog = function(path)
 {
-	var description = '';
+	var description = '', curFile;
 	this.curFileIndex = false;
 	if (this.arConfig.fileExists && this.arConfig.files && !this.multiple)
 	{
@@ -476,8 +476,7 @@ BX.file_input.prototype.OnSelectFromFileDialog = function(path)
 			BX.cleanNode(pDelInput, true);
 
 		// Show description
-		var
-			curFile = this.arConfig.files && this.arConfig.files[0] ? this.arConfig.files[0] : false;
+		curFile = this.arConfig.files && this.arConfig.files[0] ? this.arConfig.files[0] : false;
 		if (curFile && curFile.DESCRIPTION !== '')
 			description = curFile.DESCRIPTION;
 		this.ShowFileDescription(this.oNewFile, description);
@@ -507,6 +506,8 @@ BX.file_input.prototype.OnSelectFromFileDialog = function(path)
 		else
 			this.SetHiddenInputName(fileIndex, '');
 
+		// Show description
+		curFile = false;
 		if (!isNaN(fileIndex) && this.multiple)
 		{
 			this.DeleteFile(false);
@@ -514,23 +515,23 @@ BX.file_input.prototype.OnSelectFromFileDialog = function(path)
 			pMenu.style.display = "none";
 			oFile.pMenu.style.display = "inline-block";
 			oFile.pMenu.setAttribute('data-bx-meta', fileIndex);
-
-			var
-				curFile = this.arConfig.files && this.arConfig.files[fileIndex] ? this.arConfig.files[fileIndex] : false,
-				fileContainer = BX(this.id + '_file_cont_' + fileIndex);
+			curFile = this.arConfig.files && this.arConfig.files[fileIndex] ? this.arConfig.files[fileIndex] : false;
+			var fileContainer = BX(this.id + '_file_cont_' + fileIndex);
 
 			if (curFile)
 			{
-				if (curFile.DESCRIPTION !== '')
-					description = curFile.DESCRIPTION;
+				this.ShowFileDescription(oFile, curFile.DESCRIPTION || '');
 				this.SetInputName(oFile.pTextInput, curFile.INPUT_NAME);
 				this.SetInputName(oFile.pDescInput, curFile.DESC_NAME);
+				oFile.pDescInput.value = curFile.DESCRIPTION || '';
 			}
 			fileContainer.appendChild(oFile.pFileCont);
 		}
 
-		// Show description
-		this.ShowFileDescription(oFile, description);
+		if (!curFile)
+		{
+			this.ShowFileDescription(oFile, '');
+		}
 
 		if (this.multiple)
 			this.pCont.appendChild(this.oNewFile.pFileCont);

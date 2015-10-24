@@ -36,8 +36,6 @@
 			BX.addCustomEvent(this, 'OnComponentParamsResize', function(width, height)
 			{
 				_this.Resize(width, height);
-				//_this.params = params;
-				//_this.GetComponentParams(params);
 			});
 		},
 
@@ -48,6 +46,7 @@
 		*	template - template of the component ('' by default)
 		*	currentValues - array of current values
 		*	callback - callback function to display parameters
+		*	relPath - relative path
 		*}
 		* */
 		GetComponentParams: function(params)
@@ -56,12 +55,40 @@
 				_this = this,
 				data = this.GetCachedParams(params);
 
+			if (!params.relPath && this.config.relPath)
+				params.relPath = this.config.relPath;
+
 			if (data)
 			{
 				callback(data);
 			}
 			else
 			{
+				var curValues = {}, val, k, i;
+				for (k in params.currentValues)
+				{
+					if (params.currentValues.hasOwnProperty(k))
+					{
+						val = params.currentValues[k];
+
+						if (typeof val == 'string' && val === "undefined")
+							curValues[k] = '';
+						else if (typeof val == 'string' && val.substr(0,8).toLowerCase() == "={array(")
+							curValues[k] = this.GetArray(val.substr(2, val.length - 3));
+						else
+							curValues[k] = params.currentValues[k];
+
+						if (typeof curValues[k] == 'object')
+						{
+							for(i = 0; i < curValues[k].length; i++)
+							{
+								if (curValues[k][i] === 'undefined' || curValues[k][i] === undefined)
+									curValues[k][i] = '';
+							}
+						}
+					}
+				}
+
 				var
 					url = this.config.requestUrl,
 					reqId = Math.round(Math.random() * 1000000),
@@ -71,7 +98,7 @@
 						site_template: params.siteTemplate || '',
 						component_name: params.name,
 						component_template: params.template,
-						current_values: params.currentValues
+						current_values: curValues
 					};
 
 				window.__bxResult[reqId] = null;
@@ -85,6 +112,7 @@
 			function callback(data)
 			{
 				var cnt = _this.BuildComponentParams(data, params);
+				BX.adminFormTools.modifyFormElements(cnt);
 				if (params.callback && typeof params.callback == 'function')
 				{
 					params.callback({}, cnt);
@@ -174,10 +202,12 @@
 			var
 				container = params.container,
 				_this = this,
-				paramsIndex = {},
-				i, group, cont, param, value, headerRow;
+				i, group, cont, param, value;
 
+			this.paramsIndex = {};
 			this.groupIndex = {};
+			if (!data.groupIndex)
+				data.groupIndex = {};
 
 			this.searchIndex = [];
 			BX.cleanNode(container);
@@ -219,7 +249,7 @@
 				frag;
 
 			// Add template group to the beginning
-			if (!this.groupIndex["COMPONENT_TEMPLATE"] && data.templates.length > 0)
+			if (!data.groupIndex["COMPONENT_TEMPLATE"] && data.templates.length > 0)
 			{
 				data.groups = [{ID: "COMPONENT_TEMPLATE", NAME: BX.message('TemplateGroup'), SORT: 0}].concat(data.groups);
 			}
@@ -238,7 +268,7 @@
 				tr = BX.adjust(frag.appendChild(BX.create("TR")), {props: {className: 'bxcompprop-prop-tr'}});
 				td = BX.adjust(tr.insertCell(-1), {props: {className: 'bxcompprop-cont-table-title', colSpan: 2}, text: group.NAME});
 
-				this.groupIndex[group.ID] = {
+				this.groupIndex[group.ID] = data.groupIndex[group.ID] = {
 					group: group,
 					frag: frag,
 					leftIndex: pGroup,
@@ -264,7 +294,15 @@
 			if (params.currentValues["SEF_URL_TEMPLATES"])
 			{
 				str = params.currentValues["SEF_URL_TEMPLATES"];
-				arSut = this.GetArray((str.substr(0,8).toLowerCase() == "={array(") ? str.substr(2, str.length - 3) : str);
+
+				if (typeof str == 'object')
+				{
+					arSut = str;
+				}
+				else
+				{
+					arSut = this.GetArray((str.substr(0,8).toLowerCase() == "={array(") ? str.substr(2, str.length - 3) : str);
+				}
 
 				for (k in arSut)
 				{
@@ -279,7 +317,14 @@
 			if (params.currentValues["VARIABLE_ALIASES"] && params.currentValues["SEF_MODE"] == "N")
 			{
 				str = params.currentValues["VARIABLE_ALIASES"];
-				arVa = this.GetArray((str.substr(0, 8).toLowerCase() == "={array(") ? str.substr(2, str.length - 3) : str);
+				if (typeof str == 'object')
+				{
+					arVa = str;
+				}
+				else
+				{
+					arVa = this.GetArray((str.substr(0, 8).toLowerCase() == "={array(") ? str.substr(2, str.length - 3) : str);
+				}
 
 				for (k in arVa)
 				{
@@ -297,12 +342,11 @@
 				param = data.parameters[i];
 				value = params.currentValues[param.ID];
 
-				paramsIndex[param.ID] = {
+				this.paramsIndex[param.ID] = {
 					param: param,
 					value: value
 				};
 			}
-			this.paramsIndex = paramsIndex;
 
 			// 3. Display properties
 			for (i = 0; i < data.parameters.length; i++)
@@ -322,6 +366,11 @@
 					{
 						param.PARENT = 'BASE';
 					}
+				}
+
+				if (param.ID == 'SEF_FOLDER' && !param.DEFAULT && params.relPath)
+				{
+					param.DEFAULT = (params.relPath != "/" ? params.relPath : "") + "/";
 				}
 
 				if (this.BuildComponentParameter(param, value, this.groupIndex[param.PARENT].frag))
@@ -360,6 +409,8 @@
 					}
 				}, 50
 			);
+
+			BX.onCustomEvent(this, 'onComponentParamsBuilt');
 
 			return container;
 		},
@@ -484,6 +535,11 @@
 
 			param.MULTIPLE = (param.MULTIPLE && param.MULTIPLE.toUpperCase()) == "Y" ? "Y" : "N";
 
+			if (typeof value == 'string' && value === "undefined")
+			{
+				value = undefined;
+			}
+
 			var _value = value;
 			if (typeof value == 'string')
 			{
@@ -498,7 +554,10 @@
 				}
 				else if (param.TYPE == "LIST")
 				{
-					value = [value];
+					if (value !== _value)
+						value = [_value];
+					else
+						value = [value];
 				}
 				else if (this.IsNum(value)) // If it's number - remove PHP brackets
 				{
@@ -519,27 +578,35 @@
 				}
 			}
 
-			// Hidden;
-			if (param.HIDDEN && param.HIDDEN.toString().toUpperCase() == "Y")
-				return false;
-
 			// SEF
 			var
 				bSefMode = this.GetParamValueById("SEF_MODE");
 			bSefMode = bSefMode && bSefMode.toUpperCase() == "Y";
-			// If SEF = ON : show SEF_URL_TEMPLATES and SEF_FOLDER
-			//  SEF = OFF: show VARIABLE_ALIASES
-			if (
-				((param.ID.substr(0, 17) == "SEF_URL_TEMPLATES" || param.ID == "SEF_FOLDER") && !bSefMode)
-				||
-				(param.ID.substr(0, 16) == "VARIABLE_ALIASES" && bSefMode)
-				)
+			// If SEF = ON : don't show VARIABLE_ALIASES
+			//  SEF = OFF: don't show SEF_URL_TEMPLATES, SEF_FOLDER and SEF_RULE
+			if (bSefMode)
 			{
-				return false;
+				if (param.ID.substr(0, 16) == "VARIABLE_ALIASES")
+					return false;
+			}
+			else
+			{
+				if (param.ID.substr(0, 17) == "SEF_URL_TEMPLATES")
+					return false;
+				if (param.ID == "SEF_FOLDER")
+					return false;
+				if (param.ID == "SEF_RULE")
+					return false;
 			}
 
 			// Display
 			param._propId = BX.util.htmlspecialchars(param.ID || Math.round(Math.random() * 10000)) + '_' + this.id;
+
+			// Hidden;
+			if (param.HIDDEN && param.HIDDEN.toString().toUpperCase() == "Y")
+			{
+				return this.DisplayHiddenParam(param, value, frag);
+			}
 
 			var
 				tr = BX.adjust(frag.appendChild(BX.create("TR")), {props: {className: 'bxcompprop-prop-tr'}}),
@@ -559,6 +626,9 @@
 					break;
 				case "FILE":
 					this.DisplayParamFile(param, value, paramContainer);
+					break;
+				case "TEMPLATES":
+					this.DisplayParamTemplates(param, value, paramContainer);
 					break;
 				case "CUSTOM":
 					this.DisplayParamCustom(param, value, paramContainer);
@@ -600,9 +670,18 @@
 			param.COLS = parseInt(param.COLS, 10) || 20;
 			param.CNT = Math.max(parseInt(param.CNT), 1) || 1;
 
-			if (value == undefined)
+			if (value == undefined || value == ['undefined'])
 			{
 				value = param.DEFAULT;
+			}
+
+			if (typeof value == 'object')
+			{
+				for(i = 0; i < value.length; i++)
+				{
+					if (value[i] === 'undefined' || value[i] === undefined)
+						value[i] = '';
+				}
 			}
 
 			if(!param.VALUES)
@@ -611,7 +690,6 @@
 			}
 
 			param.ADDITIONAL_VALUES = (param.ADDITIONAL_VALUES && param.ADDITIONAL_VALUES.toUpperCase()) == "Y" ? "Y" : "N";
-
 			var
 				propId = param._propId,
 				_this = this,
@@ -660,7 +738,6 @@
 					}
 				}
 			}
-
 			container.appendChild(pSelect);
 
 			// Additional values
@@ -669,27 +746,33 @@
 				opt = new Option(param.MULTIPLE == 'Y' ? BX.message('CompParManNoValue') : BX.message('CompParManSelectOther'), '', !bFound, !bFound);
 				pSelect.options.add(opt, 0);
 
+				if (!bFound)
+					this.SetOptionSelected(opt, true);
+
+				var arValue = typeof value == 'object' ? value : [value];
+
 				if(param.MULTIPLE == 'Y')
 				{
 					// Additional values
-					for(key in value)
+					for(key in arValue)
 					{
-						if (!value.hasOwnProperty(key) || arUsedValues[value[key]] || value[key] == '')
+						if (!arValue.hasOwnProperty(key) || arUsedValues[arValue[key]] || arValue[key] == '' || arValue[key] == undefined)
 						{
 							continue;
 						}
+
 						container.appendChild(BX.create("BR"));
 						if(param.ROWS > 1)
 						{
 							container.appendChild(BX.create("TEXTAREA", {
-								props: {cols: param.COLS,name: name, value: value[key]},
+								props: {cols: param.COLS,name: name, value: arValue[key]},
 								attrs: {'data-bx-property-id' : param.ID, 'data-bx-comp-prop' : true}
 							})).onchange = BX.proxy(this.OnChageParams, this);
 						}
 						else
 						{
 							container.appendChild(BX.create("INPUT", {
-								props: {size: param.COLS,name: name, value: value[key], type: 'text'},
+								props: {size: param.COLS,name: name, value: arValue[key], type: 'text'},
 								attrs: {'data-bx-property-id' : param.ID, 'data-bx-comp-prop' : true}
 							})).onchange = BX.proxy(this.OnChageParams, this);
 						}
@@ -744,18 +827,26 @@
 				{
 					// Additional values
 					var pInput;
-					for(key in value)
+					for(key in arValue)
 					{
-						if (!value.hasOwnProperty(key) || arUsedValues[value[key]])
+						if (!arValue.hasOwnProperty(key))
 						{
 							continue;
 						}
+
+						if (arValue[key] === undefined || arValue[key] === 'undefined')
+							arValue[key] = '';
 
 						container.appendChild(BX.create("BR"));
 						if(param.ROWS > 1)
 						{
 							pInput = container.appendChild(BX.create("TEXTAREA", {
-								props: {cols: param.COLS, name: name + '_alt', value: value[key], disabled: bFound},
+								props: {
+									name: name + '_alt',
+									value: arUsedValues[arValue[key]] ? '' : arValue[key],
+									disabled: bFound,
+									cols: param.COLS
+								},
 								attrs: {'data-bx-property-id' : param.ID, 'data-bx-comp-prop' : true}
 							}));
 							pInput.onchange = BX.proxy(this.OnChageParams, this);
@@ -763,7 +854,13 @@
 						else
 						{
 							pInput = container.appendChild(BX.create("INPUT", {
-								props: {size: param.COLS, name: name + '_alt', value: value[key], disabled: bFound, type: 'text'},
+								props: {
+									name: name + '_alt',
+									value: arUsedValues[arValue[key]] ? '' : arValue[key],
+									disabled: bFound,
+									size: param.COLS,
+									type: 'text'
+								},
 								attrs: {'data-bx-property-id' : param.ID, 'data-bx-comp-prop' : true}
 							}));
 							pInput.onchange = BX.proxy(this.OnChageParams, this);
@@ -861,6 +958,7 @@
 			var oColorPicker = new this.Colorpicker({
 				id: param.ID + '_colorpicker',
 				input: pInput,
+				zIndex: 3100,
 				OnSelect: function(color)
 				{
 					pInput.value = color;
@@ -883,7 +981,7 @@
 				pInput = container.appendChild(BX.create("INPUT", {
 					props: {size: param.COLS, name: param.ID, value: value, type: 'text', id: propId},
 					attrs: {'data-bx-property-id' : param.ID, 'data-bx-comp-prop' : true},
-					style: {minWidth: '80%'}
+					style: {minWidth: '70%'}
 				}));
 
 			pInput.onchange = BX.proxy(this.OnChageParams, this);
@@ -892,44 +990,43 @@
 			{
 				// Replace id, and increase "curCount"
 				var html = window['_bxMlBrowseButton_' + param.ID.toLowerCase()];
+				var div = container.appendChild(BX.create("DIV", {props: {className: 'bxcompprop-file-dialog-wrap'}, html: ''}));
 
-				var oML = BX.processHTML(html);
-				setTimeout(function()
+				function processHTMLMedialib()
 				{
-					if (oML.SCRIPT && oML.SCRIPT.length > 0)
+					html = window['_bxMlBrowseButton_' + param.ID.toLowerCase()];
+					if(!html)
+						return;
+					var oML = BX.processHTML(html);
+					setTimeout(function()
 					{
-						var sc, scriptsInt = '';
-						for (var i = 0; i < oML.SCRIPT.length; i++)
+						if (oML.SCRIPT && oML.SCRIPT.length > 0)
 						{
-							sc = oML.SCRIPT[i];
-							if (sc.isInternal)
+							var sc, scriptsInt = '';
+							for (var i = 0; i < oML.SCRIPT.length; i++)
 							{
-								scriptsInt += ';' + sc.JS;
+								sc = oML.SCRIPT[i];
+								if (sc.isInternal)
+								{
+									scriptsInt += ';' + sc.JS;
+								}
 							}
+							BX.evalGlobal(scriptsInt);
 						}
-						BX.evalGlobal(scriptsInt);
+					}, 100);
+
+					div.innerHTML = oML.HTML;
+					var fdInputBut = BX("bx_fd_input_" + param.ID.toLowerCase());
+					if (fdInputBut)
+					{
+						fdInputBut.onclick = window['BX_FD_' + param.ID];
 					}
-				}, 100);
-
-				container.appendChild(BX.create("DIV", {props: {className: 'bxcompprop-file-dialog-wrap'}, html: oML.HTML}));
-				var fdInputBut = BX("bx_fd_input_" + param.ID.toLowerCase());
-				if (fdInputBut)
-				{
-					fdInputBut.onclick = window['BX_FD_' + param.ID];
 				}
 
-				/*
-				if(BX.browser.IsIE() && !this.bxAppendedCSSForML)
-				{
-					var
-						s1 = html.indexOf('<' + 'style>'),
-						s2 = html.indexOf('</' + 'style>'),
-						css = html.substr(s1 + 7, s2 - s1 - 7);
-
-					document.styleSheets[0].cssText += css;
-					this.bxAppendedCSSForML = true;
-				}
-				*/
+				if (!html)
+					setTimeout(processHTMLMedialib, 100);
+				else
+					processHTMLMedialib();
 			}
 			else
 			{
@@ -957,6 +1054,95 @@
 			{
 				container.appendChild(BX.create("INPUT", {props: {type: 'button', value: 'ok', className: 'bxcompprop-ok-btn'}, events: {click: BX.proxy(this.DoRefreshParams, this)}}));
 				BX.addClass(container, 'bxcompprop-cont-table-r-refreshed');
+			}
+		},
+
+		DisplayParamTemplates: function(param, value, container)
+		{
+			param.COLS = parseInt(param.COLS, 10) || 20;
+			param.CNT = 1;
+			param.MULTIPLE = 'N';
+
+			var propId = param._propId;
+
+			if (value == undefined)
+			{
+				value = param.DEFAULT || '';
+			}
+
+			var input = container.appendChild(BX.create("INPUT", {
+				props: {
+					size: param.COLS,
+					name: param.ID,
+					value: value,
+					type: 'text',
+					id: propId
+				},
+				attrs: {
+					'data-bx-property-id' : param.ID,
+					'data-bx-comp-prop' : true
+				}
+			}));
+			input.onchange = BX.proxy(this.OnChageParams, this);
+
+			var menuItems = [];
+			for(var key in param.VALUES)
+			{
+				if (param.VALUES.hasOwnProperty(key))
+				{
+					menuItems[menuItems.length] = {
+						text: param.VALUES[key].TEXT || '',
+						title: param.VALUES[key].TITLE || '',
+						onclick: function(manager, input, value)
+						{
+							function handler()
+							{
+								if (value.PARAMETER_LINK && value.PARAMETER_VALUE)
+								{
+									manager.SetParamValueById(value.PARAMETER_LINK, value.PARAMETER_VALUE);
+								}
+
+								var template = value.TEMPLATE;
+								if (document.selection) //IE
+								{
+									input.focus();
+									var sel = document.selection.createRange();
+									sel.text = template;
+								}
+								else if (input.selectionStart || input.selectionStart == '0') //FF
+								{
+									var startPos = input.selectionStart;
+									var endPos = input.selectionEnd;
+									var caretPos = startPos + template.length;
+									input.value = input.value.substring(0, startPos) + template + input.value.substring(endPos, input.value.length);
+									input.setSelectionRange(caretPos, caretPos);
+									input.focus();
+								}
+								else //Just append text
+								{
+									input.value += template;
+									input.focus();
+								}
+
+								BX.fireEvent(input, 'change');
+								input.focus();
+							}
+							return handler;
+						}(this, input, param.VALUES[key])
+					};
+				}
+			}
+
+			if (menuItems.length > 0)
+			{
+				var button = container.appendChild(BX.create("INPUT", {
+					props: {type: 'button', value: '...'}
+				}));
+
+				button.onclick = function()
+				{
+					BX.PopupMenu.show('mnu_' + propId, button, menuItems, {zIndex:5000});
+				}
 			}
 		},
 
@@ -1106,7 +1292,7 @@
 			}
 
 			var oCallBack = getFunction({
-				popertyID : param.ID,
+				propertyID : param.ID,
 				propertyParams: param,
 				getElements : BX.proxy(this.GetNamedControls, this),
 				oInput : pInput,
@@ -1115,7 +1301,21 @@
 				fChange: BX.proxy(this.OnChageParams, this)
 			});
 
-			BX.loadScript(param.JS_FILE, oCallBack);
+			BX.load([param.JS_FILE], oCallBack);
+		},
+
+		DisplayHiddenParam: function(param, value, frag)
+		{
+			var
+				tr = BX.adjust(frag.appendChild(BX.create("TR")), {props: {className: 'bxcompprop-prop-tr-hidden'}}),
+				td = BX.adjust(tr.insertCell(-1), {props: {colSpan: 2}}),
+				propId = param._propId,
+				name = param.ID + (param.MULTIPLE == 'Y' ? '[]' : '');
+
+			td.appendChild(BX.create("INPUT", {
+				props: {name: name, value: value, type: 'hidden', id: propId},
+				attrs: {'data-bx-property-id' : param.ID, 'data-bx-comp-prop' : true}
+			}));
 		},
 
 		DisplayTemplateSelector: function(templates, value)
@@ -1123,7 +1323,7 @@
 			var i, vals = {};
 			for (i = 0; i < templates.length; i++)
 			{
-				vals[templates[i].NAME] = templates[i].NAME + (templates[i].NAME == '.default' ? ' (' + BX.message('DefTemplate') + ')' : '');
+				vals[templates[i].NAME] = templates[i].DISPLAY_NAME || templates[i].NAME;
 			}
 
 			var
@@ -1139,6 +1339,11 @@
 				tr = BX.adjust(frag.appendChild(BX.create("TR")), {props: {className: 'bxcompprop-prop-tr'}}),
 				pLabelTd = BX.adjust(tr.insertCell(-1), {props: {className: 'bxcompprop-cont-table-l'}, html: '<label class="bxcompprop-label" for="' + propId + '">' + (param.NAME || '') + ':</label>'}),
 				paramContainer = BX.adjust(tr.insertCell(-1), {props: {className: 'bxcompprop-cont-table-r'}});
+
+			this.paramsIndex[param.ID] = {
+				param: param,
+				value: value
+			};
 
 			this.DisplayParamList(param, value, paramContainer);
 
@@ -1246,10 +1451,17 @@
 
 			for(propertyId in arNewValues)
 			{
-				if (arNewValues.hasOwnProperty(propertyId))
+				if (arNewValues.hasOwnProperty(propertyId) )
 				{
 					value = arNewValues[propertyId];
-					result[propertyId] = (typeof value == 'object') ? this.WrapPHPBrackets(this.ConvertArrayToString(value)) : value;
+					if (value === 'undefined' || value === undefined)
+					{
+						result[propertyId] = '';
+					}
+					else
+					{
+						result[propertyId] = (typeof value == 'object') ? this.WrapPHPBrackets(this.ConvertArrayToString(value)) : value;
+					}
 				}
 			}
 
@@ -1299,6 +1511,20 @@
 			}
 
 			return result;
+		},
+
+		SetParamValueById: function(paramId, value)
+		{
+			var prop = this.paramsIndex[paramId];
+			if (prop)
+			{
+				var input = BX(prop.param._propId);
+				if (input && input.type.toLowerCase() == 'text')
+				{
+					input.value = value;
+					BX.fireEvent(input, 'change');
+				}
+			}
 		},
 
 		// !!!!!!!!!!!!!!!!
@@ -1374,7 +1600,7 @@
 			var str = 'array(';
 			for (var k in ar)
 			{
-				if (ar.hasOwnProperty(k))
+				if (ar.hasOwnProperty(k) && ar[k] !== 'undefined' && ar[k] !== undefined)
 				{
 					if (isNaN(parseInt(k)) || parseInt(k) != k)
 					{

@@ -28,6 +28,7 @@ other parameters:
 	data: data to post
 	onsuccess: successful request callback. BX.proxy may be used.
 	onfailure: request failure callback. BX.proxy may be used.
+	onprogress: request progress callback. BX.proxy may be used.
 
 	lsId: local storage id - for constantly updating queries which can communicate via localStorage. core_ls.js needed
 
@@ -150,6 +151,11 @@ BX.ajax = function(config)
 		{
 			for (i = 0; i < config.headers.length; i++)
 				config.xhr.setRequestHeader(config.headers[i].name, config.headers[i].value);
+		}
+
+		if(!!config.onprogress)
+		{
+			BX.bind(config.xhr, 'progress', config.onprogress);
 		}
 
 		var bRequestCompleted = false;
@@ -394,7 +400,6 @@ BX.ajax.processRequestData = function(data, config)
 		break;
 		case 'SCRIPT':
 			scripts.push({"isInternal": true, "JS": data, bRunFirst: config.scriptsRunFirst});
-			config.processScriptsConsecutive = true;
 			result = data;
 		break;
 
@@ -441,7 +446,6 @@ BX.ajax.processRequestData = function(data, config)
 
 		BX.ajax.processScripts(config.scripts, true);
 
-
 		if (config.onsuccess)
 		{
 			config.onsuccess(result);
@@ -449,15 +453,7 @@ BX.ajax.processRequestData = function(data, config)
 
 		BX.onCustomEvent(config.xhr, 'onAjaxSuccess', [result, config]);
 
-		if(!config.processScriptsConsecutive)
-		{
-			BX.ajax.processScripts(config.scripts, false, cb);
-		}
-		else
-		{
-			BX.ajax.processScriptsConsecutive(config.scripts, false);
-			cb();
-		}
+		BX.ajax.processScripts(config.scripts, false, cb);
 	}
 	catch (e)
 	{
@@ -485,50 +481,19 @@ BX.ajax.processScripts = function(scripts, bRunFirst, cb)
 	}
 
 	scriptsExt = BX.util.array_unique(scriptsExt);
+	var inlineScripts = scriptsInt.length > 0 ? function() { BX.evalGlobal(scriptsInt); } : BX.DoNothing;
 
-	var l = scriptsExt.length;
-	var l1 = l;
-	var f = scriptsInt.length > 0 ? function() { BX.evalGlobal(scriptsInt); } : BX.DoNothing;
-
-	if (l > 0)
+	if (scriptsExt.length > 0)
 	{
-		var c = function() {
-			if (--l1 <= 0)
-			{
-				f();
-				cb();
-				f = BX.DoNothing;
-			}
-		};
-
-		for (i=0; i < l; i++)
-		{
-			BX.loadScript(scriptsExt[i], c);
-		}
+		BX.load(scriptsExt, function() {
+			inlineScripts();
+			cb();
+		});
 	}
 	else
 	{
-		//f();BX.defer(cb)();
-		f();
+		inlineScripts();
 		cb();
-	}
-};
-
-BX.ajax.processScriptsConsecutive = function(scripts, bRunFirst)
-{
-	for (var i = 0, length = scripts.length; i < length; i++)
-	{
-		if (null != bRunFirst && bRunFirst != !!scripts[i].bRunFirst)
-			continue;
-
-		if (scripts[i].isInternal)
-		{
-			BX.evalGlobal(scripts[i].JS);
-		}
-		else
-		{
-			BX.ajax.loadScriptAjax([scripts[i].JS]);
-		}
 	}
 };
 
@@ -625,7 +590,12 @@ BX.ajax.insertToNode = function(url, node)
 	node = BX(node);
 	if (!!node)
 	{
-		BX.onCustomEvent('onAjaxInsertToNode', [{url: url, node: node}]);
+		var eventArgs = { cancel: false };
+		BX.onCustomEvent('onAjaxInsertToNode', [{ url: url, node: node, eventArgs: eventArgs }]);
+		if(eventArgs.cancel === true)
+		{
+			return;
+		}
 
 		var show = null;
 		if (!tempDefaultConfig.denyShowWait)
@@ -1562,3 +1532,4 @@ BX.ajax.FormData.prototype.send = function(url, callbackOk, callbackProgress, ca
 
 BX.addCustomEvent('onAjaxFailure', BX.debug);
 })(window);
+

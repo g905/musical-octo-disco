@@ -117,7 +117,7 @@
 			}
 		}
 		var str = this.getQuery(params);
-		this.query(str, params.success, params);
+		this.query(str, params.success, params.fail);
 	};
 
 	/**
@@ -156,7 +156,7 @@
 	{
 		params.action = "update";
 		var queryData = this.getQuery(params);
-		this.query(queryData, params.success, params);
+		this.query(queryData, params.success, params.fail);
 	};
 
 	/**
@@ -167,7 +167,7 @@
 	{
 		params.action = "delete";
 		var str = this.getQuery(params);
-		this.query(str, params.success, params);
+		this.query(str, params.success, params.fail);
 	};
 
 	/**
@@ -453,7 +453,7 @@
 		{
 			return;
 		}
-		// console.log(query);
+
 		if(typeof success =='undefined' || typeof success != 'function')
 			success = function(){};
 		if (typeof fail == 'undefined' || typeof fail != 'function')
