@@ -47,7 +47,7 @@ if(strlen($arResult["OK_MESSAGE"]) > 0)
 		<div class="mf-text">
 			<?=GetMessage("MFT_MESSAGE")?><?if(empty($arParams["REQUIRED_FIELDS"]) || in_array("MESSAGE", $arParams["REQUIRED_FIELDS"])):?><span class="mf-req">*</span><?endif?>
 		</div>
-		<input type="text" name="MESSAGE" rows="5" cols="40"><?=$arResult["MESSAGE"]?></textarea>
+		<input type="text" name="MESSAGE" value="<?=$arResult["MESSAGE"]?>">
 	</div>
 
 	<?if($arParams["USE_CAPTCHA"] == "Y"):?>
