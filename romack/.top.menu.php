@@ -21,6 +21,13 @@ $aMenuLinks = Array(
 		Array(), 
 		"" 
 	),
+	Array(
+		"Ищем дилеров!", 
+		"dilers/", 
+		Array(), 
+		Array(), 
+		"" 
+	),
 /*	Array(
 		"Информация", 
 		"information/", 
