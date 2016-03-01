@@ -35,7 +35,7 @@ false
    
     <div>&nbsp;</div>
    
-    <div class="logo" style="margin-top: -5px; margin-left: 20px;"> <?$APPLICATION->IncludeComponent(
+    <!--div class="logo" style="margin-top: -5px; margin-left: 20px;"> <?$APPLICATION->IncludeComponent(
 	"bitrix:map.yandex.view",
 	"",
 	Array(
@@ -48,8 +48,11 @@ false
 		"MAP_ID" => "nost-moscow"
 	)
 );?> 
- </div>
+ </div-->
    
+    <div>&nbsp;</div>
+    <div>&nbsp;</div>
+    <div>&nbsp;</div>
     <div>&nbsp;</div>
    
     <div class="logo" style="margin-top: -5px; margin-left: 20px;"> <?$APPLICATION->IncludeComponent(
@@ -73,12 +76,15 @@ false
       <br />
      427007, Россия, Удмуртская республика, г. Ижевск, с. Первомайский, ул. Сабурова, 4 
       <br />
+      <br />
 
 	<b>Телефон:</b> 			 
       <br />
      			<span class="red">8-800-700-66-78</span> - звонок по России бесплатный. 
       <br />
      			8(3412)55-89-63 - приемная в г. Ижевск. 
+      <br />
+     			8(499)705-67-04 - офис в г. Москва. 
       <br />
       <br />
    
@@ -121,7 +127,7 @@ false
 <p class="itemstext">     
       <br />
      
-      <br />
+      <!--br />
      <b>Филиал производственной компании &quot;НОСТ&quot; в г. Москва:</b> 			 
       <br />
      	109457, Россия, Москва, Зеленодольская улица, 30к2, оф. 204 
@@ -150,11 +156,17 @@ false
      
       <br />
       <br />
+           -->
      
+     
+      <br />
+      <br />
+
       <br />
      <b>Наши изделия в розницу в г. Москва Вы можете приобрести по адресу:</b> 			 
       <br />
      	141407, Московская обл., Химки г., просп. Юбилейный, 40.  Магазин "Автозапчасти"
+      <br />
       <br />
 	<b>Телефон:</b>
       <br />
