@@ -9,6 +9,7 @@ $curPage = $APPLICATION->GetCurPage(true);
 	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 	<meta name="robots" content="noyaca"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link href="<?=SITE_TEMPLATE_PATH?>/css/style.css" rel="stylesheet" type="text/css" />
 	<?if ( stristr($_SERVER['HTTP_USER_AGENT'], 'IE') ) {?> 
 		<link href="<?=SITE_TEMPLATE_PATH?>/css/ie.css" rel="stylesheet" type="text/css" />
