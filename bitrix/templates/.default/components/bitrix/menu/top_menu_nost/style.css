@@ -1,8 +1,9 @@
 /**Top menu**/
 #horizontal-multilevel-menu,#horizontal-multilevel-menu ul
 {
-	list-style:none;
-	height:30px;
+	list-style: none;
+	min-height: 30px;
+	height: auto;
 }
 
 #horizontal-multilevel-menu

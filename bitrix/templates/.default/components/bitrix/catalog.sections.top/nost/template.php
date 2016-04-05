@@ -32,7 +32,7 @@
 					<p class="prop-value"><?=str_replace('оранжевый', 'оранж.', strtolower($arElement["PROPERTIES"]["COLOR"]["VALUE"]));?></p>
 				</div>
 				<div class="order-block">
-					<p class="item-price"><?=$arElement["PROPERTIES"]["PRICE"]["VALUE"];?></p>
+					<p class="item-price"><?=$arElement["PROPERTIES"]["PRICE"]["VALUE"];?><span style="font-family: Tahoma;font-size: 14px;"> Руб.</span></p>
 					<form id="buy<?=$arElement["ID"]?>" action="/buy_now/" method="post">
 						<input type="hidden" name="product_id" value="<?=$arElement["ID"]?>"/>
 					</form>
@@ -59,23 +59,28 @@
 
 		// В зависимости от того, есть или нет вторая скидка - формируем все три строчки
 		if ($arDisc1[1] != "")
-			$string1 = "<del>" . $arDisc1[0] . "</del>&nbsp;<font color='#FF2B23'>" . $arDisc1[1] . "</font>";
+			$string1 = "<del>" . $arDisc1[0] . "</del>&nbsp;<font color='#FF2B23'>" . $arDisc1[1] . "</font><span style='font-family: Tahoma;font-size: 14px; color:#FF2B23'> руб.</span>";
 		else
-			$string1 = $arDisc1[0];
+			$string1 = $arDisc1[0]."<span style='font-family: Tahoma;font-size: 14px;'> руб.</span>";
 		if ($arDisc2[1] != "")
-			$string2 = "<del>" . $arDisc2[0] . "</del>&nbsp;<font color='#FF2B23'>" . $arDisc2[1] . "</font>";
+			$string2 = "<del>" . $arDisc2[0] . "</del>&nbsp;<font color='#FF2B23'>" . $arDisc2[1] . "</font><span style='font-family: Tahoma;font-size: 14px; color:#FF2B23'> руб.</span>";
 		else
-			$string2 = $arDisc2[0];
+			$string2 = $arDisc2[0]."<span style='font-family: Tahoma;font-size: 14px;'> руб.</span>";
 		if ($arDisc3[1] != "")
-			$string3 = "<del>" . $arDisc3[0] . "</del>&nbsp;<font color='#FF2B23'>" . $arDisc3[1] . "</font>";
+			$string3 = "<del>" . $arDisc3[0] . "</del>&nbsp;<font color='#FF2B23'>" . $arDisc3[1] . "</font><span style='font-family: Tahoma;font-size: 14px; color:#FF2B23'> руб.</span>";
 		else
-			$string3 = $arDisc3[0];
+			$string3 = $arDisc3[0]."<span style='font-family: Tahoma;font-size: 14px;'> руб.</span>";
+
+		// adl 20.03.2016 уменьшаем отступ справа, если цифры очень большие
+		$pad_right = '';
+		if ( (($arDisc1[0]>999)&&($arDisc1[1]>999)) || (($arDisc2[0]>999)&&($arDisc2[1]>999)) || (($arDisc3[0]>999)&&($arDisc3[1]>999)) ) $pad_right = 'style="padding-right:5px;"';
+
 
 		$whole_string = $string1 . "<br/>" . $string2 . "<br/>" . $string3; // Собираем все три строчки в одну
 
 	?>
 				<div class="all-prices">
-					<p class="prices">
+					<p class="prices" <?=$pad_right;?>>
 <?=$whole_string;?>
 <?/*=($arElement["PROPERTIES"]["PRICE"]["VALUE"] - $arElement["PROPERTIES"]["PRICE"]["VALUE"]*$arDiscount[1]/100);?>
 <br><?=($arElement["PROPERTIES"]["PRICE"]["VALUE"] - $arElement["PROPERTIES"]["PRICE"]["VALUE"]*$arDiscount[3]/100);?>

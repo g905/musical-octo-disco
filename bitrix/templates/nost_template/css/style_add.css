@@ -1,3 +1,251 @@
+/* Адаптивный дизайн D.iK.iJ 17.03.16 */
+
+@media (min-resolution: .001dpcm) { /* стиль только для Opera 12.00+ */
+_:-o-prefocus, #lz_overlay_chat {
+top: -6px !important; bottom: auto !important;
+}}
+
+#content .contenttext-item .leftblock .rightblock {margin-left: 20px !important; display: inline-block !important;}
+#content .contenttext-item .leftblock .logo {display: block !important; float: left !important;}
+#content .contenttext-item .leftblock > p.itemstext {width: 520px; margin-left: 20px !important; display: inline-block !important;}
+
+@media screen and (max-width: 775px) {
+img {max-width: 100% !important; height: auto !important;}
+iframe, textarea, input, button, submit, select, video, object, embed {max-width: 99% !important;}
+table, span, div, ins {max-width: 100% !important;}
+
+body {min-width: 100px  !important; margin-bottom: 0px !important;}
+.container {padding-left: 0px !important; padding-right: 0px !important;}
+
+#buter {background: url(../img/header/headerbotbg2.png) repeat-x !important; padding-top: 3px !important; width: 100% !important; height: 35px !important; display: inline-block !important; text-align: center !important; color: #ffffff !important; font-family: Verdana !important; height: 30px !important; text-transform: uppercase !important; font-size: 130% !important; font-weight: bold !important; cursor: pointer !important;}
+#buter img {margin-top: -2px !important;}
+#content .slyder .subtext .row #description #buy {text-align: center;}
+#content #description .round-border {width: 50% !important; min-width: 150px !important; margin-top: 3px !important; margin-bottom: 10px !important;}
+#content #description .round-border .btn-primary {width: 100% !important;}
+
+#content .jumbotron {width: 100% !important; height: auto !important; min-height: 100px !important;}
+#content .jumbotron .beono-banner_slider {width: 100% !important; height: auto !important;}
+#content .jumbotron .beono-banner_slider-wrapper {width: 200% !important; max-width: 200% !important; overflow: hidden !important;}
+#content .jumbotron .beono-banner_slider-item {width: 50% !important; position: static !important; float: left !important;}
+#content .jumbotron .beono-banner_slider-pager {margin: 0px !important; margin-bottom: 5px !important; display: inline-block !important; position: static !important;}
+#content .jumbotron .beono-banner_slider-pager div div {margin-right: 3px !important;}
+
+#content table {width: 100% !important;}
+#content table[width^="1000"] td {display: inline-block !important; width: 100% !important;}
+#content .contenttext-item .itemstext p {margin-right: 0px !important; width: auto !important;}
+
+#header {min-width: 100px !important; max-height: none !important;}
+#header .logoblock {width: 100% !important;}
+#header .logoblock #logo {height: auto !important; background-position: center 20px !important; text-align: center !important; width: 100% !important;}
+#header .logoblock #logo #attention {margin: 0 auto !important; margin-top: 100px !important; min-height: 22px !important; height: auto !important;}
+#header .logoblock #cart {padding-top: 10px !important; width: 100% !important; padding-left: 0px !important; padding-right: 0px !important; text-align: center !important;}
+#header .logoblock #telephone {display: none !important;}
+#header .logoblock address #tel {background: url(/bitrix/templates/nost_template/images/telephone.png) left no-repeat; padding-left: 40px !important;}
+#header .logoblock address span {margin-bottom: 5px !important;}
+#header .col-xs-7 {width: 100% !important; padding-bottom: 10px !important;}
+
+#header address .email {display: inline-block !important; width: 25% !important;}
+#header address .phone {display: inline-block !important; width: 28% !important;}
+#header address .workhours {display: inline-block !important; width: 30% !important;}
+#header address .skype {display: inline-block !important; width: 14% !important;}
+#header address .workhours:before {margin-right: 5px !important;}
+#header address .phone:before {margin-right: 5px !important;}
+#header address .email:before {margin-right: 5px !important;}
+#header address .skype:before {margin-right: 5px !important;}
+
+.headerbot {height: auto !important; display: inline-block !important;}
+.headerbot-text {background: #E71414 !important; display: inline-block !important; width: 100% !important; height: auto !important; padding-left: 0px !important; background-size: 100% 100% !important;}
+
+#horizontal-multilevel-menu {display:none;  text-align: center !important; margin-bottom: 0px !important;}
+#horizontal-multilevel-menu li {min-height: 35px !important; float: none !important; display: block !important;}
+#horizontal-multilevel-menu li:hover ul, #horizontal-multilevel-menu li.jshover ul, #horizontal-multilevel-menu li li:hover ul, #horizontal-multilevel-menu li li.jshover ul, #horizontal-multilevel-menu li li li:hover ul, #horizontal-multilevel-menu li li li.jshover ul, #horizontal-multilevel-menu li li li li:hover ul, #horizontal-multilevel-menu li li li li.jshover ul, #horizontal-multilevel-menu li li li li li:hover ul, #horizontal-multilevel-menu li li li li li.jshover ul {display: none !important;}
+#horizontal-multilevel-menu li .but {font-size: 130% !important;}
+.headerbot-text a .with-sub.activ {background: none !important;}
+.headerbot-text a .with-sub {background: none !important;}
+.headerbot-text a .but {background: none !important;}
+.headerbot-text a .but.activ {background: url(../img/header/butbg-act.png) repeat-x right !important;}
+
+#content {margin-top: 10px !important; padding-bottom: 20px !important; display: inline-block !important; width: 98% !important; padding-left: 1% !important;  padding-right: 1% !important; min-width: 100px !important;}
+#content .slyder {width: 100% !important;}
+#content .subtext {width: 100% !important;}
+.row {margin-left: 1% !important; margin-right: 1% !important;}
+
+#news .posts {width: 100% !important;}
+#content li {line-height: 160%;}
+.our-products {margin-top: 30px !important; text-align: center !important;}
+.our-products .goto-section {top: 0px !important; width: 185px !important; right: -5% !important;}
+.our-products .category .title {margin-right: 5% !important; display: inline-block !important; width: 95% !important;}
+.our-products .category .title {padding-top: 0px !important; padding-bottom: 0px !important;}
+.our-products .category .title a:first-child {line-height: 32px !important;}
+.our-products .products {padding-top: 10px !important;}
+.our-products .products .col-xs-6 {width: auto !important; display: inline-block !important; float: none !important;}
+
+#content .slyder .banner-wide {width: 95% !important; padding-right: 0px !important; margin: 30px 0px !important;}
+#content .slyder .banner-wide:after {right: -5% !important; width: 5% !important; height: 100% !important; background-size: 100% 100% !important;}
+#content .slyder .banner-wide .goto-section {display: none !important;}
+#content .slyder .banner-wide .category {width: 100% !important;}
+#content .slyder .banner-wide .category .products {text-align: center !important;}
+#content .slyder .banner-wide .category .products .col-xs-6 {width: auto !important; float: none !important; display: inline-block !important;}
+#content .slyder .banner-wide .category .title {padding-left: 0px !important; text-align: center !important;}
+
+#news .text-justify {text-align: left !important;}
+
+#content .subtext .icons {text-align: center !important;}
+#content .subtext .icons .col-xs-6 {width: 19% !important; display: inline-block !important; float: none !important; padding-left: 1% !important; padding-right: 1% !important; text-align: center !important;}
+#content .subtext .icons .spoiler_body {text-align: left !important; margin-top: 0px !important; width: 100% !important; clear: both !important;}
+#content .subtext .icons p {text-align: left !important; margin-top: 0px !important; width: 100% !important; clear: both !important;}
+#content .h2, #content .h3 {text-align: left !important;}
+
+#content .slyder .subtext .row .col-xs-18 {width: 100% !important; padding-left: 0px !important; padding-right: 0px !important;}
+#content .slyder .subtext .row .col-xs-18 .miniatures {width: 100% !important; text-align: center !important;}
+#content .slyder .subtext .row .col-xs-12 {width: 100% !important; padding-left: 0px !important; padding-right: 0px !important;}
+#content #description .headings {width: 100% !important; padding-top: 10px !important;}
+#image0, #image1, #image2, #image3, #image4, #image5, #image6, #image7, #image8, #image9, #image10 {width: 100% !important; height: auto !important;}
+#content #mainPict0 {width: 100% !important; height: auto !important;}
+#content #description .h1 {display: inline !important; padding-right: 10px !important; margin-top: 25px; float: left !important;}
+#content #description .h2 {display: inline-block !important; float: right !important;}
+#content #description #tabs {margin-top: 15px !important;}
+#content #description #tabs .nav-tabs li > a {padding: 10px 10px !important;}
+#content .r-catalog .item-inner {width: 90% !important;}
+
+#content .container .center-row .col-xs-push-1 {left: 0px !important; padding: 1% !important;}
+#content .container .row .col-xs-30 .bordery .navitable td {display: inline-block !important; border: none !important;}
+#content .r-catalog .title {margin-top: 30px !important;}
+
+#content .contenttext-item .leftblock .logo {margin-bottom: 10px !important; margin-left: 0px !important; width: 100% !important; text-align: center !important;}
+#content .contenttext-item .bx-yandex-view-layout {display: inline-block !important; width: 100% !important; max-width: 360px !important;}
+#content .contenttext-item .bx-yandex-view-layout .bx-yandex-view-map {width: 100% !important; display: inline-block;}
+#content .contenttext-item .bx-yandex-view-layout .bx-yandex-view-map .bx-yandex-map {width: 100% !important; display: inline-block !important;}
+#content .contenttext-item .bx-yandex-view-layout .bx-yandex-view-map .bx-yandex-map > ymaps {width: 100% !important;}
+#content .contenttext-item {width: 100% !important; display: inline-block !important;}
+#content .contenttext-item .leftblock .rightblock {width: 100% !important; margin-left: 0px !important;}
+
+#content .contenttext-item .rightblock {width: 100% !important; margin-left: 0px !important;}
+#content .contenttext-item .bx-yandex-view-layout {display: inline-block !important;}
+#content .contenttext-item .rightblock table td:nth-child(1) {width: 37% !important;}
+#content .contenttext-item .rightblock table td:nth-child(2) {width: 30% !important;}
+#content .contenttext-item .rightblock table td:nth-child(3) {width: 30% !important;}
+
+#content .catalog-title .r-catalog {text-align: center !important;}
+#content .catalog-title .r-catalog .col-xs-10 {margin-bottom: 2px !important; width: 100% !important; max-width: 300px !important; height: auto !important; display: inline-block !important; float: none !important;}
+#content .subtext .row .col-xs-18 {width: 100% !important; text-align: center !important;}
+#content .subtext .row .col-xs-12 {width: 100% !important;}
+
+ul.photo-album-list {text-align: center !important;}
+#popup-gallery .mult_gallery_tmpl1 {text-align: center !important;}
+.col-xs-30 img[width="994"] {width: 100% !important; height: auto !important;}
+.detail_picture[width="994"] {width: 100% !important; height: auto !important;}
+.MsoNormalTable {width: 98% !important; margin: 1% !important;}
+
+.form-all {width: 100% !important;}
+.form-all .form-line {width: 100% !important; margin-left: 0px !important;}
+.form-all .form-label-left {width: 100% !important; border-style: solid !important; border-width: 1px !important; -webkit-border-radius: 5px !important; -moz-border-radius: 5px !important; border-radius: 5px !important;}
+.form-all .form-input {width: 100% !important; border-radius: 5px !important; text-align: center !important;}
+.form-all select {width: 100% !important;}
+.form-all .form-input-wide input.form-textbox {width: 100% !important;}
+.form-all textarea {width: 100% !important;}
+.form-all .form-description {position: static !important;}
+.form-all .form-description-arrow {display: none !important;}
+.form-all .form-input-wide > div {width: 100% !important;}
+.form-all .form-input-wide .form-spinner {width: 100% !important;}
+.form-all .form-input-wide .form-spinner-input {text-align: left !important;}
+
+#content .slyder .r-catalog {text-align: center !important;}
+#content .slyder .r-catalog .col-xs-10 {max-width: 280px !important; width: 100% !important; float: none !important; display: inline-block !important; margin-bottom: 2px !important; vertical-align: top !important;}
+
+#content .articlesblock .articlestext {width: 94% !important; margin: 3% !important;}
+#flash {width: 100% !important;}
+#flash #mainSwf {width: 100% !important; margin: 0px !important;}
+
+#content .slyder #description .r-catalog .col-xs-10 {width: 100% !important; max-width: 100% !important;}
+#content .subtext .row .col-xs-30 .bordery .pricetable {width: 100% !important;}
+
+.mfeedback .mf-name, .mfeedback .mf-email, .mfeedback .mf-phone, .mfeedback .mf-captcha, .mfeedback .mf-message {width: 49% !important;}
+
+#footer {height: auto !important; min-width: 100px  !important; position: static !important;}
+#footer .foots {width: 100% !important;}
+#footer #foot1, #footer #foot2, #footer #foot3, #footer #foot4 {max-height: none !important; min-height: 100px !important;}
+#footer #links ul.ulmenu li {width: 100% !important;}
+#footer .col-xs-30 {padding-bottom: 30px !important;}
+
+
+}
+@media screen and (max-width: 720px) {
+#content .container .row .col-xs-30 img {width: 100% !important; height: auto !important;}
+}
+@media screen and (max-width: 680px) {
+.MsoNormal img[width="640"] {width: 100% !important; height: auto !important;}
+}
+@media screen and (max-width: 630px) {
+#content .catalog-title .r-catalog .col-xs-10 {max-width: 100% !important;}
+}
+@media screen and (max-width: 590px) {
+#header address .email {display: inline-block !important; width: 49% !important; padding-left: 10% !important;}
+#header address .phone {display: inline-block !important; width: 49% !important; padding-left: 10% !important;}
+#header address .workhours {display: inline-block !important; width: 49% !important; padding-left: 10% !important;}
+#header address .skype {display: inline-block !important; width: 49% !important; padding-left: 10% !important;}
+#news {height: auto !important; background-size: 100% 100% !important; padding-bottom: 20px !important;}
+#news .row .col-xs-10 {width: 100% !important;}
+#footer #foot1, #footer #foot2, #footer #foot3, #footer #foot4 {width: 49% !important;}
+#content .subtext .icons .col-xs-6 {width: 32% !important;}
+#content .subtext .icons .col-xs-6 .thumbnail {margin-bottom: 0px !important;}
+#content .slyder .r-catalog .col-xs-10 {max-width: 100% !important;}
+#content .slyder .r-catalog .item-price {width: 49% !important;}
+#content .slyder .r-catalog .item-order {width: 49% !important;}
+#content .subtext .row .col-xs-30 .bordery .pricetable {max-width: 100% !important; -moz-hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto; hyphens: auto;}
+#content .subtext .row .col-xs-30 .bordery {overflow: auto !important;}
+.breadcrumb {padding-right: 5px !important;}
+}
+@media screen and (max-width: 550px) {
+.our-products .category .title {margin-right: 0px !important; width: 100% !important;}
+.our-products .goto-section {top: -2px !important; width: 185px !important; right: auto !important; left: -5px !important; position: absolute !important;}
+.our-products .category .title a:first-child {padding-left: 180px !important;}
+}
+@media screen and (max-width: 500px) {
+body, tbody {-moz-hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto; hyphens: auto;}
+.round-border .btn-primary {-moz-hyphens: none; -webkit-hyphens: none; -ms-hyphens: none; hyphens: none;}
+}
+@media screen and (max-width: 460px) {
+#header address .email {padding-left: 5% !important;}
+#header address .workhours {padding-left: 5% !important;}
+}
+@media screen and (max-width: 420px) {
+#header address .email {padding-left: 0px !important;}
+#header address .phone {padding-left: 5% !important;}
+#header address .workhours {padding-left: 0px !important;}
+#header address .skype {padding-left: 5% !important;}
+}
+@media screen and (max-width: 380px) {
+#header address .email {margin: 0 auto !important; margin-bottom: 5px !important; display: block !important; width: 165px !important;}
+#header address .phone {margin: 0 auto !important; margin-bottom: 5px !important; display: block !important; width: 165px !important; padding-left: 0px  !important;}
+#header address .workhours {margin: 0 auto !important; margin-bottom: 5px !important; display: block !important; width: 165px !important;}
+#header address .skype {margin: 0 auto !important; margin-bottom: 5px !important; display: block !important; width: 165px !important; padding-left: 0px  !important;}
+}
+@media screen and (max-width: 370px) {
+#footer #foot1, #footer #foot2, #footer #foot3, #footer #foot4 {width: 100% !important;}
+#content .subtext .icons .col-xs-6 {width: 48% !important;}
+#content .subtext .center-row .col-xs-push-1 p img[src$="images/companies13.png"] {width: 100% !important; height: auto !important;}
+.mfeedback .mf-name, .mfeedback .mf-email, .mfeedback .mf-phone, .mfeedback .mf-message {width: 100% !important;}
+.mfeedback .mf-name input, .mfeedback .mf-email input, .mfeedback .mf-phone input, .mfeedback .mf-message input {width: 100% !important;}
+
+#content .container .center-row .col-xs-5 {display: none !important;}
+#content .container .center-row .col-xs-24 {width: 100% !important;}
+}
+@media screen and (max-width: 340px) {
+#header .logoblock #logo {background-size: 90% !important;}
+#content #description #tabs .nav-tabs li > a {padding: 10px 5px !important;}
+#content .slyder .r-catalog .item-price {width: 100% !important;}
+#content .slyder .r-catalog .item-order {width: 100% !important;}
+}
+@media screen and (max-width: 330px) {
+#skidki .table-bordered tr:nth-child(2) td:last-child #reddy {word-break: break-all;}
+}
+@media screen and (max-width: 315px) {
+.our-products .goto-section {display: none !important;}
+.our-products .category .title a:first-child {padding-left: 0px !important;}
+}
+
+
 /*
 
 adl 20.05.14 Здесь css, перенесенный из шаблона старого сайта, и добавляемый мною вновь

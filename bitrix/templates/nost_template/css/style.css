@@ -1090,10 +1090,11 @@ img
 }
 
 .r-catalog .all-prices {
-    background: url(../img/price-bg.png) left 0px top 10px repeat-x;
+    background: url(../img/price-bg.png) 0px 8px repeat-x;
 }
 
 .r-catalog .all-prices .prices {
+line-height: 22px;
     font-size: 22px;
     font-weight: bold;
     float: left;
@@ -1107,7 +1108,7 @@ img
     text-align: left;
     background-color: #ffffff;
     padding-left: 15px;
-    line-height: 25px;
+    line-height: 24px;
 }
 
 .r-catalog .item-note {

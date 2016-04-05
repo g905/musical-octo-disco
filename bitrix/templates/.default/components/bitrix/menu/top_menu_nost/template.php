@@ -110,6 +110,12 @@ foreach($arResult as $arItem):?>
 <?endif?>
 
 </ul>
+	<div id="buter" style="display: none;"><img src="<?=SITE_TEMPLATE_PATH?>/images/buter.png" width="19" height="14" alt="" border="0">&nbsp;Меню</div>
+	<script type="text/javascript">
+		$("#buter").click(function () {
+			$("#horizontal-multilevel-menu").slideToggle("slow");
+		});
+	</script>
                 
             </div>
         </div>

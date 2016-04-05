@@ -212,17 +212,21 @@
 
 		// В зависимости от того, есть или нет вторая скидка - формируем все три строчки
 		if ($arDisc1[1] != "")
-			$string1 = "<del>" . $arDisc1[0] . "</del>&nbsp;<font color='#FF2B23'>" . $arDisc1[1] . "</font>";
+			$string1 = "<del>" . $arDisc1[0] . "</del>&nbsp;<font color='#FF2B23'>" . $arDisc1[1] . "</font><span style='font-family: Tahoma;font-size: 14px; color:#FF2B23'> руб.</span>";
 		else
-			$string1 = $arDisc1[0];
+			$string1 = $arDisc1[0]."<span style='font-family: Tahoma;font-size: 14px;'> руб.</span>";
 		if ($arDisc2[1] != "")
-			$string2 = "<del>" . $arDisc2[0] . "</del>&nbsp;<font color='#FF2B23'>" . $arDisc2[1] . "</font>";
+			$string2 = "<del>" . $arDisc2[0] . "</del>&nbsp;<font color='#FF2B23'>" . $arDisc2[1] . "</font><span style='font-family: Tahoma;font-size: 14px; color:#FF2B23'> руб.</span>";
 		else
-			$string2 = $arDisc2[0];
+			$string2 = $arDisc2[0]."<span style='font-family: Tahoma;font-size: 14px;'> руб.</span>";
 		if ($arDisc3[1] != "")
-			$string3 = "<del>" . $arDisc3[0] . "</del>&nbsp;<font color='#FF2B23'>" . $arDisc3[1] . "</font>";
+			$string3 = "<del>" . $arDisc3[0] . "</del>&nbsp;<font color='#FF2B23'>" . $arDisc3[1] . "</font><span style='font-family: Tahoma;font-size: 14px; color:#FF2B23'> руб.</span>";
 		else
-			$string3 = $arDisc3[0];
+			$string3 = $arDisc3[0]."<span style='font-family: Tahoma;font-size: 14px;'> руб.</span>";
+
+		// adl 20.03.2016 уменьшаем отступ справа, если цифры очень большие
+		$pad_right = '';
+		if ( (($arDisc1[0]>999)&&($arDisc1[1]>999)) || (($arDisc2[0]>999)&&($arDisc2[1]>999)) || (($arDisc3[0]>999)&&($arDisc3[1]>999)) ) $pad_right = 'style="padding-right:5px;"';
 
 		$whole_string = $string1 . "<br/>" . $string2 . "<br/>" . $string3; // Собираем все три строчки в одну
 
@@ -232,7 +236,7 @@
 		<div class="item">
 			<div class="item-inner">
 				<div class="all-prices">
-					<p class="prices">
+					<p class="prices" <?=$pad_right;?>>
 						<?=$whole_string;?>
 					</p>
 					<p class="count">От <?=$arDiscount[0];?> шт.<br>От <?=$arDiscount[2];?> шт.<br>От <?=$arDiscount[4];?> шт.</p>
