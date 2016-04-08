@@ -27,3 +27,31 @@
 	<p>&nbsp;</p>
 	</div>
 </div>
+<?$APPLICATION->IncludeComponent( "coffeediz:schema.org.Article",
+	"",
+	Array(
+		"COMPONENT_TEMPLATE" => ".default",
+		"SHOW" => "Y",
+		"TYPE" => "BlogPosting",
+		"LEARNING_RESOURCE_TYPE" => "",
+		"NAME" => $arResult["NAME"],
+		"ARTICLEBODY" => $arResult["DETAIL_TEXT"],
+		"ABOUT" => $arResult["DETAIL_TEXT"],
+		"GENRE" => "",
+		"ARTICLE_SECTION" => array(""),
+		"KEYWORDS" => array(""),
+		"IN_LANGUAGE" => "ru",
+		"DATA_PUBLISHED" => date("Y-m-d", strtotime($arResult["DISPLAY_ACTIVE_FROM"])),
+		"AUTHOR_TYPE" => "",
+		"IMAGEURL" => $arResult["DETAIL_PICTURE"]["SRC"],
+		"PARAM_RATING_SHOW" => "N",
+		"IMAGE_NAME" => $arResult["DETAIL_PICTURE"]["TITLE"],
+		"IMAGE_CAPTION" => $arResult["DETAIL_PICTURE"]["ALT"],
+		"IMAGE_DESCRIPTION" => $arResult["DETAIL_PICTURE"]["ALT"],
+		"IMAGE_HEIGHT" => $arResult["DETAIL_PICTURE"]["HEIGHT"],
+		"IMAGE_WIDTH" => $arResult["DETAIL_PICTURE"]["WIDTH"],
+		"IMAGE_TRUMBNAIL_CONTENTURL" => ""
+	),
+	false,
+	array('HIDE_ICONS' => 'Y')
+);?>

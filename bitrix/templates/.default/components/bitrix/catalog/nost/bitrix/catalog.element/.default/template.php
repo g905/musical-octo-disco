@@ -22,7 +22,7 @@
 	endif;
 ?>
 
-<?
+<?                                                          
 
 			// adl 10.12.14 Изменяем размер главной картинки на странице товара, чтобы сэкономить трафик
 			$file2_big = CFile::ResizeImageGet($arResult["DETAIL_PICTURE"], array('width'=>'1000', 'height'=>'1000'), BX_RESIZE_IMAGE_PROPORTIONAL, true); 
@@ -38,6 +38,8 @@
 			// высота средней картинки, alt и title для <img>, видимость средней картинки, путь до маленькой картинки, ширина маленькой картинки, высота маленькой картинки, 
 			// alt и title маленькой картинки, формат - изображение или флеш)
 			$allMedia[0] = Array(	"BIG_PATH" => $file2_big["src"],
+						"BIG_WIDTH" => str_replace("px", "", $file2_big["width"]),
+						"BIG_HEIGHT" => str_replace("px", "", $file2_big["height"]),
 						"A_TITLE" => $seo_title,
 						"NORMAL_PATH" => $arResult["DETAIL_PICTURE"]["SRC"],
 						"NORMAL_WIDTH" => $arResult["DETAIL_PICTURE"]["WIDTH"],
@@ -109,6 +111,8 @@
 				
 				$allMedia[$i] = Array(	
 						"BIG_PATH" => $file1_big["src"],
+						"BIG_WIDTH" => str_replace("px", "", $file1_big["width"]),
+						"BIG_HEIGHT" => str_replace("px", "", $file1_big["height"]),
 						"A_TITLE" => $arResult["NAME"],
 						"NORMAL_PATH" => $PHOTO["SRC"],
 						"NORMAL_WIDTH" => $PHOTO["WIDTH"],
@@ -128,6 +132,26 @@
 
 			<? for ($i=0; $i < count($allMedia); $i++):?>
 				<? if($allMedia[$i]['FORMAT'] == 'img'):?>
+
+<?$APPLICATION->IncludeComponent(
+	"coffeediz:schema.org.ImageObject",
+	"",
+	Array(
+		"COMPONENT_TEMPLATE" => ".default",
+		"SHOW" => "Y",
+		"CONTENTURL" => $allMedia[$i]['BIG_PATH'],
+		"NAME" => $allMedia[$i]['NORMAL_TITLE'],
+		"CAPTION" => $allMedia[$i]['NORMAL_TITLE'],
+		"DESCRIPTION" => $arResult['DETAIL_TEXT'],
+		"HEIGHT" => $allMedia[$i]['BIG_HEIGHT'],
+		"WIDTH" => $allMedia[$i]['BIG_WIDTH'],
+		"TRUMBNAIL_CONTENTURL" => "",
+		"ITEMPROP" => "",
+		"REPRESENTATIVEOFPAGE" => "True",
+		"PARAM_RATING_SHOW" => "N"
+	)
+);?>
+
             				<div id="image<?=$i?>" style="display: <?=$allMedia[$i]['NORMAL_VISIBLE'];?>; height:<?=$allMedia[$i]['NORMAL_HEIGHT']?>px; width:<?=$allMedia[$i]['NORMAL_WIDTH'];?>px;">
 						<a href="<?=$allMedia[$i]['BIG_PATH']?>" class="fancybox" rel="images" title="<?=$allMedia[$i]['A_TITLE']?>">
 							<img id="mainPict<?=$i?>" class="mainPict" src="<?=$allMedia[$i]['NORMAL_PATH']?>" width="<?=$allMedia[$i]['NORMAL_WIDTH']?>" height="<?=$allMedia[$i]['NORMAL_HEIGHT']?>" alt="<?=$allMedia[$i]['NORMAL_TITLE']?>" title="<?=$allMedia[$i]['NORMAL_TITLE']?>" />
@@ -231,6 +255,47 @@
 		$whole_string = $string1 . "<br/>" . $string2 . "<br/>" . $string3; // Собираем все три строчки в одну
 
 	?>
+<?
+
+// готовим цены для микроразметки
+$allprices = $allcurr = array();
+$min_price = $max_price = $arResult["PROPERTIES"]["PRICE"]["VALUE"];
+$allprices[] = $arResult["PROPERTIES"]["PRICE"]["VALUE"];
+$allcurr[] = "RUB";
+if ($arDisc1[1] != "") { $allprices[] = $arDisc1[1]; $allcurr[] = "RUB"; if ($min_price > $arDisc1[1]) $min_price = $arDisc1[1]; if ($max_price < $arDisc1[1]) $max_price = $arDisc1[1]; }
+if ($arDisc2[1] != "") { $allprices[] = $arDisc2[1]; $allcurr[] = "RUB"; if ($min_price > $arDisc2[1]) $min_price = $arDisc2[1]; if ($max_price < $arDisc2[1]) $max_price = $arDisc2[1]; }
+if ($arDisc3[1] != "") { $allprices[] = $arDisc3[1]; $allcurr[] = "RUB"; if ($min_price > $arDisc3[1]) $min_price = $arDisc3[1]; if ($max_price < $arDisc3[1]) $max_price = $arDisc3[1]; }
+
+	
+// микроразметка adl 08.04.16
+$APPLICATION->IncludeComponent(
+	"coffeediz:schema.org.Product",
+	"",
+	Array(
+		"AGGREGATEOFFER" => "Y",
+		"AGGREGATEOFFER_PRICE" => $allprices,
+		"AGGREGATEOFFER_PRICECURRENCY" => $allcurr,
+		"BESTRATING" => "5",
+		"COMPONENT_TEMPLATE" => ".default",
+		"DESCRIPTION" => $arResult['DETAIL_TEXT'],
+		"HIGHPRICE" => $max_price,
+		"ITEMAVAILABILITY" => "InStock",
+		"ITEMCONDITION" => "NewCondition",
+		"LOWPRICE" => $min_price,
+		"NAME" => $arResult['NAME'],
+		"OFFERCOUNT" => count($allprices),
+		"PARAM_RATING_SHOW" => "N",
+		"PAYMENTMETHOD" => array("VISA","MasterCard","ByBankTransferInAdvance","ByInvoice","Cash","CheckInAdvance"),
+		"PRICE" => $arResult["PROPERTIES"]["PRICE"]["VALUE"],
+		"PRICECURRENCY" => "RUB",
+		"RAITINGCOUNT" => "",
+		"RATINGVALUE" => "",
+		"RATING_SHOW" => "Y",
+		"REVIEWCOUNT" => "",
+		"SHOW" => "Y",
+		"WORSTRATING" => "1"
+	)
+);?>
 <div class="r-catalog">
 	<div class="col-xs-10" style="background: #ffffff;width: 100%;" >
 		<div class="item">
@@ -248,6 +313,30 @@
 </div>
 		<? } ?>
 <? } ?>
+
+<?
+// если микроразметки ещё не было
+if ($max_price == 0) {
+// микроразметка adl 08.04.16
+$APPLICATION->IncludeComponent(
+	"coffeediz:schema.org.Product",
+	"",
+	Array(
+		"NAME" => $arResult['NAME'],
+		"SHOW" => "Y",
+		"DESCRIPTION" => $arResult['DETAIL_TEXT'],
+		"PRICE" => $arResult["PROPERTIES"]["PRICE"]["VALUE"],
+		"PRICECURRENCY" => "RUB",
+		"ITEMAVAILABILITY" => "InStock",
+		"ITEMCONDITION" => "NewCondition",
+		"PAYMENTMETHOD" => array("VISA","MasterCard","ByBankTransferInAdvance","ByInvoice","Cash","CheckInAdvance"),
+		"PARAM_RATING_SHOW" => "N",
+	)
+);
+}
+?>
+
+
 	<!-- /Блок со скидочными ценами -->
 
 	<!-- Закладки -->
