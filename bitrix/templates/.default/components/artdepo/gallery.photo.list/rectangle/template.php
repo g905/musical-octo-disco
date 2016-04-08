@@ -1,5 +1,4 @@
 <? if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true) die(); ?>
-
 <?if($arParams["DISPLAY_TOP_PAGER"]):?>
 	<?=$arResult["NAV_STRING"]?><br /><br /><br />
 <?endif;?>
@@ -15,6 +14,26 @@
         );
         $src = ($thumb["src"]) ? $thumb["src"] : $arItem["THUMB_PATH"];
         ?>
+<? // микроразметка adl 08.04.16
+	$APPLICATION->IncludeComponent(
+		"coffeediz:schema.org.ImageObject",
+		"",
+		Array(
+			"COMPONENT_TEMPLATE" => ".default",
+			"SHOW" => "Y",
+			"CONTENTURL" => $arItem["PATH"],
+			"NAME" => $arItem["NAME"],
+			"CAPTION" => $arItem["NAME"],
+			"DESCRIPTION" => $arItem["NAME"],
+			"HEIGHT" => "",
+			"WIDTH" => "",
+			"TRUMBNAIL_CONTENTURL" => "",
+			"ITEMPROP" => "",
+			"REPRESENTATIVEOFPAGE" => "True",
+			"PARAM_RATING_SHOW" => "N"
+		)
+	);
+?>
         <li>
             <a href="<?=$arItem["PATH"]?>" class="gall_img_link" data-gallery="" rel="gallery-1"<?if($arParams["DISPLAY_NAME"] == "Y"):?> title="<?=$arItem["NAME"]?>"<?endif;?>>
                 <img src="<?=$src?>" <?if($arParams["DISPLAY_NAME"] == "Y"):?> title="<?=$arItem["NAME"]?>" alt="<?=$arItem["NAME"]?>" <?endif;?>/>

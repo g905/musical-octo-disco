@@ -263,8 +263,13 @@ $min_price = $max_price = $arResult["PROPERTIES"]["PRICE"]["VALUE"];
 $allprices[] = $arResult["PROPERTIES"]["PRICE"]["VALUE"];
 $allcurr[] = "RUB";
 if ($arDisc1[1] != "") { $allprices[] = $arDisc1[1]; $allcurr[] = "RUB"; if ($min_price > $arDisc1[1]) $min_price = $arDisc1[1]; if ($max_price < $arDisc1[1]) $max_price = $arDisc1[1]; }
+		  else { $allprices[] = $arDisc1[0]; $allcurr[] = "RUB"; if ($min_price > $arDisc1[0]) $min_price = $arDisc1[0]; if ($max_price < $arDisc1[0]) $max_price = $arDisc1[0]; }
+
 if ($arDisc2[1] != "") { $allprices[] = $arDisc2[1]; $allcurr[] = "RUB"; if ($min_price > $arDisc2[1]) $min_price = $arDisc2[1]; if ($max_price < $arDisc2[1]) $max_price = $arDisc2[1]; }
+		  else { $allprices[] = $arDisc2[0]; $allcurr[] = "RUB"; if ($min_price > $arDisc2[0]) $min_price = $arDisc2[0]; if ($max_price < $arDisc2[0]) $max_price = $arDisc2[0]; }
+
 if ($arDisc3[1] != "") { $allprices[] = $arDisc3[1]; $allcurr[] = "RUB"; if ($min_price > $arDisc3[1]) $min_price = $arDisc3[1]; if ($max_price < $arDisc3[1]) $max_price = $arDisc3[1]; }
+		  else { $allprices[] = $arDisc3[0]; $allcurr[] = "RUB"; if ($min_price > $arDisc3[0]) $min_price = $arDisc3[0]; if ($max_price < $arDisc3[0]) $max_price = $arDisc3[0]; }
 
 	
 // микроразметка adl 08.04.16
