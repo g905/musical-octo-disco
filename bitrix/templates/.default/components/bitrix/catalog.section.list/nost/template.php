@@ -1,7 +1,10 @@
 <?if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();?>
 			<div class="row proizv">
-				<h2 class="h2" style="font-size:28px; color:#000;">Мы производим</h2>
+				<h1 class="h2" style="font-size:28px; color:#000;">Шашки на такси</h1>
 					<div class="our-products">
+<script type="text/javascript">
+	$j23 = jQuery.noConflict();
+</script>
 <?
 // adl 26.10.14 Дебильные массивы, задающие какие товары из каких категорий брать
   $arProducts['39'] = Array(197,198,338,102,104); // преимум
@@ -34,11 +37,16 @@ for($i=0; $i<5; $i++) {
 
 			<div class="row">
 				<div class="category">
-					<p class="title">
-						<a href="<?=$arSection["SECTION_PAGE_URL"]?>" style="text-decoration:none;font-size:21px;"><?=$arSection["NAME"];?></a>
-						<a href="<?=$arSection["SECTION_PAGE_URL"]?>" class="goto-section"></a>
-					</p>
+					<a href="<?=$arSection["SECTION_PAGE_URL"]?>" style="display:block;text-decoration:none;" onmouseenter="$j23('#img<?=$arSection['ID'];?>').removeClass('taxiPict').addClass('taxiPictHover');" onmouseleave="$j23('#img<?=$arSection['ID'];?>').removeClass('taxiPictHover').addClass('taxiPict');">
+						<p  class="title" style="box-shadow: inset 0px 0px 14px #A9A3A3;border-radius: 18px;padding: 4px 18px;">
+							<img src="<?=SITE_TEMPLATE_PATH?>/images/texi.png" id="img<?=$arSection['ID'];?>" class="taxiPict" style="position: relative;margin: -30px 12px 0;"><span id="title_a" style="text-decoration:none;font-size:21px;"><?=$arSection["NAME"];?></span>
+							<span class="goto-section1" style="text-decoration:underline;float: right;">Посмотреть все <?=$arSection["ELEMENT_CNT"]?> товаров</span>
+						</p>
+					</a>
 					<div class="products">
+					<?
+
+					?>
 <?for($v=0; $v<5; $v++) {
  $ob = $res_res[$v]->GetNextElement();
  if (!$ob) continue;

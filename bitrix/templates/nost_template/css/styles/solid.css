@@ -19,7 +19,10 @@
     width:auto !important;
     display:block;
 }
-
+.label{
+	border:none;
+	background:none;
+}
 .form-label-left {
     -moz-border-radius:5px 0 0 5px;
     -webkit-border-radius:5px 0 0 5px;
@@ -47,11 +50,11 @@
 }
 
 .form-input-wide {
-    -moz-border-radius:0 0 5px 5px;
-    -webkit-border-radius:0 0 5px 5px;
-    border-radius:0 0 5px 5px;
-    background:none repeat scroll 0 0 #DDDDDD;
-    border:1px solid #777777;
+    //-moz-border-radius:0 0 5px 5px;
+    //-webkit-border-radius:0 0 5px 5px;
+   // border-radius:0 0 5px 5px;
+    background:#fff;
+    //border:1px solid #777777;
     padding:6px;
 }
 

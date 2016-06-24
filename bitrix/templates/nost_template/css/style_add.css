@@ -37,6 +37,7 @@ body {min-width: 100px  !important; margin-bottom: 0px !important;}
 #header {min-width: 100px !important; max-height: none !important;}
 #header .logoblock {width: 100% !important;}
 #header .logoblock #logo {height: auto !important; background-position: center 20px !important; text-align: center !important; width: 100% !important;}
+#header .logoblock #logo img {margin: 10px auto !important;}
 #header .logoblock #logo #attention {margin: 0 auto !important; margin-top: 100px !important; min-height: 22px !important; height: auto !important;}
 #header .logoblock #cart {padding-top: 10px !important; width: 100% !important; padding-left: 0px !important; padding-right: 0px !important; text-align: center !important;}
 #header .logoblock #telephone {display: none !important;}
@@ -65,7 +66,7 @@ body {min-width: 100px  !important; margin-bottom: 0px !important;}
 .headerbot-text a .but {background: none !important;}
 .headerbot-text a .but.activ {background: url(../img/header/butbg-act.png) repeat-x right !important;}
 
-#content {margin-top: 10px !important; padding-bottom: 20px !important; display: inline-block !important; width: 98% !important; padding-left: 1% !important;  padding-right: 1% !important; min-width: 100px !important;}
+#content {margin-top: 10px !important; padding-bottom: 20px !important; display: inline-block !important; width: 100% !important; padding-left: 1% !important;  padding-right: 1% !important; min-width: 100px !important;}
 #content .slyder {width: 100% !important;}
 #content .subtext {width: 100% !important;}
 .row {margin-left: 1% !important; margin-right: 1% !important;}
@@ -162,13 +163,19 @@ ul.photo-album-list {text-align: center !important;}
 
 .mfeedback .mf-name, .mfeedback .mf-email, .mfeedback .mf-phone, .mfeedback .mf-captcha, .mfeedback .mf-message {width: 49% !important;}
 
+.alx_feed_back_default .wrap1 {padding: 4% !important; width: 100% !important; margin-left: 0px !important; margin-right: 0px !important;}
+.alx_feed_back_default .col-xs-30 {width: 48% !important; padding: 2% !important;}
+.alx_feed_back_default .wrap1 .col-xs-30:nth-child(odd) {width: 58% !important; padding: 2% !important;}
+.alx_feed_back_default .wrap1 .col-xs-30:nth-child(even) {width: 38% !important; padding: 2% !important;}
+.alx_feed_back_default .wrap1 .mybut.visible-xs.col-xs-30.col-sm-15.col-md-15 {width: 100% !important; }
+.alx_feed_back_default .wrap1 .mybut.visible-xs.col-xs-30.col-sm-15.col-md-15 div:first-child {width: 53% !important; padding: 2% !important;}
+.alx_feed_back_default .wrap1 .mybut.visible-xs.col-xs-30.col-sm-15.col-md-15 div:last-child {width: 47% !important; padding: 2% !important;}
+
 #footer {height: auto !important; min-width: 100px  !important; position: static !important;}
 #footer .foots {width: 100% !important;}
 #footer #foot1, #footer #foot2, #footer #foot3, #footer #foot4 {max-height: none !important; min-height: 100px !important;}
 #footer #links ul.ulmenu li {width: 100% !important;}
 #footer .col-xs-30 {padding-bottom: 30px !important;}
-
-
 }
 @media screen and (max-width: 720px) {
 #content .container .row .col-xs-30 img {width: 100% !important; height: auto !important;}
@@ -196,6 +203,22 @@ ul.photo-album-list {text-align: center !important;}
 #content .subtext .row .col-xs-30 .bordery {overflow: auto !important;}
 .breadcrumb {padding-right: 5px !important;}
 }
+@media screen and (max-width: 550px){
+#title_a {
+     padding-left: 0px !important;
+	 font-size:18px !important;
+	 display: block;
+}
+.goto-section1 {
+	float:none !important;
+}
+#title_a img {
+    margin: -20px 2px 0 -8px !important;
+    width: 95px;
+    float: none;
+    display: block;
+}
+}
 @media screen and (max-width: 550px) {
 .our-products .category .title {margin-right: 0px !important; width: 100% !important;}
 .our-products .goto-section {top: -2px !important; width: 185px !important; right: auto !important; left: -5px !important; position: absolute !important;}
@@ -204,6 +227,14 @@ ul.photo-album-list {text-align: center !important;}
 @media screen and (max-width: 500px) {
 body, tbody {-moz-hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto; hyphens: auto;}
 .round-border .btn-primary {-moz-hyphens: none; -webkit-hyphens: none; -ms-hyphens: none; hyphens: none;}
+}
+@media screen and (max-width: 430px) {
+.alx_feed_back_default .col-xs-30 {width: 100% !important; padding: 2% 8% !important;}
+.alx_feed_back_default .wrap1 .col-xs-30:nth-child(odd) {width: 100% !important; padding: 2% 8%  !important;}
+.alx_feed_back_default .wrap1 .col-xs-30:nth-child(even) {width: 100% !important; padding: 2% 8%  !important;}
+.alx_feed_back_default .chosen-container {width: 100% !important;}
+.alx_feed_back_default .wrap1 .mybut.visible-xs.col-xs-30.col-sm-15.col-md-15 div:first-child {width: 100% !important; padding: 2% 8%  !important;}
+.alx_feed_back_default .wrap1 .mybut.visible-xs.col-xs-30.col-sm-15.col-md-15 div:last-child {width: 100% !important; padding: 2% 8%  !important;}
 }
 @media screen and (max-width: 460px) {
 #header address .email {padding-left: 5% !important;}

@@ -5,6 +5,7 @@ $curPage = $APPLICATION->GetCurPage(true);
 ?> 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ru" lang="ru">
+
 <head>
 	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
@@ -63,7 +64,10 @@ $curPage = $APPLICATION->GetCurPage(true);
 	    }
 	    .form-all{
 	        width:900px;
-	        background:url("<?=SITE_TEMPLATE_PATH?>/images/brushed.png") repeat scroll center center rgb(153, 153, 153);
+	        //background:url("<?=SITE_TEMPLATE_PATH?>/images/brushed.png") repeat scroll center center rgb(153, 153, 153);
+			    border-radius: 10px;
+    background: rgba(217, 218, 221, 0.62);
+    box-shadow: inset 0px 0px 67px #A9A3A3;
 	        color:Black !important;
 	        font-family:'Verdana';
 	        font-size:12px;
@@ -89,7 +93,8 @@ $curPage = $APPLICATION->GetCurPage(true);
       	      $('input_14').spinner({ imgPath:'http://cdn.jotfor.ms/images/', width: '60', maxValue:'', minValue:'1', allowNegative: false, addAmount: 1, value:'1' });
               JotForm.description('input_14', 'Количество заказываемых изделий. Минимальный заказ 1 шт.');
 	      JotForm.description('input_8', 'Необходима ли оклейка изделий. Подробнее в разделе \"Доп. услуги\"');
-	      JotForm.description('input_9', 'Опишите какую оклейку Вы хотите видеть максимально полно(необязательное поле).');
+	      $('input_9').hint('Опишите какую оклейку Вы хотите видеть максимально полно(необязательное поле).');
+		  JotForm.description('input_9', 'Опишите какую оклейку Вы хотите видеть максимально полно(необязательное поле).');
 	      $('input_10').hint('Иванов Иван Иванович');
 	      JotForm.description('input_10', 'Как Вас зовут(ФИО)');
 	      $('input_11').hint('8(901)123-45-67, Москва');
@@ -115,11 +120,7 @@ $curPage = $APPLICATION->GetCurPage(true);
 		<div class="container logoblock">
 			<header>
 				<div class="row">
-					<a href="/"><div class="col-xs-11" id="logo"><div id="attention">
-			<strong>
-				Световые короба &nbsp; и &nbsp; Шашки на такси
-			</strong>
-					</div></div></a>
+					<a href="/"><div class="col-xs-11" id="logo"><img src="<?=SITE_TEMPLATE_PATH?>/images/logo1.png" style="margin: 10px 0px; max-height: 100px;"></div></a>
 					<div class="col-xs-1" id="telephone">
 						<img src="<?=SITE_TEMPLATE_PATH?>/images/telephone.png" alt="Телефон"/>
 					</div>

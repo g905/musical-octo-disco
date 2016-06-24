@@ -23,6 +23,66 @@ false
 <br/>
 <br/>
 
+
+<?$APPLICATION->IncludeComponent(
+	"altasib:feedback.form",
+	"nost",
+	Array(
+		"ACTIVE_ELEMENT" => "Y",
+		"ADD_LEAD" => "N",
+		"AJAX_MODE" => "N",
+		"AJAX_OPTION_ADDITIONAL" => "",
+		"AJAX_OPTION_HISTORY" => "N",
+		"AJAX_OPTION_JUMP" => "N",
+		"AJAX_OPTION_STYLE" => "Y",
+		"ALX_CHECK_NAME_LINK" => "N",
+		"BACKCOLOR_ERROR" => "#ffffff",
+		"BBC_MAIL" => "info@101link.ru",
+		"BORDER_RADIUS" => "3px",
+		"CATEGORY_SELECT_NAME" => "Выберите категорию",
+		"CHECK_ERROR" => "Y",
+		"COLOR_ERROR" => "#8E8E8E",
+		"COLOR_ERROR_TITLE" => "#A90000",
+		"COLOR_HINT" => "#000000",
+		"COLOR_INPUT" => "#727272",
+		"COLOR_MESS_OK" => "#963258",
+		"COLOR_NAME" => "#000000",
+		"COMPONENT_TEMPLATE" => ".default",
+		"EVENT_TYPE" => "ALX_FEEDBACK_FORM",
+		"FB_TEXT_NAME" => "",
+		"FB_TEXT_SOURCE" => "PREVIEW_TEXT",
+		"FORM_ID" => "1",
+		"HIDE_FORM" => "N",
+		"IBLOCK_ID" => "11",
+		"IBLOCK_TYPE" => "altasib_feedback",
+		"IMG_ERROR" => "/upload/altasib.feedback.gif",
+		"IMG_OK" => "/upload/altasib.feedback.ok.gif",
+		"JQUERY_EN" => "N",
+		"LOCAL_REDIRECT_ENABLE" => "Y",
+		"LOCAL_REDIRECT_URL" => "/buy_now/thank_you.php",
+		"MASKED_INPUT_PHONE" => array("PHONE"),
+		"MESSAGE_OK" => "Сообщение отправлено!",
+		"NAME_ELEMENT" => "ALX_DATE",
+		"PROPERTY_FIELDS" => array("PHONE","FIO","EMAIL","FEEDBACK_TEXT", "PRODUCT", "COLOR", "MATERIAL", "QUANTITY", "OKLEYKA", "OKLEYKA_DESCR", "CITY", "PAYMENT", "REQUISITES"),
+		"PROPERTY_FIELDS_REQUIRED" => array("PHONE"),
+		"PROPS_AUTOCOMPLETE_EMAIL" => array(),
+		"PROPS_AUTOCOMPLETE_NAME" => array(),
+		"PROPS_AUTOCOMPLETE_PERSONAL_PHONE" => array(),
+		"PROPS_AUTOCOMPLETE_VETO" => "N",
+		"REWIND_FORM" => "N",
+		"SECTION_MAIL_ALL" => "558963@nost.ru",
+		"SEND_MAIL" => "N",
+		"SHOW_MESSAGE_LINK" => "Y",
+		"SIZE_HINT" => "10px",
+		"SIZE_INPUT" => "12px",
+		"SIZE_NAME" => "12px",
+		"USERMAIL_FROM" => "Y",
+		"USE_CAPTCHA" => "N",
+		"WIDTH_FORM" => "50%"
+	)
+);?>
+
+<?/*
 <form class="jotform-form" action="http://submit.jotform.co/submit.php" method="post" name="form_32752235554858" id="32752235554858" accept-charset="utf-8">
   <input type="hidden" name="formID" value="32752235554858" />
   <div class="form-all">
@@ -213,5 +273,5 @@ false
   document.getElementById("si" + "mple" + "_spc").value = "32752235554858-32752235554858";
   </script>
 </form>
-
+*/?>
 <?require($_SERVER["DOCUMENT_ROOT"]."/bitrix/footer.php");?>

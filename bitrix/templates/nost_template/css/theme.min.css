@@ -269,8 +269,10 @@ background: url(../images/logo.png)tpa=http://www.nost.ru/bitrix/templates/nost_
 } */
 #header .logoblock #logo {
 	height: 120px;
-	background: url(../img/logo.png) no-repeat;
+	/* background: url(../img/logo.png) no-repeat; */
 	background-position: 18px 13px;
+	    display: flex;
+		align-items: center;
 }
 
 /* remedy
