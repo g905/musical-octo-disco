@@ -1,9 +1,11 @@
 <?if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();?>
 <div class="container subtext">
 <?if ($arParams["IBLOCK_TYPE"] == "promo"):?>
-<p class="zagl">Наши акции и спецпредложения</p>
+<!--p class="zagl">Наши акции и спецпредложения</p-->
+<h1>Наши акции и спецпредложения</h1>
 <?else:?>
-<p class="zagl">Наш блог</p>
+<!--p class="zagl">Наш блог</p-->
+<h1>Наш блог</h1>
 <?endif?>
 			<div class="row">
 <?foreach($arResult["ITEMS"] as $arItem):?>
@@ -12,11 +14,11 @@
 	$this->AddDeleteAction($arItem['ID'], $arItem['DELETE_LINK'], CIBlock::GetArrayByID($arParams["IBLOCK_ID"], "ELEMENT_DELETE"), array("CONFIRM" => GetMessage('NEWS_DELETE_CONFIRM')));
 	?>
 				<div class="col-xs-30">
-					<h1 class="h2">
+					<h2 class="h2">
 						<a href="<?echo $arItem["DETAIL_PAGE_URL"]?>" style="font-family: Arial Narrow,ArNarrow; text-decoration:none; ">
 							<?=$arItem["NAME"]?>
 						</a>
-					</h1>
+					</h2>
 					<p id="date"><strong><?echo $arItem["DISPLAY_ACTIVE_FROM"]?></strong></p>
 					<?if ($arItem["PREVIEW_PICTURE"]):?>
 						<a href="<?echo $arItem["DETAIL_PAGE_URL"]?>" style="font-family: Arial Narrow,ArNarrow; text-decoration:none; ">
