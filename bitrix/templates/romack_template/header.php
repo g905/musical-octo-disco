@@ -52,7 +52,7 @@ $curPage = $APPLICATION->GetCurPage(true);
 		<div class="container logoblock">
 			<header>
 				<div class="row">
-					<a href="/"><div class="col-xs-11" id="logo"></div></a>
+					<a href="/"><div style="float: left; margin-left: 20px;"><img src="<?=SITE_TEMPLATE_PATH?>/images/logo1.png" style="margin: 10px 0px; max-height: 100px;"></div><div class="col-xs-11" id="logo" style="background-position: 39px 34px;width: 27.667%;"></div></a>
 					<div class="col-xs-1" id="telephone">
 						<img src="<?=SITE_TEMPLATE_PATH?>/images/telephone.png" alt="Телефон"/>
 					</div>
@@ -109,33 +109,35 @@ $curPage = $APPLICATION->GetCurPage(true);
 
 <?if ($curPage == '/index.php'):?>
 		<div class="container slyder">
-<? /* ?>
 <!-- SLIDER -->
 			<div class="row">
 				<div class="jumbwrap">
 					<div class="jumbotron shadow">
-<?$APPLICATION->IncludeComponent("beono:banner_rotation", "nost_temple", array(
+<?$APPLICATION->IncludeComponent("beono:banner_rotation", "romack_temple", array(
 	"SOURCE" => "medialib",
-	"LIMIT" => "5",
-	"BANNER_IMAGE_1" => "/upload/banner-main/banner-01.jpg",
+	"LIMIT" => "6",
+	"BANNER_IMAGE_1" => "/upload/banner-main/romack/banner-01.png",
 	"BANNER_NAME_1" => "",
-	"BANNER_HREF_1" => "/news/",
-	"BANNER_IMAGE_2" => "/upload/banner-main/banner-02.jpg",
+	"BANNER_HREF_1" => "",
+	"BANNER_IMAGE_2" => "/upload/banner-main/romack/banner-02.png",
 	"BANNER_NAME_2" => "",
-	"BANNER_HREF_2" => "/promo/besplatnyy-obrazets-shashki.html",
-	"BANNER_IMAGE_3" => "/upload/banner-main/banner-03.jpg",
+	"BANNER_HREF_2" => "",
+	"BANNER_IMAGE_3" => "/upload/banner-main/romack/banner-03.png",
 	"BANNER_NAME_3" => "",
-	"BANNER_HREF_3" => "/price/",
-	"BANNER_IMAGE_4" => "/upload/banner-main/banner-04.jpg",
+	"BANNER_HREF_3" => "",
+	"BANNER_IMAGE_4" => "/upload/banner-main/romack/banner-04.png",
 	"BANNER_NAME_4" => "",
-	"BANNER_HREF_4" => "/video/",
-	"BANNER_IMAGE_5" => "/upload/banner-main/banner-05.jpg",
+	"BANNER_HREF_4" => "",
+	"BANNER_IMAGE_5" => "/upload/banner-main/romack/banner-05.png",
 	"BANNER_NAME_5" => "",
-	"BANNER_HREF_5" => "/promo/ostatki-shashek-na-sklade.html",
+	"BANNER_HREF_5" => "/contacts/",
+	"BANNER_IMAGE_6" => "/upload/banner-main/romack/banner-06.png",
+	"BANNER_NAME_6" => "",
+	"BANNER_HREF_6" => "",
 	"JQUERY" => "Y",
 	"PAGER_STYLE" => "digits",
 	"PAGER_ORIENT" => "horizontal",
-	"PAGER_POSITION" => "top_left",
+	"PAGER_POSITION" => "bottom_left",
 	"WIDTH" => "1014px",
 	"HEIGHT" => "370px",
 	"EFFECT" => "slide_h",
@@ -149,6 +151,5 @@ $curPage = $APPLICATION->GetCurPage(true);
 				</div>
 			</div>
 <!-- SLIDER -->
-<? */ ?>
 <?endif?>
 

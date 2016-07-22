@@ -229,7 +229,11 @@ IncludeTemplateLangFile(__FILE__);
 <?endif?>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script type="text/javascript" src="<?=SITE_TEMPLATE_PATH?>/js/bootstrap.min.js"></script>
+<?if ($curPage == '/index.php'):?>
+	<script type="text/javascript" src="<?=SITE_TEMPLATE_PATH?>/js/toTop-main.min.js"></script>
+<?else:?>
 	<script type="text/javascript" src="<?=SITE_TEMPLATE_PATH?>/js/toTop.min.js"></script>
+<?endif?>
 	<div style="display:none;float:right;margin-right:-37px;">
 <!--LiveInternet counter--><script type="text/javascript"><!--
 document.write("<a href='http://www.liveinternet.ru/click' "+

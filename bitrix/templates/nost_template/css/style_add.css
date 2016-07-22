@@ -16,6 +16,11 @@ table, span, div, ins {max-width: 100% !important;}
 
 body {min-width: 100px  !important; margin-bottom: 0px !important;}
 .container {padding-left: 0px !important; padding-right: 0px !important;}
+#footer #links address {font-size: 12px !important;}
+small, .small {font-size: 12px !important;}
+.item .product-size {font-size: 12px !important; right: 5px !important;}
+.breadcrumb {font-size: 12px !important;}
+div.photo-album-date, div.photo-album-photos {font-size: 12px !important;}
 
 #buter {background: url(../img/header/headerbotbg2.png) repeat-x !important; padding-top: 3px !important; width: 100% !important; height: 35px !important; display: inline-block !important; text-align: center !important; color: #ffffff !important; font-family: Verdana !important; height: 30px !important; text-transform: uppercase !important; font-size: 130% !important; font-weight: bold !important; cursor: pointer !important;}
 #buter img {margin-top: -2px !important;}
