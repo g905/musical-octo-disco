@@ -1,4 +1,5 @@
 <?if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();?>
+<? $curPage = $APPLICATION->GetCurPage(true); ?>
 <?if ($arParams["IBLOCK_ID"] == 3):?>
             <div class="nav">
 
@@ -14,6 +15,10 @@ false
 );?>    
             
             </div>
+
+<? if ($curPage == '/services/index.php'): ?>
+	<h1 style="margin-left:13px;"> –î–æ–ø–æ–ª–Ω–∏—Ç–µ–ª—å–Ω—ã–µ —É—Å–ª—É–≥–∏ </h1>
+<? endif ?>
 
 <?$APPLICATION->IncludeComponent(
 	"bitrix:catalog.section",
@@ -83,14 +88,18 @@ false
             
             </div>
 
+<? if ($curPage == '/information/index.php'): ?>
+	<h1 style="margin-left:13px;"> –ü–æ–ª–µ–∑–Ω–∞—è –∏–Ω—Ñ–æ—Ä–º–∞—Ü–∏—è </h1>
+<? endif ?>
+
 <?
 	$APPLICATION->IncludeComponent("bitrix:main.map", "nost-articles", Array(
-	"LEVEL" => "3",	// Ã‡ÍÒËÏ‡Î¸Ì˚È ÛÓ‚ÂÌ¸ ‚ÎÓÊÂÌÌÓÒÚË (0 - ·ÂÁ ‚ÎÓÊÂÌÌÓÒÚË)
-	"COL_NUM" => "7",	//  ÓÎË˜ÂÒÚ‚Ó ÍÓÎÓÌÓÍ
-	"SHOW_DESCRIPTION" => "N",	// œÓÍ‡Á˚‚‡Ú¸ ÓÔËÒ‡ÌËˇ
-	"SET_TITLE" => "N",	// ”ÒÚ‡Ì‡‚ÎË‚‡Ú¸ Á‡„ÓÎÓ‚ÓÍ ÒÚ‡ÌËˆ˚
-	"CACHE_TYPE" => "A",	// “ËÔ ÍÂ¯ËÓ‚‡ÌËˇ
-	"CACHE_TIME" => "3600",	// ¬ÂÏˇ ÍÂ¯ËÓ‚‡ÌËˇ (ÒÂÍ.)
+	"LEVEL" => "3",	// –ú–∞–∫—Å–∏–º–∞–ª—å–Ω—ã–π —É—Ä–æ–≤–µ–Ω—å –≤–ª–æ–∂–µ–Ω–Ω–æ—Å—Ç–∏ (0 - –±–µ–∑ –≤–ª–æ–∂–µ–Ω–Ω–æ—Å—Ç–∏)
+	"COL_NUM" => "7",	// –ö–æ–ª–∏—á–µ—Å—Ç–≤–æ –∫–æ–ª–æ–Ω–æ–∫
+	"SHOW_DESCRIPTION" => "N",	// –ü–æ–∫–∞–∑—ã–≤–∞—Ç—å –æ–ø–∏—Å–∞–Ω–∏—è
+	"SET_TITLE" => "N",	// –£—Å—Ç–∞–Ω–∞–≤–ª–∏–≤–∞—Ç—å –∑–∞–≥–æ–ª–æ–≤–æ–∫ —Å—Ç—Ä–∞–Ω–∏—Ü—ã
+	"CACHE_TYPE" => "A",	// –¢–∏–ø –∫–µ—à–∏—Ä–æ–≤–∞–Ω–∏—è
+	"CACHE_TIME" => "3600",	// –í—Ä–µ–º—è –∫–µ—à–∏—Ä–æ–≤–∞–Ω–∏—è (—Å–µ–∫.)
 	),
 	false
 	);
@@ -109,7 +118,7 @@ false
 false
 );?>    
             
-            </div>
+            </div>                
 <?
 	$APPLICATION->IncludeComponent(
 	"bitrix:catalog.section.list",

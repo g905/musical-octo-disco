@@ -1,5 +1,5 @@
 <?if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();?>
-<p class="zagl"><?=$arResult["NAME"]?></p>
+<h1 style="margin-left: 13px;"><?=$arResult["NAME"]?></h1>
        <div class="articlesblock">
                 
 <?foreach($arResult["ITEMS"] as $arItem):?>

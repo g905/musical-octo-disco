@@ -16,6 +16,8 @@ false
 );?>    
             
             </div>
+
+<h1 style="margin-left:13px;">Доставка и оплата</h1>
 		<a name="cont"></a> 
 		<div class="container subtext">
 			<div class="row center-row">

@@ -16,7 +16,7 @@ false
 );?>    
             
             </div>
-
+<h1 style="margin-left:13px;">Наши контакты</h1>
 <div class="contenttext-item" style="min-height: 930px;"> 
   <div class="leftblock" style="float:left;"> 
     <div class="logo" style="margin-top: -5px; margin-left: 20px;"> <?$APPLICATION->IncludeComponent(

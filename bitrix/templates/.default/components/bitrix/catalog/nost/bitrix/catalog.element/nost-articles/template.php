@@ -23,7 +23,7 @@
 		"DATA_MODIFIED" => date("Y-m-d", strtotime($arResult["DATE_CREATE"])),
 		"AUTHOR_TYPE" => "",
 		"PARAM_RATING_SHOW" => "N",
-		"IMAGEURL" => "http://www.nost.ru".SITE_TEMPLATE_PATH."img/logo.png",
+		"IMAGEURL" => "http://www.nost.ru".SITE_TEMPLATE_PATH."/img/logo.png",
 		"IMAGE_NAME" => $arResult["NAME"],
 		"IMAGE_CAPTION" => $arResult["NAME"],
 		"IMAGE_DESCRIPTION" => $arResult["NAME"],
@@ -44,7 +44,7 @@
 		"AUTHOR_ORGANIZATION_TYPE_3" => "AutomotiveBusiness",
 		"AUTHOR_ORGANIZATION_TYPE_4" => "",
 		"AUTHOR_TYPE" => "Organization",
-		"AUTHOR_ORGANIZATION_LOGO" => "http://www.nost.ru".SITE_TEMPLATE_PATH."img/logo.png",
+		"AUTHOR_ORGANIZATION_LOGO" => "http://www.nost.ru".SITE_TEMPLATE_PATH."/img/logo.png",
 		"PUBLISHER_ORGANIZATION_ADDRESS" => "ул. Сабурова, 4",
 		"PUBLISHER_ORGANIZATION_COUNTRY" => "Россия",
 		"PUBLISHER_ORGANIZATION_DESCRIPTION" => "Производство и продажа шашек на такси, шашечек такси, световых рекламных коробов и магнитных виниловых наклеек для такси",
@@ -55,7 +55,7 @@
 		"PUBLISHER_ORGANIZATION_REGION" => "Удмуртская республика",
 		"PUBLISHER_ORGANIZATION_SITE" => "www.nost.ru",
 		"PUBLISHER_ORGANIZATION_TYPE_2" => "LocalBusiness",
-		"PUBLISHER_ORGANIZATION_LOGO" => "http://www.nost.ru".SITE_TEMPLATE_PATH."img/logo.png"
+		"PUBLISHER_ORGANIZATION_LOGO" => "http://www.nost.ru".SITE_TEMPLATE_PATH."/img/logo.png"
 	),
 	false,
 	array('HIDE_ICONS' => 'Y')

@@ -14,6 +14,7 @@
         );
         $src = ($thumb["src"]) ? $thumb["src"] : $arItem["THUMB_PATH"];
         ?>
+        <li>
 <? // микроразметка adl 08.04.16
 	$APPLICATION->IncludeComponent(
 		"coffeediz:schema.org.ImageObject",
@@ -34,7 +35,6 @@
 		)
 	);
 ?>
-        <li>
             <a href="<?=$arItem["PATH"]?>" class="gall_img_link" data-gallery="" rel="gallery-1"<?if($arParams["DISPLAY_NAME"] == "Y"):?> title="<?=$arItem["NAME"]?>"<?endif;?>>
                 <img src="<?=$src?>" <?if($arParams["DISPLAY_NAME"] == "Y"):?> title="<?=$arItem["NAME"]?>" alt="<?=$arItem["NAME"]?>" <?endif;?>/>
                 <span class="rolover"></span>

@@ -1,6 +1,8 @@
 <?if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();?>
+<h1>Мы производим</h1>
+<? $i = 0; ?>
 <?foreach($arResult["SECTIONS"] as $arSection):?>
-<div class="r-catalog" clear="both" style="display:inline-block;">
+<div class="r-catalog" clear="both" style="display:inline-block;<?if ($i==0) {echo 'margin-top: -50px;';$i++;}?>">
 <?
 	$ar_result=CIBlockSection::GetList(Array("SORT"=>"ASC"), Array("IBLOCK_ID"=>$arSection["IBLOCK_ID"], "ID"=>$arSection["ID"]),false, Array("UF_ADDTITLE")); 
 	$res=$ar_result->GetNext();
