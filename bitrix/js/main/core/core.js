@@ -35,6 +35,8 @@ window.BX = function(node, bCache)
 	return null;
 };
 
+BX.debugEnableFlag = true;
+
 // language utility
 BX.message = function(mess)
 {
@@ -236,13 +238,11 @@ BX.debugEnable = function(flag)
 {
 	flag = typeof (flag) == 'boolean'? flag: true;
 	BX.debugEnableFlag = flag;
-
-	console.info('Debug mode is '+(BX.debugEnableFlag? 'ON': 'OFF'))
 };
 
 BX.debugStatus = function()
 {
-	return BX.debugEnableFlag || false;
+	return BX.debugEnableFlag || true;
 };
 
 BX.is_subclass_of = function(ob, parent_class)
@@ -265,6 +265,13 @@ BX.clearNodeCache = function()
 BX.bitrix_sessid = function() {return BX.message("bitrix_sessid"); };
 
 /* DOM manipulation */
+/**
+ * Creates the specified HTML element
+ * @param {String} tag
+ * @param {Object} [data]
+ * @param {Document} [context]
+ * @returns {Element}
+ */
 BX.create = function(tag, data, context)
 {
 	context = context || document;
@@ -428,42 +435,58 @@ BX.html = function(node, html, parameters)
 		}
 	}
 
-	if(parameters.htmlFirst && typeof html.HTML != 'undefined')
+	if(parameters.htmlFirst && typeof html.HTML != 'undefined' && node)
+	{
 		node.innerHTML = html.HTML;
+	}
+
+	var p = new BX.Promise();
 
 	var afterAsstes = function(){
-		if(!parameters.htmlFirst && typeof html.HTML != 'undefined')
+		if(!parameters.htmlFirst && typeof html.HTML != 'undefined' && node)
+		{
 			node.innerHTML = html.HTML;
+		}
 
 		for(var k in inlineJS)
+		{
 			BX.evalGlobal(inlineJS[k]);
+		}
 
 		if(BX.type.isFunction(parameters.callback))
+		{
 			parameters.callback();
-	}
+		}
+
+		p.fulfill();
+	};
 
 	if(assets.length > 0)
 	{
 		BX.load(assets, afterAsstes);
 	}
 	else
+	{
 		afterAsstes();
-}
+	}
+
+	return p;
+};
 
 BX.insertAfter = function(node, dstNode)
 {
 	dstNode.parentNode.insertBefore(node, dstNode.nextSibling);
-}
+};
 
 BX.prepend = function(node, dstNode)
 {
 	dstNode.insertBefore(node, dstNode.firstChild);
-}
+};
 
 BX.append = function(node, dstNode)
 {
 	dstNode.appendChild(node);
-}
+};
 
 BX.addClass = function(ob, value)
 {
@@ -1012,7 +1035,7 @@ BX.isParentForNode = function(whichNode, forNode)
 	}
 
 	return false;
-}
+};
 
 BX.clone = function(obj, bCopyObj)
 {
@@ -1045,7 +1068,7 @@ BX.clone = function(obj, bCopyObj)
 			_obj =  {};
 			if (obj.constructor)
 			{
-				if (obj.constructor === Date)
+				if (BX.type.isDate(obj))
 					_obj = new Date(obj);
 				else
 					_obj = new obj.constructor();
@@ -1069,6 +1092,8 @@ BX.clone = function(obj, bCopyObj)
 	return _obj;
 };
 
+// access private. use BX.mergeEx instead.
+// todo: refactor BX.merge, make it work through BX.mergeEx
 BX.merge = function(){
 	var arg = Array.prototype.slice.call(arguments);
 
@@ -1105,6 +1130,38 @@ BX.merge = function(){
 
 				}else
 					result[k] = arg[i][k];
+			}
+		}
+	}
+
+	return result;
+};
+
+BX.mergeEx = function()
+{
+	var arg = Array.prototype.slice.call(arguments);
+	if(arg.length < 2)
+	{
+		return {};
+	}
+
+	var result = arg.shift();
+	for (var i = 0; i < arg.length; i++)
+	{
+		for (var k in arg[i])
+		{
+			if (typeof arg[i] == "undefined" || arg[i] == null || !arg[i].hasOwnProperty(k))
+			{
+				continue;
+			}
+
+			if (BX.type.isPlainObject(arg[i][k]) && BX.type.isPlainObject(result[k]))
+			{
+				BX.mergeEx(result[k], arg[i][k]);
+			}
+			else
+			{
+				result[k] = BX.type.isPlainObject(arg[i][k]) ? BX.clone(arg[i][k]) : arg[i][k];
 			}
 		}
 	}
@@ -1152,7 +1209,14 @@ BX.bind = function(el, evname, func)
 	}
 	else
 	{
-		el["on" + evname] = func;
+		try
+		{
+			el["on" + evname] = func;
+		}
+		catch(e)
+		{
+			BX.debug(e)
+		}
 	}
 
 	eventsList[eventsList.length] = {'element': el, 'event': evname, 'fn': func};
@@ -1705,6 +1769,10 @@ BX.parseJSON = function(data, context)
 		} catch(e) {
 			BX.onCustomEvent(context, 'onParseJSONFailure', [data, context])
 		}
+	}
+	else if(BX.type.isPlainObject(data))
+	{
+		return data;
 	}
 
 	return result;
@@ -2479,10 +2547,18 @@ BX.util = {
 
 				params = params.replace(new RegExp('(^|&)'+param+'=[^&#]*', 'i'), '');
 				params = params.replace(/^&/, '');
-				url = url + params;
+
+				if(BX.type.isNotEmptyString(params))
+				{
+					url = url + params;
+				}
+				else
+				{
+					//remove trailing question character
+					url = url.substr(0, url.length - 1);
+				}
 			}
 		}
-
 		return url;
 	},
 
@@ -2542,7 +2618,8 @@ BX.util = {
 		return hash;
 	},
 
-	getRandomString: function (length) {
+	getRandomString: function (length)
+	{
 		var chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
 		var charQty = chars.length;
 
@@ -2702,7 +2779,7 @@ BX.type = {
 		var hasProp = Object.prototype.hasOwnProperty;
 		try
 		{
-			if ( item.constructor && !hasProp.call(item, "constructor") && !hasProp.call(item.constructor.prototype, "isPrototypeOf") )
+			if (item.constructor && !hasProp.call(item, "constructor") && !hasProp.call(item.constructor.prototype, "isPrototypeOf") )
 			{
 				return false;
 			}
@@ -3876,6 +3953,39 @@ BX.formatDate = function(date, format)
 		.replace(/MI/ig, BX.util.str_pad_left(date.getMinutes().toString(), 2, '0'))
 		.replace(/SS/ig, BX.util.str_pad_left(date.getSeconds().toString(), 2, '0'));
 };
+BX.formatName = function(user, template, login)
+{
+	user = user || {};
+	template = (template || '');
+	var replacement = {
+		TITLE : (user["TITLE"] || ''),
+		NAME : (user["NAME"] || ''),
+		LAST_NAME : (user["LAST_NAME"] || ''),
+		SECOND_NAME : (user["SECOND_NAME"] || ''),
+		LOGIN : (user["LOGIN"] || ''),
+		NAME_SHORT : user["NAME"] ? user["NAME"].substr(0, 1) + '.' : '',
+		LAST_NAME_SHORT : user["LAST_NAME"] ? user["LAST_NAME"].substr(0, 1) + '.' : '',
+		SECOND_NAME_SHORT : user["SECOND_NAME"] ? user["SECOND_NAME"].substr(0, 1) + '.' : '',
+		EMAIL : (user["EMAIL"] || ''),
+		ID : (user["ID"] || ''),
+		NOBR : "",
+		'/NOBR' : ""
+	}, result = template;
+	for (var ii in replacement)
+	{
+		if (replacement.hasOwnProperty(ii))
+		{
+			result = result.replace("#" + ii+ "#", replacement[ii])
+		}
+	}
+	result = result.replace(/([\s]+)/gi, " ").trim();
+	if (result == "")
+	{
+		result = (login == "Y" ? replacement["LOGIN"] : "");
+		result = (result == "" ? "Noname" : result);
+	}
+	return result;
+};
 
 BX.getNumMonth = function(month)
 {
@@ -3893,10 +4003,15 @@ BX.getNumMonth = function(month)
 	return month;
 };
 
-BX.parseDate = function(str, bUTC)
+BX.parseDate = function(str, bUTC, formatDate, formatDatetime)
 {
 	if (BX.type.isNotEmptyString(str))
 	{
+		if (!formatDate)
+			formatDate = BX.message('FORMAT_DATE');
+		if (!formatDatetime)
+			formatDatetime = BX.message('FORMAT_DATETIME');
+
 		var regMonths = '';
 		for (i = 1; i <= 12; i++)
 		{
@@ -3905,7 +4020,7 @@ BX.parseDate = function(str, bUTC)
 
 		var expr = new RegExp('([0-9]+|[a-z]+' + regMonths + ')', 'ig');
 		var aDate = str.match(expr),
-			aFormat = BX.message('FORMAT_DATE').match(/(DD|MI|MMMM|MM|M|YYYY)/ig),
+			aFormat = formatDate.match(/(DD|MI|MMMM|MM|M|YYYY)/ig),
 			i, cnt,
 			aDateArgs=[], aFormatArgs=[],
 			aResult={};
@@ -3915,7 +4030,7 @@ BX.parseDate = function(str, bUTC)
 
 		if(aDate.length > aFormat.length)
 		{
-			aFormat = BX.message('FORMAT_DATETIME').match(/(DD|MI|MMMM|MM|M|YYYY|HH|H|SS|TT|T|GG|G)/ig);
+			aFormat = formatDatetime.match(/(DD|MI|MMMM|MM|M|YYYY|HH|H|SS|TT|T|GG|G)/ig);
 		}
 
 		for(i = 0, cnt = aDate.length; i < cnt; i++)
@@ -4697,7 +4812,6 @@ function runReady()
 
 		BX.isReady = true;
 
-
 		if (readyList && readyList.length > 0)
 		{
 			var fn, i = 0;
@@ -4713,6 +4827,7 @@ function runReady()
 
 			readyList = null;
 		}
+
 		// TODO: check ready handlers binded some other way;
 	}
 	return null;
@@ -4969,7 +5084,7 @@ BX.data = function(node, key, value)
 	}
 	else
 	{
-		var data = undefined;
+		var data;
 
 		// from manager
 		if((data = dataStorage.get(node, key)) != undefined)
@@ -4979,8 +5094,15 @@ BX.data = function(node, key, value)
 		else
 		{
 			// from attribute data-*
-			if('getAttribute' in node && (data = node.getAttribute('data-'+key.toString())))
+			if('getAttribute' in node)
+			{
+				data = node.getAttribute('data-'+key.toString());
+				if(data === null)
+				{
+					return undefined;
+				}
 				return data;
+			}
 		}
 
 		return undefined;
@@ -5225,20 +5347,71 @@ BX.getCookie = function (name)
 	return matches ? decodeURIComponent(matches[1]) : undefined;
 };
 
+BX.setCookie = function (name, value, options)
+{
+	options = options || {};
+
+	var expires = options.expires;
+	if (typeof(expires) == "number" && expires)
+	{
+		var currentDate = new Date();
+		currentDate.setTime(currentDate.getTime() + expires * 1000);
+		expires = options.expires = currentDate;
+	}
+
+	if (expires && expires.toUTCString)
+	{
+		options.expires = expires.toUTCString();
+	}
+
+	value = encodeURIComponent(value);
+
+	var updatedCookie = name + "=" + value;
+
+	for (var propertyName in options)
+	{
+		if (!options.hasOwnProperty(propertyName))
+		{
+			continue;
+		}
+		updatedCookie += "; " + propertyName;
+		var propertyValue = options[propertyName];
+		if (propertyValue !== true)
+		{
+			updatedCookie += "=" + propertyValue;
+		}
+	}
+
+	document.cookie = updatedCookie;
+
+	return true;
+};
+
 BX.FixFontSize = function(params)
 {
+	var widthNode, computedStyles, width;
+
 	this.node = null;
 	this.prevWindowSize = 0;
+	this.prevWrapperSize = 0;
 	this.mainWrapper = null;
 	this.textWrapper = null;
 	this.objList = params.objList;
 	this.minFontSizeList = [];
 	this.minFontSize = 0;
 
-	if(params.onresize)
+	if (params.onresize)
 	{
 		this.prevWindowSize = window.innerWidth || document.documentElement.clientWidth;
 		BX.bind(window, 'resize', BX.proxy(BX.throttle(this.onResize, 350),this));
+	}
+
+	if (params.onAdaptiveResize)
+	{
+		widthNode = this.objList[0].scaleBy || this.objList[0].node;
+		computedStyles = getComputedStyle(widthNode);
+		this.prevWrapperSize = parseInt(computedStyles["width"]) - parseInt(computedStyles["paddingLeft"]) - parseInt(computedStyles["paddingRight"]);
+		BX.bind(window, 'resize', BX.proxy(BX.throttle(this.onAdaptiveResize, 350),this));
 	}
 
 	this.createTestNodes();
@@ -5276,13 +5449,17 @@ BX.FixFontSize.prototype =
 	decrease: function()
 	{
 		var width,
-			fontSize;
+			fontSize,
+			widthNode,
+			computedStyles;
 
 		this.insertTestNodes();
 
 		for(var i=this.objList.length-1; i>=0; i--)
 		{
-			width  = parseInt(getComputedStyle(this.objList[i].node)["width"]);
+			widthNode = this.objList[i].scaleBy || this.objList[i].node;
+			computedStyles = getComputedStyle(widthNode);
+			width  = parseInt(computedStyles["width"]) - parseInt(computedStyles["paddingLeft"]) - parseInt(computedStyles["paddingRight"]);
 			fontSize = parseInt(getComputedStyle(this.objList[i].node)["font-size"]);
 
 			this.textWrapperSetStyle(this.objList[i].node);
@@ -5317,13 +5494,17 @@ BX.FixFontSize.prototype =
 	{
 		this.insertTestNodes();
 		var width,
-			fontSize;
+			fontSize,
+			widthNode,
+			computedStyles;
 
 		this.insertTestNodes();
 
 		for(var i=this.objList.length-1; i>=0; i--)
 		{
-			width  = parseInt(getComputedStyle(this.objList[i].node)["width"]);
+			widthNode = this.objList[i].scaleBy || this.objList[i].node;
+			computedStyles = getComputedStyle(widthNode);
+			width  = parseInt(computedStyles["width"]) - parseInt(computedStyles["paddingLeft"]) - parseInt(computedStyles["paddingRight"]);
 			fontSize = parseInt(getComputedStyle(this.objList[i].node)["font-size"]);
 
 			this.textWrapperSetStyle(this.objList[i].node);
@@ -5334,6 +5515,8 @@ BX.FixFontSize.prototype =
 				{
 					this.textWrapper.style.fontSize = ++fontSize + 'px';
 				}
+
+				fontSize--;
 
 				if(this.objList[i].smallestValue)
 				{
@@ -5373,6 +5556,19 @@ BX.FixFontSize.prototype =
 			this.increase();
 
 		this.prevWindowSize = width;
+	},
+	onAdaptiveResize : function()
+	{
+		var widthNode = this.objList[0].scaleBy || this.objList[0].node,
+			computedStyles = getComputedStyle(widthNode),
+			width = parseInt(computedStyles["width"]) - parseInt(computedStyles["paddingLeft"]) - parseInt(computedStyles["paddingRight"]);
+
+		if (this.prevWrapperSize > width)
+			this.decrease();
+		else if (this.prevWrapperSize < width)
+			this.increase();
+
+		this.prevWrapperSize = width;
 	},
 	textWrapperInsertText : function(node)
 	{
@@ -5438,6 +5634,221 @@ if(typeof(BX.ParamBag) === "undefined")
 		self.initialize(params);
 		return self;
 	}
+}
+
+if(typeof(BX.Promise) === "undefined")
+{
+	BX.Promise = function(fn, ctx) // fn is future-reserved
+	{
+		this.state = null;
+		this.value = null;
+		this.reason = null;
+		this.next = null;
+		this.ctx = ctx || this;
+
+		this.onFulfilled = [];
+		this.onRejected = [];
+	};
+	BX.Promise.prototype.fulfill = function(value)
+	{
+		this.checkState();
+
+		this.value = value;
+		this.state = true;
+		this.execute();
+	};
+	BX.Promise.prototype.reject = function(reason)
+	{
+		this.checkState();
+
+		this.reason = reason;
+		this.state = false;
+		this.execute();
+	};
+	BX.Promise.prototype.then = function(onFulfilled, onRejected)
+	{
+		if(BX.type.isFunction(onFulfilled))
+		{
+			this.onFulfilled.push(onFulfilled);
+		}
+		if(BX.type.isFunction(onRejected))
+		{
+			this.onRejected.push(onRejected);
+		}
+
+		if(this.next === null)
+		{
+			this.next = new BX.Promise(null, this.ctx);
+		}
+
+		if(this.state !== null) // if promise was already resolved, execute immediately
+		{
+			this.execute();
+		}
+
+		return this.next;
+	};
+	BX.Promise.prototype.setAutoResolve = function(way, ms)
+	{
+		this.timer = setTimeout(BX.delegate(function(){
+			if(this.state === null)
+			{
+				this[way ? 'fulfill' : 'reject']();
+			}
+		}, this), ms || 15);
+	};
+	BX.Promise.prototype.cancelAutoResolve = function()
+	{
+		clearTimeout(this.timer);
+	};
+	/**
+	 * Resolve function. This function allows promise chaining, like ..then().then()...
+	 * Typical usage:
+	 *
+	 * var p = new Promise();
+	 *
+	 * p.then(function(value){
+	 *  return someValue; // next promise in the chain will be fulfilled with someValue
+	 * }).then(function(value){
+	 *
+	 *  var p1 = new Promise();
+	 *  *** some async code here, that eventually resolves p1 ***
+	 *
+	 *  return p1; // chain will resume when p1 resolved (fulfilled or rejected)
+	 * }).then(function(value){
+	 *
+	 *  // you can also do
+	 *  var e = new Error();
+	 *  throw e;
+	 *  // it will cause next promise to be rejected with e
+	 *
+	 *  return someOtherValue;
+	 * }).then(function(value){
+	 *  ...
+	 * }, function(reason){
+	 *  // promise was rejected with reason
+	 * })...;
+	 *
+	 * p.fulfill('let`s start this chain');
+	 *
+	 * @param x
+	 */
+	BX.Promise.prototype.resolve = function(x)
+	{
+		var this_ = this;
+
+		if(this === x)
+		{
+			this.reject(new TypeError('Promise cannot fulfill or reject itself')); // avoid recursion
+		}
+		// allow "pausing" promise chaining until promise x is fulfilled or rejected
+		else if(x instanceof BX.Promise)
+		{
+			x.then(function(value){
+				this_.fulfill(value);
+			}, function(reason){
+				this_.reject(reason);
+			});
+		}
+		else // auto-fulfill this promise
+		{
+			this.fulfill(x);
+		}
+	};
+	BX.Promise.prototype.execute = function()
+	{
+		if(this.state === null)
+		{
+			//then() must not be called before BX.Promise resolve() happens
+			return;
+		}
+
+		var value = undefined;
+		var reason = undefined;
+		var x = undefined;
+		var k;
+		if(this.state === true) // promise was fulfill()-ed
+		{
+			if(this.onFulfilled.length)
+			{
+				try
+				{
+					for(k = 0; k < this.onFulfilled.length; k++)
+					{
+						x = this.onFulfilled[k].apply(this.ctx, [this.value]);
+						if(typeof x != 'undefined')
+						{
+							value = x;
+						}
+					}
+				}
+				catch(e)
+				{
+					if('console' in window)
+					{
+						console.dir(e);
+					}
+					BX.debug(e);
+
+					reason = e; // reject next
+				}
+			}
+			else
+			{
+				value = this.value; // resolve next
+			}
+		}
+		else if(this.state === false) // promise was reject()-ed
+		{
+			if(this.onRejected.length)
+			{
+				try
+				{
+					for(k = 0; k < this.onRejected.length; k++)
+					{
+						x = this.onRejected[k].apply(this.ctx, [this.reason]);
+						if(typeof x != 'undefined')
+						{
+							value = x;
+						}
+					}
+				}
+				catch(e)
+				{
+					if('console' in window)
+					{
+						console.dir(e);
+					}
+					BX.debug(e);
+
+					reason = e; // reject next
+				}
+			}
+			else
+			{
+				reason = this.reason; // reject next
+			}
+		}
+
+		if(this.next !== null)
+		{
+			if(typeof reason != 'undefined')
+			{
+				this.next.reject(reason);
+			}
+			else if(typeof value != 'undefined')
+			{
+				this.next.resolve(value);
+			}
+		}
+	};
+	BX.Promise.prototype.checkState = function()
+	{
+		if(this.state !== null)
+		{
+			throw new Error('You can not do fulfill() or reject() multiple times');
+		}
+	};
 }
 
 })(window);

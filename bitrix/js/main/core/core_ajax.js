@@ -393,13 +393,38 @@ BX.ajax.processRequestData = function(data, config)
 	switch (config.dataType.toUpperCase())
 	{
 		case 'JSON':
+
 			BX.addCustomEvent(config.xhr, 'onParseJSONFailure', BX.proxy(BX.ajax._onParseJSONFailure, config));
 			result = BX.parseJSON(data, config.xhr);
 			BX.removeCustomEvent(config.xhr, 'onParseJSONFailure', BX.proxy(BX.ajax._onParseJSONFailure, config));
 
+			if(!!result && BX.type.isArray(result['bxjs']))
+			{
+				for(var i = 0; i < result['bxjs'].length; i++)
+				{
+					if(BX.type.isNotEmptyString(result['bxjs'][i]))
+					{
+						scripts.push({
+							"isInternal": false,
+							"JS": result['bxjs'][i],
+							"bRunFirst": config.scriptsRunFirst
+						});
+					}
+					else
+					{
+						scripts.push(result['bxjs'][i])
+					}
+				}
+			}
+
+			if(!!result && BX.type.isArray(result['bxcss']))
+			{
+				styles = result['bxcss'];
+			}
+
 		break;
 		case 'SCRIPT':
-			scripts.push({"isInternal": true, "JS": data, bRunFirst: config.scriptsRunFirst});
+			scripts.push({"isInternal": true, "JS": data, "bRunFirst": config.scriptsRunFirst});
 			result = data;
 		break;
 
@@ -860,11 +885,16 @@ BX.ajax.prepareForm = function(obForm, data)
 			el = obForm.elements[i];
 			if (el.disabled)
 				continue;
+
+			if(!el.type)
+				continue;
+
 			switch(el.type.toLowerCase())
 			{
 				case 'text':
 				case 'textarea':
 				case 'password':
+				case 'number':
 				case 'hidden':
 				case 'select-one':
 					_data.push({name: el.name, value: el.value});
@@ -905,7 +935,7 @@ BX.ajax.prepareForm = function(obForm, data)
 		}
 
 		i = 0; length = 0;
-		var current = data;
+		var current = data, name, rest, pp;
 
 		while(i < _data.length)
 		{
@@ -917,25 +947,29 @@ BX.ajax.prepareForm = function(obForm, data)
 			}
 			else
 			{
-				var name = _data[i].name.substring(0, p);
-				var rest = _data[i].name.substring(p+1);
-				if(!current[name])
-					current[name] = [];
+				name = _data[i].name.substring(0, p);
+				rest = _data[i].name.substring(p+1);
+				pp = rest.indexOf(']');
 
-				var pp = rest.indexOf(']');
 				if(pp == -1)
 				{
+					if (!current[name])
+						current[name] = [];
 					current = data;
 					i++;
 				}
 				else if(pp == 0)
 				{
+					if (!current[name])
+						current[name] = [];
 					//No index specified - so take the next integer
 					current = current[name];
 					_data[i].name = '' + current.length;
 				}
 				else
 				{
+					if (!current[name])
+						current[name] = {};
 					//Now index name becomes and name and we go deeper into the array
 					current = current[name];
 					_data[i].name = rest.substring(0, pp) + rest.substring(pp+1);
@@ -947,7 +981,7 @@ BX.ajax.prepareForm = function(obForm, data)
 };
 BX.ajax.submitAjax = function(obForm, config)
 {
-	config = (!!config && typeof config == "object" ? config : {});
+	config = (config !== null && typeof config == "object" ? config : {});
 	config.url = (config["url"] || obForm.getAttribute("action"));
 	config.data = BX.ajax.prepareForm(obForm).data;
 
@@ -1409,6 +1443,8 @@ BX.ajax.component.prototype.getState = function()
 	if (null != obNavChain)
 		state.nav_chain = obNavChain.innerHTML;
 
+	BX.onCustomEvent(BX(state.node), "onComponentAjaxHistoryGetState", [state]);
+
 	return state;
 };
 
@@ -1418,7 +1454,11 @@ BX.ajax.component.prototype.setState = function(state)
 	BX.ajax.UpdatePageTitle(state.title);
 
 	if (state.nav_chain)
+	{
 		BX.ajax.UpdatePageNavChain(state.nav_chain);
+	}
+
+	BX.onCustomEvent(BX(state.node), "onComponentAjaxHistorySetState", [state]);
 };
 
 var jsAjaxHistoryContainer = {

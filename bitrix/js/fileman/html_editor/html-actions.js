@@ -101,7 +101,7 @@
 
 			if (!bSilent)
 			{
-				this.editor.On("OnBeforeCommandExec", [isContentAction, action, oAction]);
+				this.editor.On("OnBeforeCommandExec", [isContentAction, action, oAction, value]);
 			}
 
 			if (isContentAction)
@@ -409,6 +409,56 @@
 					{
 						_this.editor.selection.SetSelection(range);
 
+						// If we format text in the table - we could accidentally broke table,
+						// so now we should check and repair all possible tables (mantis: #66342)
+						var
+							table, i, j, k, cellNode,
+							tables = [],
+							bogusNodes = [],
+							nodes = range.getNodes([1]);
+
+						for (i = 0; i < nodes.length; i++)
+						{
+							if (BX.util.in_array(nodes[i].nodeName, ['TD', 'TR', 'TH']))
+							{
+								table = BX.findParent(nodes[i], function(n)
+								{
+									return n.nodeName == "TABLE";
+								}, _this.editor.GetIframeDoc().body);
+
+								if (table && !BX.util.in_array(table, tables))
+								{
+									tables.push(table);
+								}
+							}
+						}
+
+						// Now we have list of tables. In most cases it will be one node.
+						for (i = 0; i < tables.length; i++)
+						{
+							table = tables[i];
+							for (j = 0; j < table.rows.length; j++)
+							{
+								for (k = 0; k < table.rows[j].childNodes.length; k++)
+								{
+									cellNode = table.rows[j].childNodes[k];
+									// If it's cell inside the row, it should at least be on of the table dedicated tag. If not - we will remove it to save html valid.
+									if (cellNode
+										&& cellNode.nodeType == 1
+										&& !BX.util.in_array(cellNode.nodeName, _this.editor.TABLE_TAGS))
+									{
+										bogusNodes.push(cellNode);
+									}
+								}
+							}
+						}
+
+						// Clean invalid tags inside the table.
+						for (i = 0; i < bogusNodes.length; i++)
+						{
+							BX.cleanNode(bogusNodes[i], true);
+						}
+
 						var lastCreatedNode = _this.editor.selection.GetSelectedNode();
 						if (lastCreatedNode && lastCreatedNode.nodeType == 1)
 						{
@@ -598,7 +648,7 @@
 					params = params || {};
 					nodeName = typeof nodeName === "string" ? nodeName.toUpperCase() : nodeName;
 					var
-						childBlockNodes, i, allNodes, createdBlockNodes,
+						childBlockNodes, i, createdBlockNodes,
 						range = params.range || _this.editor.selection.GetRange(),
 						blockElement = nodeName ? _this.actions.formatBlock.state(command, nodeName, className, arStyle) : false,
 						selectedNode;
@@ -1646,7 +1696,7 @@
 
 						var
 							nodeToSetCarret,
-							params = typeof(value) === "object" ? value : {href: value},
+							params = (value && typeof(value) === "object") ? value : {href: value},
 							i, link, linksCount = 0, lastLink,
 							links;
 
@@ -1894,7 +1944,7 @@
 
 					_this.editor.iframeView.Focus();
 					var
-						params = typeof(value) === "object" ? value : {src: value},
+						params = (value && typeof(value) === "object") ? value : {src: value},
 						image = value.image || _this.actions.insertImage.state(action, value),
 						invisText, sibl;
 
@@ -4048,6 +4098,35 @@
 			{
 				return range = rng;
 			}
+			function setExternalSelectionFromRange(range)
+			{
+				range = range || _this.editor.selection.GetRange(_this.editor.selection.GetSelection(document));
+
+				var tmpDiv;
+				// mantis:64329
+				if (range.startContainer == range.endContainer &&
+						range.startOffset == 0 &&
+						range.endOffset == range.endContainer.length &&
+						range.startContainer.parentNode &&
+						range.startContainer.parentNode.nodeName == 'A' &&
+						range.startContainer.parentNode.href
+				)
+				{
+					tmpDiv = BX.create('DIV', {html: range.startContainer.parentNode.href}, _this.editor.GetIframeDoc());
+				}
+				else
+				{
+					var html = range.toHtml();
+					html = html.replace(/<br.*?>/ig, "#BX_BR#");
+					tmpDiv = BX.create('DIV', {html: html}, _this.editor.GetIframeDoc());
+				}
+
+				var extSel = _this.editor.util.GetTextContentEx(tmpDiv);
+				extSel = extSel.replace(/#BX_BR#/ig, "<br>");
+				setExternalSelection(extSel);
+
+				BX.remove(tmpDiv);
+			}
 
 			return {
 				exec: function(action)
@@ -4086,22 +4165,23 @@
 
 							// Bug in Chrome - when you press enter but it put carret on the prev string
 							// Chrome 43.0.2357 in Mac puts visible space instead of invisible
-							if (BX.browser.IsMac() && BX.browser.IsChrome())
-							{
-								var tmpId = "bx-editor-temp-" + Math.round(Math.random() * 1000000);
-								_this.editor.InsertHtml('<blockquote id="' + quoteId + '" class="bxhtmled-quote">' + sel + '</blockquote>' + '<span><span id="' + tmpId + '">' + _this.editor.INVISIBLE_SPACE + '</span></span>', range);
-
-								setTimeout(function()
-								{
-									var tmpElement = _this.editor.GetIframeElement(tmpId);
-									if (tmpElement)
-									{
-										_this.editor.selection.SetAfter(tmpElement.parentNode);
-										BX.remove(tmpElement);
-									}
-								}, 0);
-							}
-							else
+							// Commented to solve mantis:73977
+							//if (BX.browser.IsMac() && BX.browser.IsChrome() && false)
+							//{
+							//	var tmpId = "bx-editor-temp-" + Math.round(Math.random() * 1000000);
+							//	_this.editor.InsertHtml('<blockquote id="' + quoteId + '" class="bxhtmled-quote">' + sel + '</blockquote>' + '<span><span id="' + tmpId + '">' + _this.editor.INVISIBLE_SPACE + '</span></span>', range);
+							//
+							//	setTimeout(function()
+							//	{
+							//		var tmpElement = _this.editor.GetIframeElement(tmpId);
+							//		if (tmpElement)
+							//		{
+							//			_this.editor.selection.SetAfter(tmpElement.parentNode);
+							//			BX.remove(tmpElement);
+							//		}
+							//	}, 10);
+							//}
+							//else
 							{
 								_this.editor.InsertHtml('<blockquote id="' + quoteId + '" class="bxhtmled-quote">' + sel + '</blockquote>' + _this.editor.INVISIBLE_SPACE, range);
 							}
@@ -4125,6 +4205,9 @@
 						{
 							res = _this.actions.formatBlock.exec('formatBlock', 'blockquote', 'bxhtmled-quote', false, {range: range});
 						}
+
+						if(!sel)
+							_this.editor.selection.ScrollIntoView();
 					}
 
 					range = null;
@@ -4135,6 +4218,7 @@
 					return _this.actions.formatBlock.state('formatBlock', 'blockquote', 'bxhtmled-quote');
 				},
 				value: BX.DoNothing,
+				setExternalSelectionFromRange : setExternalSelectionFromRange,
 				setExternalSelection : setExternalSelection,
 				getExternalSelection : getExternalSelection,
 				setRange : setRange,
@@ -4780,6 +4864,7 @@
 					trI,
 					newCell,
 					colSpan = cells[0].colSpan,
+					rowSpan = cells[0].rowSpan,
 					tr = cells[0].parentNode;
 
 				for(i = 0; i <= cells[0].cellIndex; i++)
@@ -4793,7 +4878,7 @@
 				{
 					for(j = 0; j < table.rows.length; j++)
 					{
-						if (j == tr.rowIndex)
+						if (j == tr.rowIndex || j >= tr.rowIndex && j < tr.rowIndex + rowSpan)
 							continue;
 
 						realIndI = 0;
@@ -4803,7 +4888,12 @@
 						while (realIndI < realInd && i < trI.cells.length)
 							realIndI += trI.cells[i++].colSpan;
 
-						trI.cells[--i].colSpan += 1;
+						i--;
+						trI.cells[i].colSpan += 1;
+
+						// mantis: 71909
+						if (trI.cells[i].rowSpan > 1)
+							j = j + trI.cells[i].rowSpan - 1;
 					}
 				}
 				newCell = tr.insertCell(cells[0].cellIndex + 1);

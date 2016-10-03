@@ -61,7 +61,6 @@ BXEditorView.prototype = {
 	}
 };
 
-
 function BXEditorTextareaView(parent, textareaElement, container)
 {
 	// Call parrent constructor
@@ -570,7 +569,6 @@ var focusWithoutScrolling = function(element)
  * - Dispatch proprietary newword:composer event
  * - Keyboard shortcuts
  */
-
 	BXEditorIframeView.prototype.InitEventHandlers = function()
 	{
 		var
@@ -751,6 +749,17 @@ var focusWithoutScrolling = function(element)
 			editor.selection.SaveRange();
 			editor.On('OnIframeKeyup', [e, keyCode, target]);
 
+			// Mantis:#67998
+			if (keyCode === editor.KEY_CODES['backspace'] && BX.browser.IsChrome()
+				&& target && target.nodeType == '3' && target.nextSibling && target.nextSibling.nodeType == '3')
+			{
+				_this.editor.selection.ExecuteAndRestoreSimple(function()
+				{
+					_this.editor.util.SetTextContent(target, _this.editor.util.GetTextContent(target) + _this.editor.util.GetTextContent(target.nextSibling));
+					target.nextSibling.parentNode.removeChild(target.nextSibling);
+				});
+			}
+
 			if (!editor.util.FirstLetterSupported() && _this.editor.parser.firstNodeCheck)
 			{
 				_this.editor.parser.FirstLetterCheckNodes('', '', true);
@@ -783,25 +792,26 @@ var focusWithoutScrolling = function(element)
 			IMG: BX.message.SrcTitle + ": ",
 			A: BX.message.UrlTitle + ": "
 		};
+
 		BX.bind(element, "mouseover", function(e)
 		{
 			var
 				target = e.target || e.srcElement,
+				value = (target.getAttribute("href") || target.getAttribute("src")),
 				nodeName = target.nodeName;
 
-			if (!nodeTitles[nodeName])
+			if (nodeTitles[nodeName]
+					&& !target.hasAttribute("title")
+					&& value
+					&& value.indexOf('data:image/') === -1
+			)
 			{
-				return;
-			}
-
-			if(!target.hasAttribute("title"))
-			{
-				target.setAttribute("title", nodeTitles[nodeName] + (target.getAttribute("href") || target.getAttribute("src")));
+				target.setAttribute("title", nodeTitles[nodeName] + value);
 				target.setAttribute("data-bx-clean-attribute", "title");
 			}
 		});
 
-		this.InitClipboardHandler();
+		this.editor.InitClipboardHandler();
 	};
 
 	BXEditorIframeView.prototype.KeyDown = function(e)
@@ -1286,7 +1296,7 @@ var focusWithoutScrolling = function(element)
 			if (
 				node.nodeType == 3 && node.length == range.endOffset
 				&& parentNode && parentNode.nodeName !== 'BODY'
-				&& !nextNode
+				&& (!nextNode || (nextNode && nextNode.nodeName == 'BR' && !nextNode.nextSibling))
 				&& (this.editor.util.IsBlockElement(parentNode) || this.editor.util.IsBlockNode(parentNode))
 				)
 			{
@@ -1310,6 +1320,18 @@ var focusWithoutScrolling = function(element)
 				}
 				return BX.PreventDefault(e);
 			}
+			else if (
+					node.nodeType == 3 && node.length == range.endOffset
+					&& parentNode && parentNode.nodeName !== 'BODY'
+					&& nextNode && nextNode.nodeName == 'BR'
+					&& !nextNode.nextSibling
+					&& (this.editor.util.IsBlockElement(parentNode) || this.editor.util.IsBlockNode(parentNode))
+			)
+			{
+				this.editor.selection.SetInvisibleTextAfterNode(parentNode, true);
+				return BX.PreventDefault(e);
+			}
+
 		}
 		else if (keyCode === KC['left'] || keyCode === KC['up'])
 		{
@@ -1698,6 +1720,14 @@ var focusWithoutScrolling = function(element)
 
 				_this.editor.synchro.lastIframeValue = false;
 
+				// Paste control: show menu after pasting content
+				// to let user select weather insert rich content or plain text
+				if (!_this.editor.skipPasteControl)
+				{
+					_this.editor.pasteControl.SaveIframeContent(_this.GetValue());
+					_this.editor.pasteControl.CheckAndShow();
+				}
+
 				_this.editor.synchro.FromIframeToTextarea(true, true);
 
 				_this.editor.pasteHandleMode = false;
@@ -1840,6 +1870,7 @@ var focusWithoutScrolling = function(element)
 				if (realUrl.substr(0, 4) === "www.")
 					realUrl = "http://" + realUrl;
 
+				BX.onCustomEvent(_this.editor, 'OnAfterUrlConvert', [realUrl]);
 				return '<a href="' + realUrl + '">' + displayUrl + '</a>' + punctuation;
 			});
 		}
@@ -1989,58 +2020,6 @@ var focusWithoutScrolling = function(element)
 			element.appendChild(this.editor.util.GetInvisibleTextNode());
 		}
 	};
-
-	BXEditorIframeView.prototype.InitClipboardHandler = function()
-	{
-		var
-			_this = this;
-
-		// Chrome
-		BX.bind(this.element, 'paste', function (e)
-		{
-			var clipboard = e.clipboardData;
-
-			if (clipboard && clipboard.items)
-			{
-				var item = clipboard.items[0];
-
-				if (item && item.type.indexOf('image/') > -1)
-				{
-					var blob = item.getAsFile();
-
-					if (blob)
-					{
-						var reader = new FileReader();
-						reader.readAsDataURL(blob);
-						reader.onload = function (event)
-						{
-							var img = new Image();
-							img.src = event.target.result;
-							_this.element.appendChild(img);
-							_this.HandleImageDataUri(img);
-						}
-					}
-				}
-			}
-		});
-	};
-
-	BXEditorIframeView.prototype.HandleImageDataUri = function(image)
-	{
-		this.editor.On('OnImageDataUriHandle', [this,
-			{
-				src: image.src,
-				title: image.title || ''
-			},
-			BX.proxy(this.HandleImageDataUriCallback, this)]
-		);
-	};
-
-	BXEditorIframeView.prototype.HandleImageDataUriCallback = function(image)
-	{
-
-	};
-
 
 /**
  * Class _this takes care that the value of the composer and the textarea is always in sync

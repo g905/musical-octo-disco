@@ -38,7 +38,7 @@ if($clientId == '' || $clientSecret == '' || $portalURI == '')
 
 $needAuthorize = false;
 $accessToken = '';
-$redirectURI = CSocServUtil::ServerName().'/bitrix/tools/oauth/bitrix24.php';
+$redirectURI = \CHTTP::URN2URI('/bitrix/tools/oauth/bitrix24.php');
 $savedPortalURI = CUserOptions::GetOption('socialservices', 'bitrix24_task_planer_gadget_portal', '');
 $requestCode = CUserOptions::GetOption('socialservices', 'bitrix24_task_planer_gadget_code', '');
 
@@ -64,7 +64,6 @@ else
 {
 	$accessToken = $objBitrixOAuth->getStorageToken();
 }
-AddMessage2Log($accessToken);
 
 if($accessToken != '' && $domain != '' && !$needAuthorize)
 {

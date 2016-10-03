@@ -232,3 +232,9 @@ table#adm-shop-table td:first-child {
 }
 
 .ib_seg_image_row td>div{margin-bottom:0 !important; }
+
+.bx-core-adm-dialog .adm-detail-content .adm-btn {
+    -webkit-box-sizing: content-box;
+    -moz-box-sizing: content-box;
+    box-sizing: content-box;
+}

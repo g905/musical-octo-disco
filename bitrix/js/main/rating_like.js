@@ -10,7 +10,7 @@ RatingLike = function(likeId, entityTypeId, entityId, available, userId, localiz
 	this.likeId = likeId;
 	this.entityTypeId = entityTypeId;
 	this.entityId = entityId;
-	this.available = available == 'Y'? true: false;
+	this.available = (available == 'Y');
 	this.userId = userId;
 	this.localize = localize;
 	this.template = template;
@@ -39,7 +39,7 @@ RatingLike = function(likeId, entityTypeId, entityId, available, userId, localiz
 	this.likeTimeout = false;
 
 	this.lastVote = BX.hasClass(template == 'standart'? this.button: this.count, 'bx-you-like')? 'plus': 'cancel';
-}
+};
 
 RatingLike.LiveUpdate = function(params)
 {
@@ -48,22 +48,25 @@ RatingLike.LiveUpdate = function(params)
 
 	for(var i in BXRL)
 	{
-		if (BXRL[i].entityTypeId == params.ENTITY_TYPE_ID & BXRL[i].entityId == params.ENTITY_ID)
+		if (BXRL.hasOwnProperty(i))
 		{
-			var element = BXRL[i];
-			element.countText.innerHTML = parseInt(params.TOTAL_POSITIVE_VOTES);
-			element.count.insertBefore(
-				BX.create("span", { props : { className : "bx-ilike-plus-one" }, style: {width: (element.countText.clientWidth-8)+'px', height: (element.countText.clientHeight-8)+'px'}, html: (params.TYPE == 'ADD'? '+1': '-1')})
-			, element.count.firstChild);
-
-			if (element.popup)
+			if (BXRL[i].entityTypeId == params.ENTITY_TYPE_ID && BXRL[i].entityId == params.ENTITY_ID)
 			{
-				element.popup.close();
-				element.popupContentPage = 1;
+				var element = BXRL[i];
+				element.countText.innerHTML = parseInt(params.TOTAL_POSITIVE_VOTES);
+				element.count.insertBefore(
+					BX.create("span", { props : { className : "bx-ilike-plus-one" }, style: {width: (element.countText.clientWidth-8)+'px', height: (element.countText.clientHeight-8)+'px'}, html: (params.TYPE == 'ADD'? '+1': '-1')})
+					, element.count.firstChild);
+
+				if (element.popup)
+				{
+					element.popup.close();
+					element.popupContentPage = 1;
+				}
 			}
 		}
 	}
-}
+};
 
 RatingLike.Set = function(likeId, entityTypeId, entityId, available, userId, localize, template, pathToUserProfile, pathToAjax)
 {
@@ -169,7 +172,7 @@ RatingLike.Init = function(likeId)
 	BX.bind(BXRL[likeId].box, 'mouseover' , function() {
 		clearTimeout(BXRL[likeId].popupTimeout);
 	});
-}
+};
 
 RatingLike.OpenWindow = function(likeId)
 {
@@ -212,7 +215,7 @@ RatingLike.OpenWindow = function(likeId)
 	BXRL[likeId].popup.show();
 
 	RatingLike.AdjustWindow(likeId);
-}
+};
 
 RatingLike.Vote = function(likeId, voteAction)
 {
@@ -238,7 +241,7 @@ RatingLike.Vote = function(likeId, voteAction)
 		onfailure: function(data)	{}
 	});
 	return false;
-}
+};
 
 RatingLike.List = function(likeId, page)
 {
@@ -269,13 +272,54 @@ RatingLike.List = function(likeId, page)
 			}
 			BXRL[likeId].popupContentPage += 1;
 
+			var avatarNode = null;
+
 			for (var i = 0; i < data.items.length; i++)
 			{
+				if (data.items[i]['PHOTO_SRC'].length > 0)
+				{
+					avatarNode = BX.create("IMG", {
+						attrs: {src: data.items[i]['PHOTO_SRC']},
+						props: {className: "bx-ilike-popup-avatar-img"}
+					});
+				}
+				else
+				{
+					avatarNode = BX.create("IMG", {
+						attrs: {src: '/bitrix/images/main/blank.gif'},
+						props: {className: "bx-ilike-popup-avatar-img bx-ilike-popup-avatar-img-default"}
+					});
+				}
+
 				BXRL[likeId].popupContent.appendChild(
-					BX.create("a", { attrs: { href: data.items[i]['URL'], target: '_blank' }, props : { className : "bx-ilike-popup-img"}, children:[
-						BX.create("span", { props : { className : "bx-ilike-popup-avatar"}, html: data.items[i]['PHOTO']}),
-						BX.create("span", { props : { className : "bx-ilike-popup-name"}, html: data.items[i]['FULL_NAME']})
-					]})
+					BX.create("A", {
+						attrs: {
+							href: data.items[i]['URL'],
+							target: '_blank'
+						},
+						props: {
+							className: "bx-ilike-popup-img" + (!!data.items[i]['USER_TYPE'] ? " bx-ilike-popup-img-" + data.items[i]['USER_TYPE'] : "")
+						},
+						children: [
+							BX.create("SPAN", {
+								props: {
+									className: "bx-ilike-popup-avatar-new"
+								},
+								children: [
+									avatarNode,
+									BX.create("SPAN", {
+										props: {className: "bx-ilike-popup-avatar-status-icon"}
+									})
+								]
+							}),
+							BX.create("SPAN", {
+								props: {
+									className: "bx-ilike-popup-name-new"
+								},
+								html: data.items[i]['FULL_NAME']
+							})
+						]
+					})
 				);
 			}
 
@@ -287,7 +331,7 @@ RatingLike.List = function(likeId, page)
 		onfailure: function(data)	{}
 	});
 	return false;
-}
+};
 
 RatingLike.AdjustWindow = function(likeId)
 {
@@ -297,7 +341,7 @@ RatingLike.AdjustWindow = function(likeId)
 		BXRL[likeId].popup.adjustPosition();
 		BXRL[likeId].popup.bindOptions.forceBindPosition = false;
 	}
-}
+};
 
 RatingLike.PopupScroll = function(likeId)
 {
@@ -308,4 +352,4 @@ RatingLike.PopupScroll = function(likeId)
 			BX.unbindAll(this);
 		}
 	});
-}
+};

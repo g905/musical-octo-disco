@@ -1,6 +1,6 @@
 ;(function() {
 window['BXDEBUG']=true;
-var BX = window.BX, repo = [], thumbSize = 200;
+var BX = window.BX, repo = {}, thumbSize = 200;
 BX.namespace("BX.UI");
 if (BX["UI"]["FileInput"])
 	return;
@@ -82,8 +82,7 @@ BX["UI"].FileInput.prototype = {
 				}
 			}
 		});
-
-		repo.push(this.agent);
+		repo[this.id] = this;
 		this.fileEvents = {
 			onFileIsAttached : BX.delegate(this.onFileIsAttached, this),
 			onFileIsAppended : BX.delegate(this.onFileIsAppended, this),
@@ -162,7 +161,7 @@ BX["UI"].FileInput.prototype = {
 				ar1.push(values[ii]);
 				ar2.push(BX(values[ii]['id'] + 'Block'));
 			}
-			this.agent.onAttach(ar1, ar2);
+			this.agent.onAttach(ar1, ar2, false);
 		}
 		this.initMenu(BX(this.id + '_add'), this.uploadParams);
 		this.checkUploadControl();
@@ -375,7 +374,7 @@ BX["UI"].FileInput.prototype = {
 			{
 				result.push({
 					name : BX.UploaderUtils.getFileNameOnly(data[ii]['src']),
-					description : data[ii]['name'],
+					description : data[ii]['description'],
 					type : data[ii]['type'] + '/medialib',
 					size : data[ii]['file_size'],
 					sizeFormatted : data[ii]['file_size'],
@@ -462,12 +461,11 @@ BX["UI"].FileInput.prototype = {
 							BX.addCustomEvent(frameMaster, "onDeleteItem", BX.delegate(function(item) {
 								this.deleteFile(item);
 							}, this));
-							BX.addCustomEvent(frameMaster, "onpR", BX.delegate(function(item) {
-								this.deleteFile(item);
-							}, this));
 						}
 						this.frameFlags.hasNew = false;
-						frameMaster.start(this.agent, (activeId || this.counters.newItemId), this.uploadParams);
+						var p = BX.clone(this.uploadParams, true);
+						p["description"] = this.elementParams["description"];
+						frameMaster.start(this.agent, (activeId || this.counters.newItemId), p);
 
 						this['__frameFiles'] = null;
 						delete this['__frameFiles'];
@@ -519,9 +517,8 @@ BX["UI"].FileInput.prototype = {
 				null,
 				{
 					autoHide : true,
-					titleBar: {
-						content: BX.create("span", {html: BX.message("JS_CORE_LOADING"),
-						draggable: true})},
+					titleBar: BX.message("JS_CORE_LOADING"),
+					contentColor : 'white',
 					closeIcon : true,
 					closeByEsc : true,
 					zIndex : getZIndex(1),
@@ -665,7 +662,7 @@ BX["UI"].FileInput.prototype = {
 
 		if (item.file["preview_url"] && item.file["width"] > 0 && item.file["height"] > 0)
 		{
-			BX.addCustomEvent(item, "onFileCanvasIsLoaded", BX.proxy(function(id, it, ag, image) {
+			BX.addCustomEvent(item, "onFileCanvasIsLoaded", BX.proxy(function(/*id, it, ag, image*/) {
 				item.file["tmp_url"] = item.file["~tmp_url"];
 				delete item.file["~tmp_url"];
 				item.file["width"] = item.file["~width"];
@@ -683,12 +680,12 @@ BX["UI"].FileInput.prototype = {
 		}
 		else if (item.dialogName == "BX.UploaderImage")
 		{
-			BX.addCustomEvent(item, "onFileCanvasIsLoaded", BX.proxy(function(id, it, ag, image) {
+			BX.addCustomEvent(item, "onFileCanvasIsLoaded", BX.proxy(function(/*id, it, ag, image*/) {
 				item.canvasIsLoaded = true;
 				this.replaceHint(item);
 			}, this));
 		}
-
+		item.description = (BX.type.isNotEmptyString(item.file["description"]) ? item.file["description"] : "");
 		this.incrementFrameCounter(id, item);
 		for (var ii in this['fileEvents'])
 		{
@@ -1016,7 +1013,7 @@ BX["UI"].FileInput.prototype = {
 			hint +=  '<span class="adm-fileinput-drag-area-popup-param">' + BX.message('JS_CORE_FILE_DESCRIPTION') + ':&nbsp;<span>' + item.description + '</span></span>';
 		var path = (item["file"] ? (item["file"]["real_url"] || item["file"]["tmp_url"]) : '');
 		if (path)
-			hint +=  '<span class="adm-fileinput-drag-area-popup-param">' + BX.message('JS_CORE_FILE_INFO_LINK') + ':&nbsp;<span><a href="' + path + '">' + path + '</a></span></span>';
+			hint +=  '<span class="adm-fileinput-drag-area-popup-param">' + BX.message('JS_CORE_FILE_INFO_LINK') + ':&nbsp;<span><a target="_blank" href="' + path.replace(/[%]/g, "%25") + '">' + path + '</a></span></span>';
 
 		node.hint = new BX.CHint({
 				parent: node,
@@ -1079,7 +1076,13 @@ BX["UI"].FileInput.prototype = {
 			setTimeout(function(){ item.deleteFile(); }, 500);
 		else
 			item.deleteFile();
+	},
+	destroy : function() {
+		this.deleteFiles();
 	}
+};
+BX["UI"].FileInput.getInstance = function(id) {
+	return repo[id];
 };
 var filePath = function(id, events, maxCount)
 {
@@ -1095,7 +1098,8 @@ var filePath = function(id, events, maxCount)
 				'<input id="#id#_#number#_path" type="text" value="" />',
 			'</div>'
 		].join("").replace(/#id#/gi, this.id);
-	var v1 = (this.number++), v2 = (this.number++);
+	var v1 = (this.number++);
+	this.number++;
 	this.template = [
 		'<div class="adm-fileinput-urls-container" id="#id#_container">',
 			'<ol class="adm-fileinput-list adm-fileinput-urls" id="#id#_list">',
@@ -1544,6 +1548,8 @@ FrameMaster.prototype = {
 			this.params = params;
 			this.preset.init(params);
 		}
+		this.params = (this.params || {});
+		this.params["description"] = (this.params["description"] !== false);
 	},
 	start : function(agent, activeId, params)
 	{
@@ -1990,7 +1996,7 @@ FrameMaster.prototype = {
 				'popup' + this.id,
 				null,
 				{
-					className : "bxu-popup",
+					className : "bxu-popup" + (this.params["description"] !== false ? "" : " bxu-popup-nondescription"),
 					autoHide : false,
 					lightShadow : true,
 					closeIcon : false,
@@ -4387,7 +4393,7 @@ CanvasMapMaster.prototype = {
 
 		this.options.collapsing = true;
 		this.options.collapsed = collapse;
-		var posB, pos, shiftX, shiftY, scale, func;
+		var posB, pos, shiftX, scale;
 		if (collapse)
 		{
 			if (!this.collapsedNode || !this.root.pos)
