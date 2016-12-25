@@ -1,7 +1,7 @@
 <?
 if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();?>
 <?if($arParams['JQUERY']=="Y"):?>
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.min.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.min.js"></script>
 <?endif;?>
 <?if(is_array($arResult['BANNERS']) && !empty($arResult['BANNERS'])):?>
 <? $block_id = 'beono_banner_slider_'.randString(5, 'abcdef01234');?>
