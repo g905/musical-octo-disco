@@ -44,7 +44,7 @@
 		"DATA_PUBLISHED" => date("Y-m-d", strtotime($arResult["DISPLAY_ACTIVE_FROM"])),
 		"DATA_MODIFIED" => date("Y-m-d", strtotime($arResult["DISPLAY_ACTIVE_FROM"])),
 		"AUTHOR_TYPE" => "",
-		"IMAGEURL" => "http://www.nost.ru".$arResult["DETAIL_PICTURE"]["SRC"],
+		"IMAGEURL" => "https://www.nost.ru".$arResult["DETAIL_PICTURE"]["SRC"],
 		"PARAM_RATING_SHOW" => "N",
 		"IMAGE_NAME" => $arResult["DETAIL_PICTURE"]["TITLE"],
 		"IMAGE_CAPTION" => $arResult["DETAIL_PICTURE"]["ALT"],
@@ -52,7 +52,7 @@
 		"IMAGE_HEIGHT" => $arResult["DETAIL_PICTURE"]["HEIGHT"],
 		"IMAGE_WIDTH" => $arResult["DETAIL_PICTURE"]["WIDTH"],
 		"IMAGE_TRUMBNAIL_CONTENTURL" => "",
-		"MAINENTITYOFPAGE" => "http://www.nost.ru".$APPLICATION->GetCurPage(true),
+		"MAINENTITYOFPAGE" => "https://www.nost.ru".$APPLICATION->GetCurPage(true),
 		"AUTHOR_ORGANIZATION_ADDRESS" => "ул. Сабурова, 4",
 		"AUTHOR_ORGANIZATION_COUNTRY" => "Россия",
 		"AUTHOR_ORGANIZATION_DESCRIPTION" => "Производство и продажа шашек на такси, шашечек такси, световых рекламных коробов и магнитных виниловых наклеек для такси",
@@ -66,7 +66,7 @@
 		"AUTHOR_ORGANIZATION_TYPE_3" => "AutomotiveBusiness",
 		"AUTHOR_ORGANIZATION_TYPE_4" => "",
 		"AUTHOR_TYPE" => "Organization",
-		"AUTHOR_ORGANIZATION_LOGO" => "http://www.nost.ru".SITE_TEMPLATE_PATH."/img/logo.png",
+		"AUTHOR_ORGANIZATION_LOGO" => "https://www.nost.ru".SITE_TEMPLATE_PATH."/img/logo.png",
 		"PUBLISHER_ORGANIZATION_ADDRESS" => "ул. Сабурова, 4",
 		"PUBLISHER_ORGANIZATION_COUNTRY" => "Россия",
 		"PUBLISHER_ORGANIZATION_DESCRIPTION" => "Производство и продажа шашек на такси, шашечек такси, световых рекламных коробов и магнитных виниловых наклеек для такси",
@@ -77,7 +77,7 @@
 		"PUBLISHER_ORGANIZATION_REGION" => "Удмуртская республика",
 		"PUBLISHER_ORGANIZATION_SITE" => "www.nost.ru",
 		"PUBLISHER_ORGANIZATION_TYPE_2" => "LocalBusiness",
-		"PUBLISHER_ORGANIZATION_LOGO" => "http://www.nost.ru".SITE_TEMPLATE_PATH."/img/logo.png"
+		"PUBLISHER_ORGANIZATION_LOGO" => "https://www.nost.ru".SITE_TEMPLATE_PATH."/img/logo.png"
 	),
 	false,
 	array('HIDE_ICONS' => 'Y')
