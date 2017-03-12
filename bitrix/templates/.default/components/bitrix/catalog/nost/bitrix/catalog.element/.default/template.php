@@ -364,7 +364,7 @@ $APPLICATION->IncludeComponent(
 		$cnt = 0;
 
 		foreach($arResult["DISPLAY_PROPERTIES"] as $pid=>$arProperty):
-		if ($pid != 'PRICE' && $pid != 'PRICECURRENCY' && $pid != 'SEO_IMAGE'):
+		if ($pid != 'PRICE' && $pid != 'PRICECURRENCY' && $pid != 'SEO_IMAGE' && (($pid!="OKLEYKA")||($arProperty["VALUE"]!="")) ):
 			if ($cnt == 0):
 				$cnt++;
 	?>

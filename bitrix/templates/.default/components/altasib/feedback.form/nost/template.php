@@ -411,16 +411,16 @@ if(strpos($actionPage, "index.php") !== false)
 			<div class="number-plus-minus">
 			
 <?				if(!empty($_POST["FIELDS"][$arField["CODE"]])):?>
-					<input type="number" id="<?=$arField["CODE"]?>" name="FIELDS[<?=$arField["CODE"]?>]" value="<?=trim(htmlspecialcharsEx($_POST["FIELDS"][$arField["CODE"]]))?>" class="alx_feed_back_form_inputtext" min="10"/>
+					<input type="number" id="<?=$arField["CODE"]?>" name="FIELDS[<?=$arField["CODE"]?>]" value="<?=trim(htmlspecialcharsEx($_POST["FIELDS"][$arField["CODE"]]))?>" class="alx_feed_back_form_inputtext" min="5"/>
 <?				elseif(!empty($arField["AUTOCOMPLETE_VALUE"])):
 					$readonly = "";
 					if($arParams["PROPS_AUTOCOMPLETE_VETO"]=="Y")
 						if($arField["CODE"] == "FIO_".$ALX || $arField["CODE"] == "EMAIL_".$ALX || $arField["CODE"] == "PHONE_".$ALX)
 							$readonly = 'readonly = "readonly" ';
 ?>
-					<input type="number" id="<?=$arField["CODE"]?>" name="FIELDS[<?=$arField["CODE"]?>]" <?=$readonly?>value="<?=trim(htmlspecialcharsEx($arField["AUTOCOMPLETE_VALUE"]));?>" class="alx_feed_back_form_inputtext"  min="10"/>
+					<input type="number" id="<?=$arField["CODE"]?>" name="FIELDS[<?=$arField["CODE"]?>]" <?=$readonly?>value="<?=trim(htmlspecialcharsEx($arField["AUTOCOMPLETE_VALUE"]));?>" class="alx_feed_back_form_inputtext"  min="5"/>
 <?				else:?>
-					<input type="number" id="<?=$arField["CODE"]?>" name="FIELDS[<?=$arField["CODE"]?>]" value="<?=$arField["DEFAULT_VALUE"]?>" class="alx_feed_back_form_inputtext" onblur="if(this.value==''){this.value='<?=$arField["DEFAULT_VALUE"]?>'}" onclick="if(this.value=='<?=$arField["DEFAULT_VALUE"]?>'){this.value=''}"  min="10"/>
+					<input type="number" id="<?=$arField["CODE"]?>" name="FIELDS[<?=$arField["CODE"]?>]" value="<?=$arField["DEFAULT_VALUE"]?>" class="alx_feed_back_form_inputtext" onblur="if(this.value==''){this.value='<?=$arField["DEFAULT_VALUE"]?>'}" onclick="if(this.value=='<?=$arField["DEFAULT_VALUE"]?>'){this.value=''}"  min="5"/>
 <?				endif;?>
 			</div>
 	
@@ -453,16 +453,16 @@ if(strpos($actionPage, "index.php") !== false)
 			<div class="alx_feed_back_form_hint"><?=$arField["HINT"]?></div>
 		</label>
 <?				if(!empty($_POST["FIELDS"][$arField["CODE"]])):?>
-					<input type="text" id="<?=$arField["CODE"]?>" name="FIELDS[<?=$arField["CODE"]?>]" value="<?=trim(htmlspecialcharsEx($_POST["FIELDS"][$arField["CODE"]]))?>" class="alx_feed_back_form_inputtext" min="10"/>
+					<input type="text" id="<?=$arField["CODE"]?>" name="FIELDS[<?=$arField["CODE"]?>]" value="<?=trim(htmlspecialcharsEx($_POST["FIELDS"][$arField["CODE"]]))?>" class="alx_feed_back_form_inputtext" min="5"/>
 <?				elseif(!empty($arField["AUTOCOMPLETE_VALUE"])):
 					$readonly = "";
 					if($arParams["PROPS_AUTOCOMPLETE_VETO"]=="Y")
 						if($arField["CODE"] == "FIO_".$ALX || $arField["CODE"] == "EMAIL_".$ALX || $arField["CODE"] == "PHONE_".$ALX)
 							$readonly = 'readonly = "readonly" ';
 ?>
-					<input type="text" id="<?=$arField["CODE"]?>" name="FIELDS[<?=$arField["CODE"]?>]" <?=$readonly?>value="<?=trim(htmlspecialcharsEx($arField["AUTOCOMPLETE_VALUE"]));?>" class="alx_feed_back_form_inputtext"  min="10"/>
+					<input type="text" id="<?=$arField["CODE"]?>" name="FIELDS[<?=$arField["CODE"]?>]" <?=$readonly?>value="<?=trim(htmlspecialcharsEx($arField["AUTOCOMPLETE_VALUE"]));?>" class="alx_feed_back_form_inputtext"  min="5"/>
 <?				else:?>
-					<input type="text" id="<?=$arField["CODE"]?>" name="FIELDS[<?=$arField["CODE"]?>]" value="<?=$arField["DEFAULT_VALUE"]?>" class="alx_feed_back_form_inputtext" onblur="if(this.value==''){this.value='<?=$arField["DEFAULT_VALUE"]?>'}" onclick="if(this.value=='<?=$arField["DEFAULT_VALUE"]?>'){this.value=''}"  min="10"/>
+					<input type="text" id="<?=$arField["CODE"]?>" name="FIELDS[<?=$arField["CODE"]?>]" value="<?=$arField["DEFAULT_VALUE"]?>" class="alx_feed_back_form_inputtext" onblur="if(this.value==''){this.value='<?=$arField["DEFAULT_VALUE"]?>'}" onclick="if(this.value=='<?=$arField["DEFAULT_VALUE"]?>'){this.value=''}"  min="5"/>
 <?				endif;?>
     </div>  
 			<? elseif ($arField["CODE"] == "PHONE_FID1"):?>
@@ -472,16 +472,16 @@ if(strpos($actionPage, "index.php") !== false)
 			<div class="alx_feed_back_form_hint"><?=$arField["HINT"]?></div>
 		</label>
 <?				if(!empty($_POST["FIELDS"][$arField["CODE"]])):?>
-					<input type="text" id="<?=$arField["CODE"]?>" name="FIELDS[<?=$arField["CODE"]?>]" value="<?=trim(htmlspecialcharsEx($_POST["FIELDS"][$arField["CODE"]]))?>" class="alx_feed_back_form_inputtext" min="10"/>
+					<input type="text" id="<?=$arField["CODE"]?>" name="FIELDS[<?=$arField["CODE"]?>]" value="<?=trim(htmlspecialcharsEx($_POST["FIELDS"][$arField["CODE"]]))?>" class="alx_feed_back_form_inputtext" min="5"/>
 <?				elseif(!empty($arField["AUTOCOMPLETE_VALUE"])):
 					$readonly = "";
 					if($arParams["PROPS_AUTOCOMPLETE_VETO"]=="Y")
 						if($arField["CODE"] == "FIO_".$ALX || $arField["CODE"] == "EMAIL_".$ALX || $arField["CODE"] == "PHONE_".$ALX)
 							$readonly = 'readonly = "readonly" ';
 ?>
-					<input type="text" id="<?=$arField["CODE"]?>" name="FIELDS[<?=$arField["CODE"]?>]" <?=$readonly?>value="<?=trim(htmlspecialcharsEx($arField["AUTOCOMPLETE_VALUE"]));?>" class="alx_feed_back_form_inputtext"  min="10"/>
+					<input type="text" id="<?=$arField["CODE"]?>" name="FIELDS[<?=$arField["CODE"]?>]" <?=$readonly?>value="<?=trim(htmlspecialcharsEx($arField["AUTOCOMPLETE_VALUE"]));?>" class="alx_feed_back_form_inputtext"  min="5"/>
 <?				else:?>
-					<input type="text" id="<?=$arField["CODE"]?>" name="FIELDS[<?=$arField["CODE"]?>]" value="<?=$arField["DEFAULT_VALUE"]?>" class="alx_feed_back_form_inputtext" onblur="if(this.value==''){this.value='<?=$arField["DEFAULT_VALUE"]?>'}" onclick="if(this.value=='<?=$arField["DEFAULT_VALUE"]?>'){this.value=''}"  min="10"/>
+					<input type="text" id="<?=$arField["CODE"]?>" name="FIELDS[<?=$arField["CODE"]?>]" value="<?=$arField["DEFAULT_VALUE"]?>" class="alx_feed_back_form_inputtext" onblur="if(this.value==''){this.value='<?=$arField["DEFAULT_VALUE"]?>'}" onclick="if(this.value=='<?=$arField["DEFAULT_VALUE"]?>'){this.value=''}"  min="5"/>
 <?				endif;?>
     </div>
 			<? elseif ($arField["CODE"] == "CITY_FID1"):?>
@@ -491,16 +491,16 @@ if(strpos($actionPage, "index.php") !== false)
 			<div class="alx_feed_back_form_hint"><?=$arField["HINT"]?></div>
 		</label>
 <?				if(!empty($_POST["FIELDS"][$arField["CODE"]])):?>
-					<input type="text" id="<?=$arField["CODE"]?>" name="FIELDS[<?=$arField["CODE"]?>]" value="<?=trim(htmlspecialcharsEx($_POST["FIELDS"][$arField["CODE"]]))?>" class="alx_feed_back_form_inputtext" min="10"/>
+					<input type="text" id="<?=$arField["CODE"]?>" name="FIELDS[<?=$arField["CODE"]?>]" value="<?=trim(htmlspecialcharsEx($_POST["FIELDS"][$arField["CODE"]]))?>" class="alx_feed_back_form_inputtext" min="5"/>
 <?				elseif(!empty($arField["AUTOCOMPLETE_VALUE"])):
 					$readonly = "";
 					if($arParams["PROPS_AUTOCOMPLETE_VETO"]=="Y")
 						if($arField["CODE"] == "FIO_".$ALX || $arField["CODE"] == "EMAIL_".$ALX || $arField["CODE"] == "PHONE_".$ALX)
 							$readonly = 'readonly = "readonly" ';
 ?>
-					<input type="text" id="<?=$arField["CODE"]?>" name="FIELDS[<?=$arField["CODE"]?>]" <?=$readonly?>value="<?=trim(htmlspecialcharsEx($arField["AUTOCOMPLETE_VALUE"]));?>" class="alx_feed_back_form_inputtext"  min="10"/>
+					<input type="text" id="<?=$arField["CODE"]?>" name="FIELDS[<?=$arField["CODE"]?>]" <?=$readonly?>value="<?=trim(htmlspecialcharsEx($arField["AUTOCOMPLETE_VALUE"]));?>" class="alx_feed_back_form_inputtext"  min="5"/>
 <?				else:?>
-					<input type="text" id="<?=$arField["CODE"]?>" name="FIELDS[<?=$arField["CODE"]?>]" value="<?=$arField["DEFAULT_VALUE"]?>" class="alx_feed_back_form_inputtext" onblur="if(this.value==''){this.value='<?=$arField["DEFAULT_VALUE"]?>'}" onclick="if(this.value=='<?=$arField["DEFAULT_VALUE"]?>'){this.value=''}"  min="10"/>
+					<input type="text" id="<?=$arField["CODE"]?>" name="FIELDS[<?=$arField["CODE"]?>]" value="<?=$arField["DEFAULT_VALUE"]?>" class="alx_feed_back_form_inputtext" onblur="if(this.value==''){this.value='<?=$arField["DEFAULT_VALUE"]?>'}" onclick="if(this.value=='<?=$arField["DEFAULT_VALUE"]?>'){this.value=''}"  min="5"/>
 <?				endif;?>
     </div>
 			<? elseif ($arField["CODE"] == "EMAIL_FID1"):?>
@@ -511,16 +511,16 @@ if(strpos($actionPage, "index.php") !== false)
 			<div class="alx_feed_back_form_hint"><?=$arField["HINT"]?></div>
 		</label>
 <?				if(!empty($_POST["FIELDS"][$arField["CODE"]])):?>
-					<input type="text" id="<?=$arField["CODE"]?>" name="FIELDS[<?=$arField["CODE"]?>]" value="<?=trim(htmlspecialcharsEx($_POST["FIELDS"][$arField["CODE"]]))?>" class="alx_feed_back_form_inputtext" min="10"/>
+					<input type="text" id="<?=$arField["CODE"]?>" name="FIELDS[<?=$arField["CODE"]?>]" value="<?=trim(htmlspecialcharsEx($_POST["FIELDS"][$arField["CODE"]]))?>" class="alx_feed_back_form_inputtext" min="5"/>
 <?				elseif(!empty($arField["AUTOCOMPLETE_VALUE"])):
 					$readonly = "";
 					if($arParams["PROPS_AUTOCOMPLETE_VETO"]=="Y")
 						if($arField["CODE"] == "FIO_".$ALX || $arField["CODE"] == "EMAIL_".$ALX || $arField["CODE"] == "PHONE_".$ALX)
 							$readonly = 'readonly = "readonly" ';
 ?>
-					<input type="text" id="<?=$arField["CODE"]?>" name="FIELDS[<?=$arField["CODE"]?>]" <?=$readonly?>value="<?=trim(htmlspecialcharsEx($arField["AUTOCOMPLETE_VALUE"]));?>" class="alx_feed_back_form_inputtext"  min="10"/>
+					<input type="text" id="<?=$arField["CODE"]?>" name="FIELDS[<?=$arField["CODE"]?>]" <?=$readonly?>value="<?=trim(htmlspecialcharsEx($arField["AUTOCOMPLETE_VALUE"]));?>" class="alx_feed_back_form_inputtext"  min="5"/>
 <?				else:?>
-					<input type="text" id="<?=$arField["CODE"]?>" name="FIELDS[<?=$arField["CODE"]?>]" value="<?=$arField["DEFAULT_VALUE"]?>" class="alx_feed_back_form_inputtext" onblur="if(this.value==''){this.value='<?=$arField["DEFAULT_VALUE"]?>'}" onclick="if(this.value=='<?=$arField["DEFAULT_VALUE"]?>'){this.value=''}"  min="10"/>
+					<input type="text" id="<?=$arField["CODE"]?>" name="FIELDS[<?=$arField["CODE"]?>]" value="<?=$arField["DEFAULT_VALUE"]?>" class="alx_feed_back_form_inputtext" onblur="if(this.value==''){this.value='<?=$arField["DEFAULT_VALUE"]?>'}" onclick="if(this.value=='<?=$arField["DEFAULT_VALUE"]?>'){this.value=''}"  min="5"/>
 <?				endif;?>
     </div>
 </div>
@@ -533,8 +533,8 @@ function val() {
 	
     	var $j3 = jQuery.noConflict();
 	var col = $j3('#QUANTITY_FID1').val();
-	if (col < 10) {
-		alert('Невозможно оформить заказ менее 10 изделий');
+	if (col < 5) {
+		alert('Невозможно оформить заказ менее 5 изделий');
 		return false;
 	}
 	return true;
