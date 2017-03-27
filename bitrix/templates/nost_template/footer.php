@@ -248,9 +248,11 @@ screen.colorDepth:screen.pixelDepth))+";u"+escape(document.URL)+
 //--></script><!--/LiveInternet-->
 	</div>
 <!-- FOOTER2-->
-<!-- LiveZilla Tracking Code (ALWAYS PLACE IN BODY ELEMENT) --><div id="livezilla_tracking" style="display:none"></div><script type="text/javascript">
-var script = document.createElement("script");script.async=true;script.type="text/javascript";var src = "https://www.nost.ru/livezilla/server.php?a=8b7f1&request=track&output=jcrpt&ovlp=MjI_&ovlc=IzgwMDBmZg__&ovlct=I2ZmZmZmZg__&ovlt=0J7QvdC70LDQudC9INC60L7QvdGB0YPQu9GM0YLQsNC90YIgKG9ubGluZSk_&ovlto=0JfQsNC00LDRgtGMINCy0L7Qv9GA0L7RgSAob2ZmbGluZSk_&ovls=MQ__&nse="+Math.random();setTimeout("script.src=src;document.getElementById('livezilla_tracking').appendChild(script)",1);</script><noscript><img src="https://www.nost.ru/livezilla/server.php?a=8b7f1&amp;request=track&amp;output=nojcrpt&amp;ovlp=MjI_&amp;ovlc=IzgwMDBmZg__&amp;ovlct=I2ZmZmZmZg__&amp;ovlt=0J7QvdC70LDQudC9INC60L7QvdGB0YPQu9GM0YLQsNC90YIgKG9ubGluZSk_&amp;ovlto=0JfQsNC00LDRgtGMINCy0L7Qv9GA0L7RgSAob2ZmbGluZSk_&amp;ovls=MQ__" width="0" height="0" style="visibility:hidden;" alt=""></noscript>
-<!-- http://www.LiveZilla.net Tracking Code -->
+<!-- BEGIN JIVOSITE CODE {literal} -->
+<script type='text/javascript'>
+(function(){ var widget_id = 'CcU4naTnUt';var d=document;var w=window;function l(){
+var s = document.createElement('script'); s.type = 'text/javascript'; s.async = true; s.src = '//code.jivosite.com/script/widget/'+widget_id; var ss = document.getElementsByTagName('script')[0]; ss.parentNode.insertBefore(s, ss);}if(d.readyState=='complete'){l();}else{if(w.attachEvent){w.attachEvent('onload',l);}else{w.addEventListener('load',l,false);}}})();</script>
+<!-- {/literal} END JIVOSITE CODE -->
 <!-- Yandex.Metrika counter -->
 <script type="text/javascript">
 (function (d, w, c) {
