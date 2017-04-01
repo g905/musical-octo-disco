@@ -27,6 +27,8 @@ false
             
             </div>
 
+		<h1 class="h2">Фото знаков учебных машин нашего производства<?if ($page>1):?>. Страница <? echo $page; endif?></h1>
+
 <?$APPLICATION->IncludeComponent("artdepo:gallery.photo.list", "rectangle", array(
 	"POPUP_TEMPLATE" => "photobox",
 	"SECTION_ID" => "5",

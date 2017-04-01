@@ -541,12 +541,12 @@ function val() {
 }
 </script>
             <button onclick="if (val()) form.submit();" id="fb_close_<?=$ALX?>" name="SEND_FORM_<?=$ALX?>" type="submit" class="" style="border: none; background: none;" >
-              <img src="<?=$templateFolder;?>/images/zak3.png" style="height: 40px;">
+              <img src="<?=$templateFolder;?>/images/zak3.png" alt="Сделать заказ" style="height: 40px;">
             </button>
 			</div>
 			<div style="" class="myform-buttons-wrapper col-xs-30 col-md-15" >
 			<button form="f_feedback_<?=$ALX?>" onclick="form.reset();var $j4 = jQuery.noConflict(); $j4('#modelID').trigger('chosen:updated');" id="fb_close_<?=$ALX?>" name="SEND_FORM_<?=$ALX?>" type="reset" class="" style="border: none; background: none;" >
-				<img src="<?=$templateFolder;?>/images/zak4.png" style="height: 40px;">
+				<img src="<?=$templateFolder;?>/images/zak4.png"  alt="Очистить форму" style="height: 40px;">
 			</button>
 		  </div>
 		</div>
@@ -567,12 +567,12 @@ function val() {
 <div class="mybut visible-xs col-xs-30 col-sm-15 col-md-15">
 			<div style="" class="myform-buttons-wrapper col-xs-30  col-md-15">
             <button onclick="if (val()) form.submit();" id="fb_close_<?=$ALX?>" name="SEND_FORM_<?=$ALX?>" type="submit" class="" style="border: none; background: none;" >
-              <img src="<?=$templateFolder;?>/images/zak3.png" style="height: 40px;">
+              <img src="<?=$templateFolder;?>/images/zak3.png"  alt="Сделать заказ" style="height: 40px;">
             </button>
 			</div>
 			<div style="" class="myform-buttons-wrapper col-xs-30 col-md-15" >
 			<button onclick="form.reset();var $j5 = jQuery.noConflict(); $j5('#modelID').trigger('chosen:updated');" id="fb_close_<?=$ALX?>" name="SEND_FORM_<?=$ALX?>" type="reset" class="" style="border: none; background: none;" >
-				<img src="<?=$templateFolder;?>/images/zak4.png" style="height: 40px;">
+				<img src="<?=$templateFolder;?>/images/zak4.png" alt="Очистить форму" style="height: 40px;">
 			</button>
 		  </div>
 		</div>

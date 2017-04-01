@@ -199,10 +199,10 @@
 			<?else:?>
 						<div class="headings text-left" style="width:370px;">
 			<?endif?>
-							<h1 class="h1">"<?=$arResult["NAME"]?>"</h1>
+							<h1 class="h1"><?if ($arResult["IBLOCK_SECTION_ID"] == 54):?>Шашка <?endif?>"<?=$arResult["NAME"]?>"</h1>
 	<?foreach($arResult["PRICES"] as $code=>$arPrice):?>
 		<?if($arPrice["PRINT_VALUE"] > 0):?>
-							<h2 class="h2"><?=$arPrice["PRINT_VALUE"];?></h2>
+							<div class="h2"><?=$arPrice["PRINT_VALUE"];?></div>
 		<?endif;?>
 	<?endforeach;?>
 						</div>

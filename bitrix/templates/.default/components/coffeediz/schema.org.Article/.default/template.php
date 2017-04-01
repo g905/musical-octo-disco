@@ -7,7 +7,7 @@ $this->setFrameMode(true);?>
 	<?}?>
 <?else:?>
 
-	<div itemscope itemtype="http://schema.org/<?if(!empty($arParams['TYPE'])):?><?=$arParams['TYPE']?><?else:?>Article<?endif?>" <?if($arParams['SHOW'] == "Y"):?>style="display: none;" <?endif?>>
+	<div itemscope itemtype="https://schema.org/<?if(!empty($arParams['TYPE'])):?><?=$arParams['TYPE']?><?else:?>Article<?endif?>" <?if($arParams['SHOW'] == "Y"):?>style="display: none;" <?endif?>>
 
         <?if(!empty($arParams['LEARNING_RESOURCE_TYPE'])):?>
             <meta itemprop="learningResourceType" content="<?=$arParams['LEARNING_RESOURCE_TYPE']?>"/>
@@ -98,6 +98,7 @@ $this->setFrameMode(true);?>
                     "SITE" => $arParams['AUTHOR_ORGANIZATION_SITE'],
                     "LOGO" => $arParams['AUTHOR_ORGANIZATION_LOGO'],
                     "LOGO_URL" => $arParams['AUTHOR_ORGANIZATION_LOGO'],
+                    "LOGO_NAME" => $arParams['AUTHOR_ORGANIZATION_LOGO_NAME'],
                     "ITEMPROP" => "author",
                 ),
                 false,

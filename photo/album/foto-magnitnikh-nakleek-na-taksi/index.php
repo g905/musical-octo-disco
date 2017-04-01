@@ -29,6 +29,8 @@ false
             
             </div>
 
+		<h1 class="h2">Фото магнитных наклеек нашего производства</h1>
+
 <?$APPLICATION->IncludeComponent("artdepo:gallery.photo.list", "rectangle", array(
 	"POPUP_TEMPLATE" => "photobox",
 	"SECTION_ID" => "5",

@@ -46,8 +46,10 @@ $curPage = $APPLICATION->GetCurPage(true);
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
 	<meta name="HandheldFriendly" content="true" />
 	<link type="text/css" rel="stylesheet" href="<?=SITE_TEMPLATE_PATH?>/css/styles/form.css?v3.1.13"/>
+<? /* adl 01.04.17 Убираем, не нужно
 	<link type="text/css" rel="stylesheet" href="http://cdn.jotfor.ms/css/styles/solid.css?3.1.13" />
 	<link type="text/css" media="print" rel="stylesheet" href="http://cdn.jotfor.ms/css/printForm.css?3.1.13" />
+*/ ?>
 	<style type="text/css">
 	    .form-label{
 	        width:150px !important;
@@ -81,7 +83,7 @@ $curPage = $APPLICATION->GetCurPage(true);
 	<!--script src="<?=SITE_TEMPLATE_PATH?>/js/json2.js?v=3.1.13" type="text/javascript"></script-->
 	<script src="<?=SITE_TEMPLATE_PATH?>/js/protoplus.js?v=3.1.13" type="text/javascript"></script>
 	<script src="<?=SITE_TEMPLATE_PATH?>/js/protoplus-ui.js?v=3.1.13" type="text/javascript"></script>
-	<script src="<?=SITE_TEMPLATE_PATH?>/js/jotform.js?v=3.1.13" type="text/javascript"></script>
+<?/*	<script src="<?=SITE_TEMPLATE_PATH?>/js/jotform.js?v=3.1.13" type="text/javascript"></script>
 	<script type="text/javascript">
    	   JotForm.setConditions([{"action":[{"field":"9","visibility":"Show"}],"index":"0","link":"Any","priority":"0","terms":[{"field":"8","operator":"equals","value":"С оклейкой"}],"type":"field"},{"type":"field","link":"Any","terms":[{"field":"1","operator":"equals","value":"Винил-магнит 600х100(Магнитные наклейки на такси)"},{"field":"1","operator":"equals","value":"Винил-магнит 500х200(Магнитные наклейки на такси)"},{"field":"1","operator":"equals","value":"Винил-магнит 600х250(Магнитные наклейки на такси)"},{"field":"1","operator":"equals","value":"Винил-магнит 1000х200(Магнитные наклейки на такси)"}],"action":[{"field":"3","visibility":"Hide"},{"field":"4","visibility":"Hide"}],"priority":1,"index":1},{"type":"field","link":"Any","terms":[{"field":"1","operator":"equals","value":"Бобер (80 см)(Световые рекламные короба)"},{"field":"1","operator":"equals","value":"Сити (80 см)(Световые рекламные короба)"},{"field":"1","operator":"equals","value":"Вегас (100 см)(Световые рекламные короба)"},{"field":"1","operator":"equals","value":"Соболь (140 см)(Световые рекламные короба)"}],"action":[{"field":"7","visibility":"Hide"},{"field":"14","visibility":"Show"}],"priority":2,"index":2},{"action":[{"field":"13","visibility":"Show"}],"index":"3","link":"Any","priority":"3","terms":[{"field":"15","operator":"equals","value":"Оплата от организации по счету"}],"type":"field"}]);
 	   JotForm.init(function(){
@@ -106,7 +108,7 @@ $curPage = $APPLICATION->GetCurPage(true);
 	      JotForm.description('input_13', 'Укажите Ваши реквизиты для выставления счета и прочие комментарии по заказу(необязательное поле).');
 	   });
 	</script>
-	
+*/?>	
 <?endif?>
 </head>
 <body>
@@ -120,7 +122,7 @@ $curPage = $APPLICATION->GetCurPage(true);
 		<div class="container logoblock">
 			<header>
 				<div class="row">
-					<a href="/"><div class="col-xs-11" id="logo"><img src="<?=SITE_TEMPLATE_PATH?>/images/logo1.png" style="margin: 10px 0px; max-height: 100px;"></div></a>
+					<a href="/"><div class="col-xs-11" id="logo"><img src="<?=SITE_TEMPLATE_PATH?>/images/logo1.png" alt="НОСТ" style="margin: 10px 0px; max-height: 100px;"></div></a>
 					<div class="col-xs-1" id="telephone">
 						<img src="<?=SITE_TEMPLATE_PATH?>/images/telephone.png" alt="Телефон"/>
 					</div>

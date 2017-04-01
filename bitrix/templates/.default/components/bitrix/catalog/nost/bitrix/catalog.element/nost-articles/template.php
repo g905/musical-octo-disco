@@ -45,6 +45,7 @@
 		"AUTHOR_ORGANIZATION_TYPE_4" => "",
 		"AUTHOR_TYPE" => "Organization",
 		"AUTHOR_ORGANIZATION_LOGO" => "https://www.nost.ru".SITE_TEMPLATE_PATH."/img/logo.png",
+		"AUTHOR_ORGANIZATION_LOGO_NAME" => "Компания НОСТ",
 		"PUBLISHER_ORGANIZATION_ADDRESS" => "ул. Сабурова, 4",
 		"PUBLISHER_ORGANIZATION_COUNTRY" => "Россия",
 		"PUBLISHER_ORGANIZATION_DESCRIPTION" => "Производство и продажа шашек на такси, шашечек такси, световых рекламных коробов и магнитных виниловых наклеек для такси",
@@ -55,7 +56,8 @@
 		"PUBLISHER_ORGANIZATION_REGION" => "Удмуртская республика",
 		"PUBLISHER_ORGANIZATION_SITE" => "www.nost.ru",
 		"PUBLISHER_ORGANIZATION_TYPE_2" => "LocalBusiness",
-		"PUBLISHER_ORGANIZATION_LOGO" => "https://www.nost.ru".SITE_TEMPLATE_PATH."/img/logo.png"
+		"PUBLISHER_ORGANIZATION_LOGO" => "https://www.nost.ru".SITE_TEMPLATE_PATH."/img/logo.png",
+		"PUBLISHER_ORGANIZATION_LOGO_NAME" =>  "Компания НОСТ"
 	),
 	false,
 	array('HIDE_ICONS' => 'Y')

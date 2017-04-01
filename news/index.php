@@ -32,6 +32,7 @@ $curPage = $APPLICATION->GetCurPage(true);
 	"bitrix:news",
 	".default",
 	Array(
+		"PAGE" => $page, // adl 01.04.17 Номер страницы для формирования уникального h1
 		"SEF_MODE" => "Y",
 		"AJAX_MODE" => "N",
 		"IBLOCK_TYPE" => "news",

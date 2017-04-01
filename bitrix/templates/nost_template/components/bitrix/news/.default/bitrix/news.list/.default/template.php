@@ -5,7 +5,7 @@
 <h1>Наши акции и спецпредложения</h1>
 <?else:?>
 <!--p class="zagl">Наш блог</p-->
-<h1>Наш блог</h1>
+<h1>Наш блог<?if ($arParams["PAGE"]>1):?>. Страница <? echo $arParams["PAGE"]; endif?></h1>
 <?endif?>
 			<div class="row">
 <?foreach($arResult["ITEMS"] as $arItem):?>

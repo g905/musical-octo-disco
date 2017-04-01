@@ -110,7 +110,7 @@ foreach($arResult as $arItem):?>
 <?endif?>
 
 </ul>
-	<div id="buter" style="display: none;"><img src="<?=SITE_TEMPLATE_PATH?>/images/buter.png" width="19" height="14" alt="" border="0">&nbsp;Меню</div>
+	<div id="buter" style="display: none;"><img src="<?=SITE_TEMPLATE_PATH?>/images/buter.png" width="19" height="14" alt="Меню" border="0">&nbsp;Меню</div>
 	<script type="text/javascript">
 		var $j22 = jQuery.noConflict();
 		$j22("#buter").click(function () {
