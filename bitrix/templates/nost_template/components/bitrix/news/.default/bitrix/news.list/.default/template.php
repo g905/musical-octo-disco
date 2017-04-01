@@ -5,7 +5,13 @@
 <h1>Наши акции и спецпредложения</h1>
 <?else:?>
 <!--p class="zagl">Наш блог</p-->
-<h1>Наш блог<?if ($arParams["PAGE"]>1):?>. Страница <? echo $arParams["PAGE"]; endif?></h1>
+<?
+$page = 1;
+if (isset($_REQUEST['PAGEN_1']) && intval($_REQUEST['PAGEN_1'])>0){
+	$page = $_REQUEST['PAGEN_1'];
+};
+?>
+<h1>Наш блог<?if ($page>1):?>. Страница <? echo $page; endif?></h1>
 <?endif?>
 			<div class="row">
 <?foreach($arResult["ITEMS"] as $arItem):?>
