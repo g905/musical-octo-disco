@@ -64,7 +64,7 @@ foreach($arResult["arMap"] as $index => $arItem) {
 				</div>
 
 				<div class="col-xs-9 text-center" id="foot3">
-					<h3 class="h3"><a href="/delivery/">Доставка и оплата</a></h3>
+					<h3 class="h3" style="margin-left: 36px;"><a href="/delivery/">Доставка и оплата</a></h3>
 					<!--div id="links">
 						<ul class="media-list text-left ulmenu">
 		<?foreach($arResultInformation as $index => $arItem2):?>

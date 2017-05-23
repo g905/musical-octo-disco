@@ -8,6 +8,8 @@
   $arProducts['41'] = Array(array(45,382), array(46,443), array(48,423), array(49,404), array(47,397));
 //  $arProducts['42'] = Array(368,369,370,371,372); 
   $arProducts['53'] = Array(477,472,476,473,467); 
+  $arProducts['55'] = Array(965, 966, 968, 970, 969); 
+  $arProducts['56'] = Array(974, 976, 973, 975, 972); 
 
 ?>
 
