@@ -61,7 +61,7 @@ $curPage = $APPLICATION->GetCurPage(true);
 						<span id="tel">8 (909) <span style="color:rgb(227,42,42);">714-98-40</span></span><br/>
 						</address>
 					</div>
-					<div class="col-xs-7 text-left">
+					<div class="col-xs-7 text-left" style="width: 23.33333333%;">
 						<?$APPLICATION->IncludeComponent(
 							"bitrix:main.include",
 							"",
