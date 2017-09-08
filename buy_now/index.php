@@ -27,9 +27,9 @@ false
 
 
 <?$APPLICATION->IncludeComponent(
-	"altasib:feedback.form",
-	"nost",
-	Array(
+	"altasib:feedback.form", 
+	"nost", 
+	array(
 		"ACTIVE_ELEMENT" => "Y",
 		"ADD_LEAD" => "N",
 		"AJAX_MODE" => "N",
@@ -49,7 +49,7 @@ false
 		"COLOR_INPUT" => "#727272",
 		"COLOR_MESS_OK" => "#963258",
 		"COLOR_NAME" => "#000000",
-		"COMPONENT_TEMPLATE" => ".default",
+		"COMPONENT_TEMPLATE" => "nost",
 		"EVENT_TYPE" => "ALX_FEEDBACK_FORM",
 		"FB_TEXT_NAME" => "",
 		"FB_TEXT_SOURCE" => "PREVIEW_TEXT",
@@ -62,14 +62,35 @@ false
 		"JQUERY_EN" => "N",
 		"LOCAL_REDIRECT_ENABLE" => "Y",
 		"LOCAL_REDIRECT_URL" => "/buy_now/thank_you.php",
-		"MASKED_INPUT_PHONE" => array("PHONE"),
+		"MASKED_INPUT_PHONE" => array(
+			0 => "PHONE",
+		),
 		"MESSAGE_OK" => "Сообщение отправлено!",
 		"NAME_ELEMENT" => "ALX_DATE",
-		"PROPERTY_FIELDS" => array("PHONE","FIO","EMAIL","FEEDBACK_TEXT", "PRODUCT", "COLOR", "MATERIAL", "QUANTITY", "OKLEYKA", "OKLEYKA_DESCR", "CITY", "PAYMENT", "REQUISITES"),
-		"PROPERTY_FIELDS_REQUIRED" => array("PHONE"),
-		"PROPS_AUTOCOMPLETE_EMAIL" => array(),
-		"PROPS_AUTOCOMPLETE_NAME" => array(),
-		"PROPS_AUTOCOMPLETE_PERSONAL_PHONE" => array(),
+		"PROPERTY_FIELDS" => array(
+			0 => "PRODUCT",
+			1 => "OKLEYKA",
+			2 => "COLOR",
+			3 => "MATERIAL",
+			4 => "QUANTITY",
+			5 => "OKLEYKA_DESCR",
+			6 => "FIO",
+			7 => "PHONE",
+			8 => "CITY",
+			9 => "EMAIL",
+			10 => "PAYMENT",
+			11 => "REQUISITES",
+			12 => "FEEDBACK_TEXT",
+		),
+		"PROPERTY_FIELDS_REQUIRED" => array(
+			0 => "PHONE",
+		),
+		"PROPS_AUTOCOMPLETE_EMAIL" => array(
+		),
+		"PROPS_AUTOCOMPLETE_NAME" => array(
+		),
+		"PROPS_AUTOCOMPLETE_PERSONAL_PHONE" => array(
+		),
 		"PROPS_AUTOCOMPLETE_VETO" => "N",
 		"REWIND_FORM" => "N",
 		"SECTION_MAIL_ALL" => "558963@nost.ru",
@@ -80,8 +101,28 @@ false
 		"SIZE_NAME" => "12px",
 		"USERMAIL_FROM" => "Y",
 		"USE_CAPTCHA" => "N",
-		"WIDTH_FORM" => "50%"
-	)
+		"WIDTH_FORM" => "50%",
+		"ALX_LINK_POPUP" => "N",
+		"SECTION_FIELDS_ENABLE" => "N",
+		"INPUT_APPEARENCE" => array(
+			0 => "DEFAULT",
+		),
+		"CHECKBOX_TYPE" => "CHECKBOX",
+		"COLOR_SCHEME" => "BRIGHT",
+		"USER_CONSENT" => "N",
+		"USER_CONSENT_INPUT_LABEL" => "",
+		"USER_CONSENT_ID" => "1",
+		"USER_CONSENT_IS_CHECKED" => "Y",
+		"USER_CONSENT_IS_LOADED" => "N",
+		"SHOW_LINK_TO_SEND_MORE" => "Y",
+		"LINK_SEND_MORE_TEXT" => "Отправить ещё одно сообщение",
+		"SEND_IMMEDIATE" => "Y",
+		"ADD_HREF_LINK" => "Y",
+		"COMPOSITE_FRAME_MODE" => "A",
+		"COMPOSITE_FRAME_TYPE" => "AUTO",
+		"COLOR_THEME" => ""
+	),
+	false
 );?>
 
 <?/*
