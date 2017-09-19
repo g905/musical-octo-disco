@@ -525,11 +525,13 @@ if(strpos($actionPage, "index.php") !== false)
     </div>
 </div>
 			<? elseif ($arField["CODE"] == "REQUISITES_FID1"):?>
-
+			
+	
 	<div class="mybut hidden-xs col-xs-30 col-sm-15 col-md-15">
+	
 			<div style="" class="myform-buttons-wrapper col-xs-30  col-md-15">
 			
-			<p class="politic">Отправляя свои данные, я принимаю условия <a href="/politika.php">политики конфиденциальности</a></p>
+			
 			
 <script type="text/javascript">
 function val() {
@@ -552,6 +554,7 @@ function val() {
 				<img src="<?=$templateFolder;?>/images/zak4.png"  alt="Очистить форму" style="height: 40px;">
 			</button>
 		  </div>
+		  <p class="politic col-xs-30">Отправляя свои данные, я принимаю условия <a href="/politika.php">политики конфиденциальности</a></p>
 		</div>
 
 <div class="clearfix"></div>
