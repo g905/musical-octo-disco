@@ -1017,3 +1017,11 @@ transform: translateY(-1px);
 transform: translateY(0px);
 }
 }
+/* electron */
+.politic{
+    padding: 0px 22px;
+    margin-top: 10px;
+}
+.politic a{
+    display:none
+}
