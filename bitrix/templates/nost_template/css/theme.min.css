@@ -639,7 +639,7 @@ bottom: 0;
 
 width: 100%;
 min-width: 1054px;
-height: 275px;
+min-height: 275px;
 
 color: #fff;
 background-color: #554949;
