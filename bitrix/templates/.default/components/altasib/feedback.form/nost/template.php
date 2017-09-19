@@ -528,6 +528,9 @@ if(strpos($actionPage, "index.php") !== false)
 
 	<div class="mybut hidden-xs col-xs-30 col-sm-15 col-md-15">
 			<div style="" class="myform-buttons-wrapper col-xs-30  col-md-15">
+			
+			<p class="politic">Отправляя свои данные, я принимаю условия <a href="/politika.php">политики конфиденциальности</a></p>
+			
 <script type="text/javascript">
 function val() {
 	
