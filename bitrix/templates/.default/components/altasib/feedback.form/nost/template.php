@@ -554,7 +554,7 @@ function val() {
 				<img src="<?=$templateFolder;?>/images/zak4.png"  alt="Очистить форму" style="height: 40px;">
 			</button>
 		  </div>
-		  <p class="politic col-xs-30">Отправляя свои данные, я принимаю условия <a href="/politika.php">политики конфиденциальности</a></p>
+		  <p class="politic col-xs-30">Отправляя свои данные, я принимаю условия <a target="_blank" href="/politika.php">политики конфиденциальности</a></p>
 		</div>
 
 <div class="clearfix"></div>
@@ -581,7 +581,7 @@ function val() {
 				<img src="<?=$templateFolder;?>/images/zak4.png" alt="Очистить форму" style="height: 40px;">
 			</button>
 		  </div>
-		  <p class="politic col-xs-30">Отправляя свои данные, я принимаю условия <a href="/politika.php">политики конфиденциальности</a></p>
+		  <p class="politic col-xs-30">Отправляя свои данные, я принимаю условия <a target="_blank" href="/politika.php">политики конфиденциальности</a></p>
 		</div>
 </div>		
 			<?endif?>

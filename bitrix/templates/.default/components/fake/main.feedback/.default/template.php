@@ -49,6 +49,7 @@ if(strlen($arResult["OK_MESSAGE"]) > 0)
 		</div>
 		<input type="text" name="MESSAGE" value="<?=$arResult["MESSAGE"]?>">
 	</div>
+	
 
 	<?if($arParams["USE_CAPTCHA"] == "Y"):?>
 	<div class="mf-captcha">
@@ -59,6 +60,13 @@ if(strlen($arResult["OK_MESSAGE"]) > 0)
 		<input type="text" name="captcha_word" size="30" maxlength="50" value="">
 	</div>
 	<?endif;?>
+	
+	<div style="">
+	<p>Отправляя свои данные, я принимаю условия <a href="">Политики конфиденциальности</a></p>
+	</div>
+	
+	
+	
 	<input type="hidden" name="PARAMS_HASH" value="<?=$arResult["PARAMS_HASH"]?>">
 	<input type="submit" id="sub_button" name="submit" value="<?=GetMessage("MFT_SUBMIT")?>">
 </form>
