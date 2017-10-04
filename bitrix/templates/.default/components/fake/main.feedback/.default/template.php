@@ -62,7 +62,7 @@ if(strlen($arResult["OK_MESSAGE"]) > 0)
 	<?endif;?>
 	
 	<div style="width: 100%; clear: both; padding: 10px 0;">
-	<p>Отправляя свои данные, я принимаю условия <a href="">Политики конфиденциальности</a></p>
+	<p>Отправляя свои данные, я принимаю условия <a target="_blank" href="/politika.php">Политики конфиденциальности</a></p>
 	</div>
 	
 	
