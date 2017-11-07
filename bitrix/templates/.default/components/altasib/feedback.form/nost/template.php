@@ -302,7 +302,7 @@ if(strpos($actionPage, "index.php") !== false)
 		<fieldset>
 			<!--radiobutton end-->
 	</div>
-
+<div class="clearfix"></div>
 					<? elseif ($arField["CODE"] == "PAYMENT_FID1"): ?>
 						<? $paymentVisible = 'style="display:none"';
 						if ($_POST["FIELDS"][$arField["CODE"]] == '14') $paymentVisible = 'style="display:block"';
@@ -425,7 +425,7 @@ if(strpos($actionPage, "index.php") !== false)
 			</div>
 	
 	</div>
-	<div class="clearfix"></div>
+	
 
 			<? elseif ($arField["CODE"] == "OKLEYKA_DESCR_FID1"):?>
 
