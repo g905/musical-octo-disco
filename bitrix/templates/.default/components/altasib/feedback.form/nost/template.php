@@ -302,6 +302,27 @@ if(strpos($actionPage, "index.php") !== false)
 		<fieldset>
 			<!--radiobutton end-->
 	</div>
+<? elseif ($arField["CODE"] == "BASE_FID1"): ?>
+
+	<div class="matter col-xs-30  col-sm-15 col-md-7">
+		<label class="" id="" for="">
+			<span class="zalol"><?echo $arField["NAME"]?> <?if($arField["REQUIRED"]):?><span class="alx_feed_back_form_required_text">*</span><?endif;?></span>
+			<div class="alx_feed_back_form_hint"><?=$arField["HINT"]?></div>
+		</label>
+		<!--radiobutton begin-->
+		<fieldset>
+		<div class="radio1">
+<?                                              foreach($arField["ENUM"] as $v):
+							if(!isset($_POST["FIELDS"][$arField["CODE"]]) && !isset($arResult["FORM_ERRORS"]["EMPTY_FIELD"][$arField["CODE"]])):?>
+								<input id="<?=$v["ID"]?>" type="radio" name="FIELDS[<?=$arField["CODE"]?>]" value="<?=$v["ID"]?>" <?if($v['DEF'] == 'Y') echo 'checked="checked"';?>><label for="<?=$v["ID"]?>"><span></span><?=$v["VALUE"]?></label><br />
+<?							else:?>
+								<input id="<?=$v["ID"]?>" type="radio" name="FIELDS[<?=$arField["CODE"]?>]" value="<?=$v["ID"]?>" <?if($v['ID'] == $_POST["FIELDS"][$arField["CODE"]]) echo 'checked="checked"';?>><label for="<?=$v["ID"]?>"><span></span><?=$v["VALUE"]?></label><br />
+<?							endif;
+						endforeach;?>
+		</div>
+		<fieldset>
+			<!--radiobutton end-->
+	</div>
 <div class="clearfix"></div>
 					<? elseif ($arField["CODE"] == "PAYMENT_FID1"): ?>
 						<? $paymentVisible = 'style="display:none"';
