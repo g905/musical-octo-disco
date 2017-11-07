@@ -400,7 +400,7 @@ if(strpos($actionPage, "index.php") !== false)
 					}
 				endif?>
           </select>
-		  </div>
+		  </div> 
 			<? elseif ($arField["CODE"] == "QUANTITY_FID1"):?>
 	<div class="count col-xs-30  col-sm-15 col-md-6"  id="error_<?=$arField["CODE"]?>">
 		<label class="" id="" for="<?=$arField["CODE"]?>">
