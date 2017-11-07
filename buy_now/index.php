@@ -70,9 +70,9 @@ false
 		"PROPERTY_FIELDS" => array(
 			0 => "PRODUCT",
 			1 => "OKLEYKA",
-			2 => "COLOR",
-			3 => "MATERIAL",
-			4 => "QUANTITY",
+      2 => "QUANTITY",
+			3 => "COLOR",
+			4 => "MATERIAL",
 			5 => "OKLEYKA_DESCR",
 			6 => "FIO",
 			7 => "PHONE",
