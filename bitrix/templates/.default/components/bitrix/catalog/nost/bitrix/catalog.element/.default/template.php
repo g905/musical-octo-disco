@@ -346,7 +346,10 @@ $APPLICATION->IncludeComponent(
 
 	<!-- Закладки -->
 						<div class="clearfix"></div>
-						<div id="tabs">
+						<div style="text-align: center;margin-top: 10px;">
+							Данное изделие имеет <a href="/sertifikaty/" target="_blank">сертификат качества</a>
+						</div>
+						<div id="tabs" style="margin-top: 10px;">
 <?if ($arResult["IBLOCK_ID"] <> 3):?>
 							<ul class="nav nav-tabs">
 								<li class="active"><a href="#spec" data-toggle="tab">Спецификация</a></li>
