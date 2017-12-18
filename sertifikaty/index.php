@@ -17,39 +17,19 @@ false
             
             </div>
 
-<h1 style="margin-left:13px;">Наши сертификаты</h1>
+<h1 style="margin-left:13px;">Сертификаты соответствия</h1>
 		<a name="cont"></a> 
 		<div class="container subtext">
 			<div class="row center-row">
 				<div class="col-xs-push-1 col-xs-5 center">
-					<img src="http://mtdata.ru/u7/photo5A8F/20015166689-0/original.jpg">
+					<img src="/sertifikaty/pic/cerificate.jpg">
 				</div>
 				<div class="col-xs-24 col-xs-push-1 center">
-					<h2 class="h2">Сертификат №1</h2>
+					<h2 class="h2">Сертификат соответствия на продукцию</h2>
 					<p>
-						текст будет добавлен позже
-					</p>
-				</div>
-			</div>
-			<div class="row center-row">
-				<div class="col-xs-5 col-xs-push-1 center">
-					<img src="http://mtdata.ru/u7/photo5A8F/20015166689-0/original.jpg">
-				</div>
-				<div class="col-xs-24 col-xs-push-1 center">
-					<h2 class="h2">Сертификат №2</h2>
-					<p>
-						текст будет добавлен позже
-					</p>
-				</div>
-			</div>
-			<div class="row center-row">
-				<div class="col-xs-5 col-xs-push-1 center">
-					<img src="http://mtdata.ru/u7/photo5A8F/20015166689-0/original.jpg">
-				</div>
-				<div class="col-xs-24 col-xs-push-1 center">
-					<h2 class="h2">Сертификат №3</h2>
-					<p>
-						текст будет добавлен позже
+						Все изделия под Торговой Маркой "НОСТ" производятся в соответствии с сертификатом соответствия РОСС RU.АД44.Н05839. <br><br>
+						Сертификат выдан 12.10.2017 органом по сертификации ООО "СертЦентр" г.Ульяновск.<br>
+						Срок действия сертификата до 11.10.2020.
 					</p>
 				</div>
 			</div>
