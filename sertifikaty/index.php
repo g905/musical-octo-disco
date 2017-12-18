@@ -22,7 +22,7 @@ false
 		<div class="container subtext">
 			<div class="row center-row">
 				<div class="col-xs-push-1 col-xs-5 center">
-					<img src="/sertifikaty/pic/cerificate.jpg">
+					<img style="width: 300px;" src="/sertifikaty/pic/cerificate.jpg">
 				</div>
 				<div class="col-xs-24 col-xs-push-1 center">
 					<h2 class="h2">Сертификат соответствия на продукцию</h2>
