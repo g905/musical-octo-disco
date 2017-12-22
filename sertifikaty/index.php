@@ -18,10 +18,9 @@ false
             </div>
 
 <script>
-	var i$ = jQuery.noConflict();
-        i$(document).ready(function() {
-            i$('.big-image').fancybox();
-        });
+    jQuery(document).ready(function() {
+        jQuery('.big-image').fancybox();
+    });
 </script>            
 
 <h1 style="margin-left:13px;">Сертификаты соответствия</h1>
