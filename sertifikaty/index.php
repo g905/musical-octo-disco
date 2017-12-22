@@ -17,12 +17,21 @@ false
             
             </div>
 
+<script>
+	var i$ = jQuery.noConflict();
+        i$(document).ready(function() {
+            i$('.big-image a').fancybox();
+        });
+</script>            
+
 <h1 style="margin-left:13px;">Сертификаты соответствия</h1>
 		<a name="cont"></a> 
 		<div class="container subtext">
 			<div class="row center-row">
 				<div class="col-xs-push-1 col-xs-5 center">
-					<img style="width: 300px;" src="/sertifikaty/pic/cerificate.jpg">
+					<a href="/sertifikaty/pic/cerificate.jpg" class="big-image" rel="images" title="Сертификат">
+						<img style="width: 300px;" src="/sertifikaty/pic/cerificate.jpg">
+					</a>
 				</div>
 				<div class="col-xs-24 col-xs-push-1 center">
 					<h2 class="h2">Сертификат соответствия на продукцию</h2>
