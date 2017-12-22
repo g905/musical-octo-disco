@@ -20,7 +20,7 @@ false
 <script>
 	var i$ = jQuery.noConflict();
         i$(document).ready(function() {
-            i$('.big-image a').fancybox();
+            i$('.big-image').fancybox();
         });
 </script>            
 
