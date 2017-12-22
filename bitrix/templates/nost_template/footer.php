@@ -229,6 +229,7 @@ IncludeTemplateLangFile(__FILE__);
 <?endif?>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script type="text/javascript" src="<?=SITE_TEMPLATE_PATH?>/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="<?=SITE_TEMPLATE_PATH?>/js/jquery.fancybox.pack.js"></script>
 <?if ($curPage == '/index.php'):?>
 	<script type="text/javascript" src="<?=SITE_TEMPLATE_PATH?>/js/toTop-main.min.js"></script>
 <?else:?>
