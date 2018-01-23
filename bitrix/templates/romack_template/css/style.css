@@ -195,6 +195,7 @@ img
     margin-left: -5px;
 
     background: url(../img/header/butbg.png)/*tpa=http://www.nost.ru/bitrix/templates/nost_template/img/header/butbg.png*/ no-repeat left;
+    background-size: contain;
 }
 .headerbot-text a:first-child
 {
@@ -205,14 +206,15 @@ img
 {
     font-family: Verdana;
 
-    height: 30px;
-    padding: 7px 10px 0 10px;
+    /*height: 30px;*/
+    padding: 7px 10px;
 
     text-align: center;
     text-transform: uppercase;
 
     color: white;
     background: url(../img/header/butbg.png)/*tpa=http://www.nost.ru/bitrix/templates/nost_template/img/header/butbg.png*/ no-repeat right;
+    background-size: contain;
 }
 
 .headerbot-text a .but.activ

@@ -82,7 +82,8 @@
 #horizontal-multilevel-menu li li 
 {
 	background:url(images/headerbotbg2.png) repeat-x;
-	width: 118%;
+	width: 120%;
+	background-size: contain;
 }
 
 /*Item link*/
