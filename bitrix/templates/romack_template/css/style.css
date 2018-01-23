@@ -1035,10 +1035,13 @@ img
 
 .r-catalog .prop-block .prop-name {
     float: left;
+    width: 15%;
 }
 
 .r-catalog .prop-block .prop-value {
     float: right;
+    width: 80%;
+    text-align: right;
 }
 .r-catalog .order-block {
     margin-top: 15px;

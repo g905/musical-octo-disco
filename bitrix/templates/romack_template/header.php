@@ -52,7 +52,7 @@ $curPage = $APPLICATION->GetCurPage(true);
 		<div class="container logoblock">
 			<header>
 				<div class="row">
-					<a href="/"><div style="float: left; margin-left: 20px;"><img src="<?=SITE_TEMPLATE_PATH?>/images/logo1.png" style="margin: 10px 0px; max-height: 100px;"></div><div class="col-xs-11" id="logo" style="background-position: 39px 34px;width: 27.667%;"></div></a>
+					<a href="/"><div style="float: left; margin-left: 20px;"><img src="<?=SITE_TEMPLATE_PATH?>/images/logo1.png" style="margin: 10px 0px; max-height: 100px;"></div><div class="col-xs-11" id="logo" style="background-position: 39px 15px;width: 27.667%;">«Первый производитель объемных кроваток-машинок в России!»</div></a>
 					<div class="col-xs-1" id="telephone">
 						<img src="<?=SITE_TEMPLATE_PATH?>/images/telephone.png" alt="Телефон"/>
 					</div>
