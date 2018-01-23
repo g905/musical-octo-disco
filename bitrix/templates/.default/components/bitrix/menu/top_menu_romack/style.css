@@ -52,7 +52,8 @@
 #horizontal-multilevel-menu li:hover, #horizontal-multilevel-menu li.jshover
 {
 	background:url(images/butbg-act.png) repeat-x top;
-	height:30px;
+	/*height:30px;*/
+	background-size: contain;
 }
 
 /*Child-items selected*/
