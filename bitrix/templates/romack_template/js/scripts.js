@@ -6,13 +6,15 @@ function changePict(imageNum, divName, format) {
 
 	var div = document.getElementById('items-miniimg')
 	var elems = div.getElementsByTagName('div')
+	var itemsMaximg = document.getElementById('items-maximg')
+	var item = itemsMaximg.getElementsByTagName('div')
 
 	for(var i=0; i<elems.length; i++) 
 		elems[i].className = "";
 
 	divName.className = "activ";
 
-	for (var i=0; i<10; i++) {
+	for (var i=0; i<item.length; i++) {
 		// adl Делаем невидимыми все картинки
 		try {
 			document.getElementById('image'+i).style.display = "none";

@@ -115,7 +115,7 @@
 				$i++;
 			endforeach;
 		endif;?>  
-
+				<div id="items-maximg">
 			<? for ($i=0; $i < count($allMedia); $i++):?>
 				<? if($allMedia[$i]['FORMAT'] == 'img'):?>
             				<div id="image<?=$i?>" style="display: <?=$allMedia[$i]['NORMAL_VISIBLE'];?>; height:<?=$allMedia[$i]['NORMAL_HEIGHT']?>px; width:<?=$allMedia[$i]['NORMAL_WIDTH'];?>px; margin:auto;">
@@ -125,7 +125,8 @@
 					</div>
 				<?endif?>
 			<? endfor;?>
-					<div class="clearfix"></div>
+				</div>
+				<div class="clearfix"></div>
   		<? foreach($arResult["MORE_PHOTO"] as $PHOTO):?>  
 			<? if ($PHOTO["CONTENT_TYPE"] == "application/x-shockwave-flash"): ?>
 				<div id="flash" style="display:none;height:<?=$arResult["DETAIL_PICTURE"]["HEIGHT"]?>px;width:<?=$arResult["DETAIL_PICTURE"]["WIDTH"]?>px;background-color:#000000;">
