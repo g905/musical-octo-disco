@@ -735,7 +735,7 @@ background: url(../images/bottomshadow.png)/*tpa=http://www.nost.ru/bitrix/templ
 	color: #fff;
 }
 .vk-romack:before{
-	content: ''
+	content: '';
 	position: absolute;
 	width: 31px;
 	height: 20px;
