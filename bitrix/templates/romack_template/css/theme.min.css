@@ -728,6 +728,27 @@ padding-top: 15px;
 
 background: url(../images/bottomshadow.png)/*tpa=http://www.nost.ru/bitrix/templates/nost_template/images/bottomshadow.png*/ no-repeat top;
 }
+.vk-romack {
+	font-size: 11px;
+	position: relative;
+	padding-left: 40px;
+	color: #fff;
+}
+.vk-romack:before{
+	content: ''
+	position: absolute;
+	width: 31px;
+	height: 20px;
+	left: 0;
+	top: 0;
+	background-image: url('../img/vk.png');
+}
+.vk-link {
+	color: #fff;
+	text-decoration: underline;
+}
+
+
 .h1,
 .h2,
 .h3,

@@ -7,3 +7,4 @@
 								<li>8 (3412) 65-07-64</li>
 							</ul>
 						</address>
+						<div class="vk-romack"><strong>Мы Вконтакте:</strong><br><a href="https://vk.com/romack" class="vk-link" target="_blank"></a></div>
