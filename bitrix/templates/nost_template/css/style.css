@@ -1159,13 +1159,14 @@ line-height: 22px;
 .contact__block:before {
     content: '';
     position: absolute;
-    top: 0;
+    top: 3px
     left: 0;
     width: 22px;
     height: 22px;
 }
 .contact__block--adress:before {
     background-image: url(../img/geo.png);
+    width: 20px;
 }
 .contact__block--tel:before {
     background-image: url(../img/phone.png);
@@ -1178,8 +1179,23 @@ line-height: 22px;
 }
 .contact__block--email:before {
     background-image: url(../img/email.png);
+    top: 0;
 }
 .contact__block--soc:before {
-    background-image: url(../img/viber.png),url(../img/whatsapp.png),url(../img/telegram.png);
+    background-image: url(../img/viber.png);
+    top: 0;
+}
+.contact__block--soc:after {
+    background-image: url(../img/whatsapp.png),url(../img/telegram.png);
+    left: 35px;
+    top: 0;
+}
+.contact__block--telegram {
+    background-image: url(../img/telegram.png);
+    left: 70px;
+    top: 0;
+}
+.contact__block--soc, .contact--soc {
+    padding-left: 90px;
 }
 

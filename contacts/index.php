@@ -95,7 +95,7 @@ false
 		     			<span class="contact__block contact__block--email"><b>E-mail:</b></span> 			 
 				</td>
 				<td width="67%">
-		     			<span class="contact__block contact__block--soc"><b>Viber, WhatsApp, Telegram:</b></span>		 
+		     			<span class="contact__block contact__block--soc"><i class="contact__block--telegram"></i><b>Viber, WhatsApp, Telegram:</b></span>		 
 				</td>
 				<!--td width="33%">
 		     			<b>ICQ:</b> 			 
@@ -106,7 +106,7 @@ false
 		     			<span class="red contact__block">558963@nost.ru</span>
 				</td>
 				<td width="67%">
-		     			<span class="red contact__block">8-951-204-7554</span> 
+		     			<span class="red contact--soc">8-951-204-7554</span> 
 				</td>
 				<!--td width="33%">
 		     			695943790 
