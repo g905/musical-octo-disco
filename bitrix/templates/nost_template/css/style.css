@@ -1154,15 +1154,15 @@ line-height: 22px;
 .conact__block {
     position: relative;
     display: block;
-    padding-left: 30px;
 }
 .conact__block:before {
-    content: ''
+    content: '';
     position: absolute;
     top: 0;
     left: 0;
     width: 22px;
     height: 22px;
+    margin-right: 10px;
 }
 .conact__block--adress:before {
     background-image: url(../img/geo.png);
