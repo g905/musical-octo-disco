@@ -1159,7 +1159,7 @@ line-height: 22px;
 .contact__block:before {
     content: '';
     position: absolute;
-    top: 3px
+    top: 3px;
     left: 0;
     width: 22px;
     height: 22px;
@@ -1186,7 +1186,7 @@ line-height: 22px;
     top: 0;
 }
 .contact__block--soc:after {
-    background-image: url(../img/whatsapp.png),url(../img/telegram.png);
+    background-image: url(../img/whatsapp.png);
     left: 35px;
     top: 0;
 }
@@ -1194,6 +1194,8 @@ line-height: 22px;
     background-image: url(../img/telegram.png);
     left: 70px;
     top: 0;
+    width: 22px;
+    height: 22px;
 }
 .contact__block--soc, .contact--soc {
     padding-left: 90px;
