@@ -1151,35 +1151,35 @@ line-height: 22px;
 }
 
 /*Доработки страницы контакты*/
-.conact__block {
+.contact__block {
     position: relative;
     display: block;
+    padding-left: 32px;
 }
-.conact__block:before {
+.contact__block:before {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     width: 22px;
     height: 22px;
-    margin-right: 10px;
 }
-.conact__block--adress:before {
+.contact__block--adress:before {
     background-image: url(../img/geo.png);
 }
-.conact__block--tel:before {
+.contact__block--tel:before {
     background-image: url(../img/phone.png);
 }
-.conact__block--mode:before {
+.contact__block--mode:before {
     background-image: url(../img/workhours.png);
 }
-.conact__block--requisites:before {
+.contact__block--requisites:before {
     background-image: url(../img/rekviz.png);
 }
-.conact__block--email:before {
+.contact__block--email:before {
     background-image: url(../img/email.png);
 }
-.conact__block--soc:before {
+.contact__block--soc:before {
     background-image: url(../img/viber.png),url(../img/whatsapp.png),url(../img/telegram.png);
 }
 

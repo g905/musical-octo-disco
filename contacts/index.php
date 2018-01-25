@@ -50,14 +50,14 @@ false
  </div-->
   <div class="rightblock" style="width: 520px; margin-left: 400px;"> 		 
     <p class="itemstext">
-    <span class="conact__block conact__block--adress">	
+    <span class="contact__block contact__block--adress">	
 		<b>Адрес производственной компании &quot;НОСТ&quot;(головная организация):</b> 			 
 		<br />
 		427007, Россия, Удмуртская республика, г. Ижевск, с. Первомайский, ул. Сабурова, 4
     </span> 
       <br />
       <br />
-	<span class="conact__block contact__block--tel">
+	<span class="contact__block contact__block--tel">
 		<b>Телефон:</b> 			 
 		<br />
 		<span class="red">8-800-700-66-78</span> - звонок по России бесплатный. 
@@ -68,14 +68,14 @@ false
 		<br />
 		<br />
     </span>
-    <span class="conact__block contact__block--mode">
+    <span class="contact__block contact__block--mode">
 		<b>Режим работы:</b>
 		<br />
 		Пн-Пт с 8:00 до 17:00 (по Москве)
    	</span>
 		<br />
 		<br />
-	<span class="conact__block contact__block--requisites">
+	<span class="contact__block contact__block--requisites">
 		<b>Реквизиты организации:</b> 			 
 		<br />
 		ИП Родионов Михаил Андреевич 
@@ -92,10 +92,10 @@ false
 	<table width="100%" style="color: #666;font-family: Tahoma;font-size: 12px;">
 			<tr>
 				<td width="33%">
-		     			<span class="conact__block contact__block--email"><b>E-mail:</b></span> 			 
+		     			<span class="contact__block contact__block--email"><b>E-mail:</b></span> 			 
 				</td>
 				<td width="67%">
-		     			<span class="conact__block contact__block--soc"><b>Viber, WhatsApp, Telegram:</b></span>		 
+		     			<span class="contact__block contact__block--soc"><b>Viber, WhatsApp, Telegram:</b></span>		 
 				</td>
 				<!--td width="33%">
 		     			<b>ICQ:</b> 			 
@@ -103,10 +103,10 @@ false
 			</tr>
 			<tr>
 				<td width="33%">
-		     			<span class="red">558963@nost.ru</span>
+		     			<span class="red contact__block">558963@nost.ru</span>
 				</td>
 				<td width="67%">
-		     			<span class="red">8-951-204-7554</span> 
+		     			<span class="red contact__block">8-951-204-7554</span> 
 				</td>
 				<!--td width="33%">
 		     			695943790 
@@ -167,14 +167,14 @@ false
       <br />
            -->
      
-    <span class="conact__block conact__block--adress">
+    <span class="contact__block contact__block--adress">
 		<b>Наши изделия в розницу в г. Москва Вы можете приобрести по адресу:</b> 			 
 		<br />
 		141407, Московская обл., Химки г., просп. Юбилейный, 40.  Магазин "Автозапчасти"
     </span> 	
       <br />
       <br />
-    <span class="conact__block contact__block--tel">  
+    <span class="contact__block contact__block--tel">  
 		<b>Телефон:</b>
 		<br />
 		<span class="red">8 926 235 39 39</span> - по вопросам приобретения в розницу
