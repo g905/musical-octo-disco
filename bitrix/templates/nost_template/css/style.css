@@ -1191,18 +1191,18 @@ line-height: 22px;
     height: 22px;
     position: absolute;
     background-image: url(../img/whatsapp.png);
-    left: 35px;
+    left: 27px;
     top: 0;
 }
 .contact__block--telegram {
     position: absolute;
     background-image: url(../img/telegram.png);
-    left: 70px;
+    left: 54px;
     top: 0;
     width: 22px;
     height: 22px;
 }
 .contact__block--soc, .contact--soc {
-    padding-left: 90px;
+    padding-left: 84px;
 }
 
