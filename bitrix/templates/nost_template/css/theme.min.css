@@ -437,13 +437,13 @@ font-size: 35px;
 	content: "";
 	height: 22px;
 	width: 22px;
-	background-image: url(../img/viber.png);
+	background-image: url(../img/telegram.png);
 	float: left;
 	background-repeat: no-repeat;
 	margin-right: 13px;
 }
 #header address .skype span, #header address .workhours span {
-	color: #ccc;
+	color: #999;
 }
 /* remedy */
 
