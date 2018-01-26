@@ -272,9 +272,12 @@ background: url(../images/logo.png)tpa=http://www.nost.ru/bitrix/templates/nost_
 	background: url(../img/logo.png) no-repeat;
 	background-position: 18px 13px;
 	text-align: center;
-	padding-top: 75px;
+	padding-top: 77px;
 	position: relative;
 	color: #fff;
+	z-index: 1;
+    font-size: 12px;
+    font-weight: bold;
 }
 #header .logoblock #logo:before {
 	content: '';
@@ -282,8 +285,9 @@ background: url(../images/logo.png)tpa=http://www.nost.ru/bitrix/templates/nost_
 	width: 276px;
 	height: 40px;
 	background-image: url(../img/ribbon.png);
-	top: 0;
-	left: 0;
+	top: 70px;
+	left: 5px;
+	z-index: -1;
 }
 
 /* remedy
