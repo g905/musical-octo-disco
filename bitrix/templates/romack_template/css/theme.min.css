@@ -273,6 +273,17 @@ background: url(../images/logo.png)tpa=http://www.nost.ru/bitrix/templates/nost_
 	background-position: 18px 13px;
 	text-align: center;
 	padding-top: 75px;
+	position: relative;
+	color: #fff;
+}
+#header .logoblock #logo:before {
+	content: '';
+	position: absolute;
+	width: 276px;
+	height: 40px;
+	background-image: url(../img/ribbon.png);
+	top: 0;
+	left: 0;
 }
 
 /* remedy
