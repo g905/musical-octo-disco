@@ -14,8 +14,8 @@ $APPLICATION->SetTitle("Контакты");
 </div>
 <div class="contenttext-item" style="min-height: 400px;">
 	<div class="leftblock" style="float: left;">
-		<div class="logo" style="margin-top: -5px; margin-left: 20px;">
-			 <?$APPLICATION->IncludeComponent(
+		<div id="map-main" class="logo" style="margin-top: -5px; margin-left: 20px;">
+			 <?/*$APPLICATION->IncludeComponent(
 	"bitrix:map.yandex.view",
 	"",
 	array(
@@ -27,7 +27,7 @@ $APPLICATION->SetTitle("Контакты");
 		"MAP_WIDTH" => "360",	// Ширина карты
 		"OPTIONS" => "ENABLE_DRAGGING",	// Настройки
 	)
-);?>
+);*/?>
 		</div>
 	</div>
 	<div class="rightblock" style="width: 520px; margin-left: 400px;">

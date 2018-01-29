@@ -1161,6 +1161,7 @@ img
 .dealers__title {
   font-size: 18px;
   font-family: Arial Narrow,ArNarrow;
+  text-transform: uppercase;
   color: #eb1414;
   font-weight: bold;
   width: 10%;

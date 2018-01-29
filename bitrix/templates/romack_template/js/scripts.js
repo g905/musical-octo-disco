@@ -209,16 +209,31 @@ $(document).ready(function() {
 
 
 	function init () {
+		//основная карта
+		myMap1 = new ymaps.Map ("map-main", {
+	        center: [56.854234, 53.360813],
+	        zoom: 12,
+	        duration: 50
+	    });
 
+	    var myPlacemark = new ymaps.Placemark([56.854234, 53.360813], {
+	    		balloonContent: '<strong>"Romack Mebel"</strong><br>Завьяловский район, с. Первомайский, ул. Сабурова, 4<br>8 (800) 200-3221, 8 (3412) 65-07-64',
+	    	},
+	    	{
+	    		preset: 'islands#redDotIcon',
+	    	}
+	    });
+
+	    //карта с дилерами
 		myMap = new ymaps.Map ("map", {
 	        center: [56.85247279343317,53.216654071533114],
 	        zoom: 12,
 	        duration: 50
 	    });
-	    
+
+    
 		for (var i = 0; i < placemarks.length; i++) {
 			geoObjects[i] = new ymaps.Placemark([placemarks[i].lat, placemarks[i].long], {
-					hintContent: placemarks[i].hintContent,
 					balloonContent: placemarks[i].balloonContent,
 				},
 				{
