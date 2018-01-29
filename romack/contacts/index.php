@@ -112,7 +112,7 @@ $APPLICATION->SetTitle("Контакты");
 			<div class="col-lg-4">ТРЦ "Радуга", ул.Ленина, 140</div>
 			<div class="col-lg-4">Тел.: 8(3412)908-079</div>
 			<div class="col-lg-2">
-				<a href="http://xn--80abaa8ai9k.xn--p1ai/" class="dealers__link">бэбибай.рф</a>
+				<a href="http://xn--80abaa8ai9k.xn--p1ai/" class="dealers__link" target="_blank">бэбибай.рф</a>
 			</div>
 		</div>
 		<div class="dealers__row clearfix">
@@ -122,7 +122,7 @@ $APPLICATION->SetTitle("Контакты");
 			<div class="col-lg-4">ул.Удмуртская, д.302, отдел "Статус-М"</div>
 			<div class="col-lg-4">Тел.: 8(3412) 32-01-02</div>
 			<div class="col-lg-2">
-				<a href="http://mebelgrad18.ru/" class="dealers__link">mebelgrad18.ru</a>
+				<a href="http://mebelgrad18.ru/" class="dealers__link" target="_blank">mebelgrad18.ru</a>
 			</div>
 		</div>
 	</div>
@@ -135,7 +135,7 @@ $APPLICATION->SetTitle("Контакты");
 			<div class="col-lg-4">3 этаж,  м.Выхино 8-й км Мкад</div>
 			<div class="col-lg-4">Тел.:+7(916)732-2777, +7(925)615-5778</div>
 			<div class="col-lg-2">
-				<a href="http://www.skarabey-tc.ru/" class="dealers__link">www.skarabey-tc.ru</a>
+				<a href="http://www.skarabey-tc.ru/" class="dealers__link" target="_blank">www.skarabey-tc.ru</a>
 			</div>
 		</div>
 		<div class="dealers__row clearfix">
@@ -145,7 +145,7 @@ $APPLICATION->SetTitle("Контакты");
 			<div class="col-lg-4">м. Войковская, Ленинградское ш. 25,<br>3 этаж, левое крыло, пав.3к 03</div>
 			<div class="col-lg-4">Тел.:+7(495) 502-5321, +7(919) 100-6695,<br>+7(925) 631-6758</div>
 			<div class="col-lg-2">
-				<a href="https://mebel-leningradka.ru/" class="dealers__link">mebel-leningradka.ru</a>
+				<a href="https://mebel-leningradka.ru/" class="dealers__link" target="_blank">mebel-leningradka.ru</a>
 			</div>
 		</div>
 		<div class="dealers__row clearfix">
@@ -155,7 +155,7 @@ $APPLICATION->SetTitle("Контакты");
 			<div class="col-lg-4">м. ВДНХ, Ярославское ш., д.19,<br>4 этаж, правое крыло</div>
 			<div class="col-lg-4">Тел.: +7(495)778-13-27, ,+7(919)100-86-69,<br>+7(926) 972-5392</div>
 			<div class="col-lg-2">
-				<a href="http://mebelrossii.ru/" class="dealers__link">mebelrossii.ru</a>
+				<a href="http://mebelrossii.ru/" class="dealers__link" target="_blank">mebelrossii.ru</a>
 			</div>
 		</div>
 		<div class="dealers__row clearfix">
@@ -165,7 +165,7 @@ $APPLICATION->SetTitle("Контакты");
 			<div class="col-lg-4">Можайское шоссе, 2 км от МКАД,<br>4 этаж, секция детской мебели VOX</div>
 			<div class="col-lg-4">Тел.: +7(499) 340-21-82, +7(916) 063-44-97,<br>+7(925) 348-73-02</div>
 			<div class="col-lg-2">
-				<a href="http://www.3kita.ru/" class="dealers__link">www.3kita.ru</a>
+				<a href="http://www.3kita.ru/" class="dealers__link" target="_blank">www.3kita.ru</a>
 			</div>
 		</div>
 		<div class="dealers__row clearfix">
@@ -175,7 +175,7 @@ $APPLICATION->SetTitle("Контакты");
 			<div class="col-lg-4">МО, г.Климовск, ул.Заречная, стр.2</div>
 			<div class="col-lg-4">Тел.: 8-499-389-44-90</div>
 			<div class="col-lg-2">
-				<a href="http://www.tdcompic.ru/" class="dealers__link">www.tdcompic.ru</a>
+				<a href="http://www.tdcompic.ru/" class="dealers__link" target="_blank">www.tdcompic.ru</a>
 			</div>
 		</div>
 	</div>
@@ -185,10 +185,10 @@ $APPLICATION->SetTitle("Контакты");
 			<div class="col-lg-2 dealers__name">
 				<strong>ТД "Компик"</strong>
 			</div>
-			<div class="col-lg-4">ул.Промышленная, д.13</div>
-			<div class="col-lg-4">Тел.: 8-812-456-70-82</div>
-			<div class="col-lg-2">
-				<a href="http://www.tdcompic.ru/" class="dealers__link">www.tdcompic.ru</a>
+			<div class="col-lg-4 dealers__address">ул.Промышленная, д.13</div>
+			<div class="col-lg-4 dealers__tel">Тел.: 8-812-456-70-82</div>
+			<div class="col-lg-2 dealers__site">
+				<a href="http://www.tdcompic.ru/" class="dealers__link" target="_blank">www.tdcompic.ru</a>
 			</div>
 		</div>
 	</div>
@@ -201,7 +201,7 @@ $APPLICATION->SetTitle("Контакты");
 			<div class="col-lg-4">ул. Татищева, 53,  офис 105</div>
 			<div class="col-lg-4">Тел.: 8-800-500-27-20, (343) 202-52-72, 2000-696,<br>время работы с 10:00 до 18:00</div>
 			<div class="col-lg-2">
-				<a href="http://mebel-ekat.ru" class="dealers__link">mebel-ekat.ru</a>
+				<a href="http://mebel-ekat.ru" class="dealers__link" target="_blank">mebel-ekat.ru</a>
 			</div>
 		</div>
 		<div class="dealers__row clearfix">
@@ -211,7 +211,7 @@ $APPLICATION->SetTitle("Контакты");
 			<div class="col-lg-4">ул. Токарей, 40, офис 6б,</div>
 			<div class="col-lg-4">Тел.: (343) 202-28-33,<br>время работы с 10:00 до 18:00</div>
 			<div class="col-lg-2">
-				<a href="http://meb-ural.ru/" class="dealers__link">www.meb-ural.ru </a>
+				<a href="http://meb-ural.ru/" class="dealers__link" target="_blank">www.meb-ural.ru </a>
 			</div>
 		</div>
 	</div>
@@ -224,7 +224,7 @@ $APPLICATION->SetTitle("Контакты");
 			<div class="col-lg-4">ул.Чапаева, 38/2</div>
 			<div class="col-lg-4">8-927-236-62-91,  8-347-26-66-29</div>
 			<div class="col-lg-2">
-				<a href="http://xn--80aaj7ab0aub.xn--p1ai/" class="dealers__link">мамагуру.рф</a>
+				<a href="http://xn--80aaj7ab0aub.xn--p1ai/" class="dealers__link" target="_blank">мамагуру.рф</a>
 			</div>
 		</div>
 	</div>
@@ -237,7 +237,7 @@ $APPLICATION->SetTitle("Контакты");
 			<div class="col-lg-4">ул. Куйбышева 2, офис 16,</div>
 			<div class="col-lg-4">8-800-500-27-20, (342) 287-13-28,<br>время работы с 10:00 до 18:00</div>
 			<div class="col-lg-2">
-				<a href="http://www.meb59.com" class="dealers__link">www.meb59.com</a>
+				<a href="http://www.meb59.com" class="dealers__link" target="_blank">www.meb59.com</a>
 			</div>
 		</div>
 	</div>
@@ -250,7 +250,7 @@ $APPLICATION->SetTitle("Контакты");
 			<div class="col-lg-4"> ул.Федосеенко, д.6,</div>
 			<div class="col-lg-4">8-831-420-60-94</div>
 			<div class="col-lg-2">
-				<a href="http://tdcompic.ru/" class="dealers__link">tdcompic.ru</a>
+				<a href="http://tdcompic.ru/" class="dealers__link" target="_blank">tdcompic.ru</a>
 			</div>
 		</div>
 	</div>
@@ -263,14 +263,11 @@ $APPLICATION->SetTitle("Контакты");
 			<div class="col-lg-4">ул. Комсомольский Проспект, 10, офис 1,</div>
 			<div class="col-lg-4">8-800-500-27-20, (351) 750-67-11<br>время работы с 10:00 до 18:00</div>
 			<div class="col-lg-2">
-				<a href="http://www.meb74.com/" class="dealers__link">www.meb74.com</a>
+				<a href="http://www.meb74.com/" class="dealers__link" target="_blank">www.meb74.com</a>
 			</div>
 		</div>
 	</div>
 </div>
- <br>
- <br>
- <br>
  <br>
  <br>
  <br><?require($_SERVER["DOCUMENT_ROOT"]."/bitrix/footer.php");?>

@@ -13,7 +13,6 @@ $curPage = $APPLICATION->GetCurPage(true);
 	<?if ( stristr($_SERVER['HTTP_USER_AGENT'], 'IE') ) {?> 
 		<link href="<?=SITE_TEMPLATE_PATH?>/css/ie.css" rel="stylesheet" type="text/css" />
 	<? };?>
-	<script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script> 
 	<script type="text/javascript" src="<?=SITE_TEMPLATE_PATH?>/js/jquery.js"></script>
 	<script type="text/javascript" src="<?=SITE_TEMPLATE_PATH?>/js/scripts.js"></script>
 
