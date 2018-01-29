@@ -1297,10 +1297,11 @@ img
   text-transform: uppercase;
   padding-left: 0;
   float: left; 
-  width: 15% }
+  width: 20% }
 .dealers__address {
    float: left;
-   width: 35% }
+   width: 30% }
 .dealers__link, .dealers__link:hover {
+  text-transform: none;  
   color: #eb1414; }
 
