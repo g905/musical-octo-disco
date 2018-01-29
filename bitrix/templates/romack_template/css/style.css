@@ -1305,4 +1305,6 @@ img
 .dealers__link, .dealers__link:hover {
   text-transform: none;  
   color: #eb1414; }
-
+#map-main {
+    width: 360px;
+    height: 280px; }
