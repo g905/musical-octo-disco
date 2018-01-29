@@ -79,247 +79,195 @@ $APPLICATION->SetTitle("Контакты");
 </div>
 <div>
 </div>
-<h2>ДИЛЕРЫ</h2>
-<p>
- <br>
- <br>
-</p>
-<table border="1" cellspacing="0" cellpadding="0">
-<tbody>
-<tr>
-	<td>
-		<p>
-			 &nbsp; &nbsp; &nbsp; &nbsp;г. Ижевск&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;
-		</p>
-	</td>
-	<td>
-		<p>
- <b>&nbsp;«Бэби Бай»</b>
-		</p>
-		<p>
- <span style="color: #111111;">&nbsp;ТРЦ "Радуга",&nbsp;</span>ул.Ленина, 140&nbsp;
-		</p>
-		<p>
- <span style="color: #111111;">&nbsp;тел.: 8(3412)908-079</span><br>
- <br>
- <br>
- <b>&nbsp;МЦ "Мебельград"</b><br>
-			 &nbsp;ул.Удмуртская, д.302, отдел "Статус-М"
-		</p>
-		<p>
-			 &nbsp;тел.: 8(3412) 32-01-02
-		</p>
-	</td>
-</tr>
-<tr>
-	<td>
-		<p>
-			 &nbsp; &nbsp; &nbsp; &nbsp;г .Москва&nbsp;
-		</p>
-	</td>
-	<td>
-		<p>
- <b>&nbsp;«IQ-deti»</b><br>
-			 &nbsp;<a href="http://www.iq-deti.ru/">www.iq-deti.ru</a>&nbsp; тел.: +7(495)9714830<br>
- <br>
-		</p>
-		<p>
- <b>&nbsp;ТЦ "Скарабей"</b>, 3 этаж, &nbsp;м.Выхино 8-й км Мкад
-		</p>
-		<p>
-			 &nbsp;Тел.:+7(916)732-2777, +7(925)615-5778,
-		</p>
-		<p>
-			 &nbsp;&nbsp;<br>
- <b>&nbsp;ЦД "Ленинградский</b>"<br>
-			 &nbsp;м. Войковская, Ленинградское ш. 25, 3 этаж, левое крыло, пав.3к 03
-		</p>
-		<p>
-			 &nbsp;тел.:+7(495) 502-5321, +7(919) 100-6695, +7(925) 631-6758<br>
- <br>
-		</p>
-		<p>
-			 &nbsp;
-		</p>
-		<p>
- <b>&nbsp;ТЦ " Мебель России"</b>
-		</p>
-		<p>
-			 &nbsp;м.&nbsp;ВДНХ, Ярославское ш., д.19,
-		</p>
-		<p>
-			 &nbsp;4 этаж, правое крыло
-		</p>
-		<p>
-			 &nbsp;Тел.: &nbsp;+7(495)778-13-27, ,+7(919)100-86-69, +7(926) 972-5392<br>
- <br>
-		</p>
-		<p>
- <b>&nbsp;ТЦ "Три Кита"</b>
-		</p>
-		<p>
-			 &nbsp;Можайское шоссе, 2 км от МКАД,
-		</p>
-		<p>
-			 &nbsp;4 этаж, секция детской мебели VOX
-		</p>
-		<p>
-			 &nbsp; тел.: +7(499) 340-21-82, +7(916) 063-44-97; &nbsp;+7(925) 348-73-02&nbsp;
-		</p>
-		<p>
- <br>
-		</p>
-		<p>
- <b>&nbsp;ТД "Компик"&nbsp;</b>
-		</p>
-		<p>
-			 &nbsp;МО, г.Климовск, ул.Заречная, стр.2
-		</p>
-		<p>
-			 &nbsp;тел.: 8-499-389-44-90
-		</p>
-		<p>
- <br>
- <br>
-		</p>
-	</td>
-</tr>
-<tr>
-	<td>
-		<p>
-			 &nbsp; &nbsp; &nbsp;г. Санкт-Петербург&nbsp; &nbsp;
-		</p>
-	</td>
-	<td>
-		<p>
- <b>&nbsp;ТД "Компик"</b>
-		</p>
-		<p>
-			 &nbsp;ул.Промышленная, д.13
-		</p>
-		<p>
-			 &nbsp;тел.: 8-812-456-70-82
-		</p>
-		<p>
-			 &nbsp;<a href="http://www.tdcompic.ru/">www.tdcompic.ru</a>&nbsp; &nbsp;<br>
-		</p>
-	</td>
-</tr>
-<tr>
-	<td>
-		<p>
-			 &nbsp; &nbsp; &nbsp;г. Екатеринбург&nbsp;
-		</p>
-	</td>
-	<td>
-		<p>
- <b>&nbsp;"Мебель для дома"</b>&nbsp;
-		</p>
-		<p>
-			 &nbsp;<a href="http://mebel-ekat.ru/" target="_blank">http://mebel-ekat.ru</a><br>
-		</p>
-		<p>
-			 &nbsp;ул. Татищева, 53,&nbsp; офис 105&nbsp;
-		</p>
-		<p>
-			 &nbsp;тел.: 8-800-500-27-20, (343) 202-52-72, 2000-696, время работы с 10:00 до 18:00<br>
-		</p>
-		<p>
-			 &nbsp;<a href="http://www.meb-ural.ru/" target="_blank">www.meb-ural.ru</a>&nbsp;
-		</p>
-		<p>
-			 &nbsp;ул. Токарей, 40, офис 6б, (343) 202-28-33, время работы с 10:00 до 18:00<br>
-		</p>
-	</td>
-</tr>
-<tr>
-	<td>
-		<p>
-			 &nbsp; &nbsp; &nbsp; г. Уфа
-		</p>
-	</td>
-	<td>
-		<p>
-			 &nbsp;<b>"МамаГуру"</b>
-		</p>
-		<p>
-			 &nbsp;ул.Чапаева, 38/2<br>
-		</p>
-		<p>
- <span>&nbsp;мамагуру.рф<br>
- </span>
-		</p>
-		<p>
-			 &nbsp;тел.:&nbsp;8-927-236-62-91,&nbsp; 8-347-26-66-29
-		</p>
-		<p>
- <br>
-		</p>
-	</td>
-</tr>
-<tr>
-	<td>
-		<p>
-			 &nbsp; &nbsp; &nbsp; г. Пермь
-		</p>
-	</td>
-	<td>
-		<p>
-			 &nbsp;<b>"Мебель для дома"&nbsp; &nbsp;</b> &nbsp; &nbsp;
-		</p>
-		<p>
-			 &nbsp;<a href="http://www.meb59.com/" target="_blank">www.meb59.com</a>&nbsp;&nbsp;
-		</p>
-		<p>
-			 &nbsp;ул. Куйбышева 2, офис 16,&nbsp;
-		</p>
-		<p>
-			 &nbsp;тел.: 8-800-500-27-20, (342) 287-13-28, время работы с 10:00 до 18:00
-		</p>
-	</td>
-</tr>
-<tr>
-	<td>
-		<p>
-			 &nbsp; &nbsp; &nbsp; г. Нижний Новгород&nbsp;&nbsp;
-		</p>
-	</td>
-	<td>
-		<p>
-			 &nbsp;<b>"ТД Компик"</b>
-		</p>
-		<p>
-			 &nbsp;ул.Федосеенко, д.6
-		</p>
-		<p>
-			 &nbsp;тел.: 8-831-420-60-94
-		</p>
-	</td>
-</tr>
-<tr>
-	<td>
-		<p>
-			 &nbsp; &nbsp; &nbsp; г. Челябинск
-		</p>
-	</td>
-	<td>
-		<p>
-			 &nbsp;<b>"Мебель для дома"&nbsp;</b>
-		</p>
-		<p>
- <b>&nbsp;<a href="http://www.meb74.com/" target="_blank">www.meb74.com</a>&nbsp;</b>
-		</p>
-		<p>
-			 &nbsp;ул. Комсомольский Проспект, 10, офис 1
-		</p>
-		<p>
-			 &nbsp;8-800-500-27-20, (351) 750-67-11, время работы с 10:00 до 18:00<b><br>
- </b>
-		</p>
-	</td>
-</tr>
-</tbody>
-</table>
+<div class="dealers__top clearfix">
+	<h2 class="dealers__title">Дилеры</h2>
+	<div class="dealers__select">г. Ижевск (2)</div>
+	<ul class="dealers__list">
+		<li id="all" class="dealers__item">Все дилеры(14)</li>
+		<li id="izhevsk" class="dealers__item active">Ижевск(2)</li>
+		<li id="moscow" class="dealers__item">Москва(5)</li>
+		<li id="petersburg" class="dealers__item">Санкт-Петербург(1)</li>
+		<li id="ekaterinburg" class="dealers__item">Екатеринбург(2)</li>
+		<li id="ufa" class="dealers__item">Уфа(1)</li>
+		<li id="permian" class="dealers__item">Пермь(1)</li>
+		<li id="novgorod" class="dealers__item">Нижний Новгород(1)</li>
+		<li id="chelyabinsk" class="dealers__item">Челябинск(1)</li>
+	</ul>
+	</div>
+	<div class="dealers__map-wrap">
+		<div id="map" class="dealers__map"></div>
+		<div class="dealers__map-over">
+			<div class="dealers__map-show">
+				<a href="javascript:" class="dealers__map-toggle">Показать карту</a>
+				<i class="chevron"></i>
+			</div>
+		</div>
+	</div>
+	<div class="dealers__block izhevsk active">
+		<h2 class="dealers__title dealers__title--table">г. Ижевск</h2>
+		<div class="dealers__row clearfix">
+			<div class="col-lg-2 dealers__name">
+				<strong>Бэби Бай</strong>
+			</div>
+			<div class="col-lg-4">ТРЦ "Радуга", ул.Ленина, 140</div>
+			<div class="col-lg-4">Тел.: 8(3412)908-079</div>
+			<div class="col-lg-2">
+				<a href="http://xn--80abaa8ai9k.xn--p1ai/" class="dealers__link">бэбибай.рф</a>
+			</div>
+		</div>
+		<div class="dealers__row clearfix">
+			<div class="col-lg-2 dealers__name">
+				<strong>МЦ "Мебельград"</strong>
+			</div>
+			<div class="col-lg-4">ул.Удмуртская, д.302, отдел "Статус-М"</div>
+			<div class="col-lg-4">Тел.: 8(3412) 32-01-02</div>
+			<div class="col-lg-2">
+				<a href="http://mebelgrad18.ru/" class="dealers__link">mebelgrad18.ru</a>
+			</div>
+		</div>
+	</div>
+	<div class="dealers__block moscow">
+		<h2 class="dealers__title dealers__title--table">г. Москва</h2>
+		<div class="dealers__row clearfix">
+			<div class="col-lg-2 dealers__name">
+				<strong>ТЦ "Скарабей"</strong>
+			</div>
+			<div class="col-lg-4">3 этаж,  м.Выхино 8-й км Мкад</div>
+			<div class="col-lg-4">Тел.:+7(916)732-2777, +7(925)615-5778</div>
+			<div class="col-lg-2">
+				<a href="http://www.skarabey-tc.ru/" class="dealers__link">www.skarabey-tc.ru</a>
+			</div>
+		</div>
+		<div class="dealers__row clearfix">
+			<div class="col-lg-2 dealers__name">
+				<strong>ЦД "Ленинградский"</strong>
+			</div>
+			<div class="col-lg-4">м. Войковская, Ленинградское ш. 25,<br>3 этаж, левое крыло, пав.3к 03</div>
+			<div class="col-lg-4">Тел.:+7(495) 502-5321, +7(919) 100-6695,<br>+7(925) 631-6758</div>
+			<div class="col-lg-2">
+				<a href="https://mebel-leningradka.ru/" class="dealers__link">mebel-leningradka.ru</a>
+			</div>
+		</div>
+		<div class="dealers__row clearfix">
+			<div class="col-lg-2 dealers__name">
+				<strong>ТЦ " Мебель России"</strong>
+			</div>
+			<div class="col-lg-4">м. ВДНХ, Ярославское ш., д.19,<br>4 этаж, правое крыло</div>
+			<div class="col-lg-4">Тел.: +7(495)778-13-27, ,+7(919)100-86-69,<br>+7(926) 972-5392</div>
+			<div class="col-lg-2">
+				<a href="http://mebelrossii.ru/" class="dealers__link">mebelrossii.ru</a>
+			</div>
+		</div>
+		<div class="dealers__row clearfix">
+			<div class="col-lg-2 dealers__name">
+				<strong>ТЦ "Три Кита"</strong>
+			</div>
+			<div class="col-lg-4">Можайское шоссе, 2 км от МКАД,<br>4 этаж, секция детской мебели VOX</div>
+			<div class="col-lg-4">Тел.: +7(499) 340-21-82, +7(916) 063-44-97,<br>+7(925) 348-73-02</div>
+			<div class="col-lg-2">
+				<a href="http://www.3kita.ru/" class="dealers__link">www.3kita.ru</a>
+			</div>
+		</div>
+		<div class="dealers__row clearfix">
+			<div class="col-lg-2 dealers__name">
+				<strong>ТД "Компик"</strong>
+			</div>
+			<div class="col-lg-4">МО, г.Климовск, ул.Заречная, стр.2</div>
+			<div class="col-lg-4">Тел.: 8-499-389-44-90</div>
+			<div class="col-lg-2">
+				<a href="http://www.tdcompic.ru/" class="dealers__link">www.tdcompic.ru</a>
+			</div>
+		</div>
+	</div>
+	<div class="dealers__block petersburg">
+		<h2 class="dealers__title dealers__title--table">г. Санкт-Петербург</h2>
+		<div class="dealers__row clearfix">
+			<div class="col-lg-2 dealers__name">
+				<strong>ТД "Компик"</strong>
+			</div>
+			<div class="col-lg-4">ул.Промышленная, д.13</div>
+			<div class="col-lg-4">Тел.: 8-812-456-70-82</div>
+			<div class="col-lg-2">
+				<a href="http://www.tdcompic.ru/" class="dealers__link">www.tdcompic.ru</a>
+			</div>
+		</div>
+	</div>
+	<div class="dealers__block ekaterinburg">
+		<h2 class="dealers__title dealers__title--table">г. Екатеринбург</h2>
+		<div class="dealers__row clearfix">
+			<div class="col-lg-2 dealers__name">
+				<strong>"Мебель для дома" </strong>
+			</div>
+			<div class="col-lg-4">ул. Татищева, 53,  офис 105</div>
+			<div class="col-lg-4">Тел.: 8-800-500-27-20, (343) 202-52-72, 2000-696,<br>время работы с 10:00 до 18:00</div>
+			<div class="col-lg-2">
+				<a href="http://mebel-ekat.ru" class="dealers__link">mebel-ekat.ru</a>
+			</div>
+		</div>
+		<div class="dealers__row clearfix">
+			<div class="col-lg-2 dealers__name">
+				<strong>"Первый мебельный" </strong>
+			</div>
+			<div class="col-lg-4">ул. Токарей, 40, офис 6б,</div>
+			<div class="col-lg-4">Тел.: (343) 202-28-33,<br>время работы с 10:00 до 18:00</div>
+			<div class="col-lg-2">
+				<a href="http://meb-ural.ru/" class="dealers__link">www.meb-ural.ru </a>
+			</div>
+		</div>
+	</div>
+	<div class="dealers__block ufa">
+		<h2 class="dealers__title dealers__title--table">г. Уфа</h2>
+		<div class="dealers__row clearfix">
+			<div class="col-lg-2 dealers__name">
+				<strong>"МамаГуру"</strong>
+			</div>
+			<div class="col-lg-4">ул.Чапаева, 38/2</div>
+			<div class="col-lg-4">8-927-236-62-91,  8-347-26-66-29</div>
+			<div class="col-lg-2">
+				<a href="http://xn--80aaj7ab0aub.xn--p1ai/" class="dealers__link">мамагуру.рф</a>
+			</div>
+		</div>
+	</div>
+	<div class="dealers__block permian">
+		<h2 class="dealers__title dealers__title--table">г. Пермь</h2>
+		<div class="dealers__row clearfix">
+			<div class="col-lg-2 dealers__name">
+				<strong>"Мебель для дома"</strong>
+			</div>
+			<div class="col-lg-4">ул. Куйбышева 2, офис 16,</div>
+			<div class="col-lg-4">8-800-500-27-20, (342) 287-13-28,<br>время работы с 10:00 до 18:00</div>
+			<div class="col-lg-2">
+				<a href="http://www.meb59.com" class="dealers__link">www.meb59.com</a>
+			</div>
+		</div>
+	</div>
+	<div class="dealers__block novgorod">
+		<h2 class="dealers__title dealers__title--table">г. Нижний Новгород</h2>
+		<div class="dealers__row clearfix">
+			<div class="col-lg-2 dealers__name">
+				<strong>"ТД Компик"</strong>
+			</div>
+			<div class="col-lg-4"> ул.Федосеенко, д.6,</div>
+			<div class="col-lg-4">8-831-420-60-94</div>
+			<div class="col-lg-2">
+				<a href="http://tdcompic.ru/" class="dealers__link">tdcompic.ru</a>
+			</div>
+		</div>
+	</div>
+	<div class="dealers__block chelyabinsk">
+		<h2 class="dealers__title dealers__title--table">г. Челябинск</h2>
+		<div class="dealers__row clearfix">
+			<div class="col-lg-2 dealers__name">
+				<strong>"Мебель для дома"</strong>
+			</div>
+			<div class="col-lg-4">ул. Комсомольский Проспект, 10, офис 1,</div>
+			<div class="col-lg-4">8-800-500-27-20, (351) 750-67-11<br>время работы с 10:00 до 18:00</div>
+			<div class="col-lg-2">
+				<a href="http://www.meb74.com/" class="dealers__link">www.meb74.com</a>
+			</div>
+		</div>
+	</div>
+</div>
  <br>
  <br>
  <br>

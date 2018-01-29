@@ -1153,4 +1153,149 @@ img
     background-image: url(../img/email.png);
     top: 0;
 }
+/*карта с дилерами*/
+.dealers__top {
+  position: relative;
+  margin-bottom: 50px; }
+
+.dealers__title {
+  font-size: 18px;
+  font-family: Arial Narrow,ArNarrow;
+  color: #eb1414;
+  font-weight: bold;
+  width: 10%;
+  text-align: left;
+  float: left;
+  margin-top: 0;
+  line-height: 1;
+  margin-top: 8px; }
+  .dealers__title--table {
+    width: 100%;
+    float: none;
+    margin-bottom: 15px;
+    margin-top: 15px; }
+
+.dealers__select {
+  float: left;
+  font-size: 16px;
+  color: #fff;
+  width: 21%;
+  text-transform: uppercase;
+  line-height: 1;
+  background-image: url(../img/header/headerbotbg2.png);
+  -webkit-background-size: contain;
+          background-size: contain;
+  padding: 8px 15px;
+  cursor: pointer;
+  position: relative; }
+  .dealers__select:before {
+    content: '';
+    position: absolute;
+    width: 1px;
+    height: 50%;
+    top: 50%;
+    -webkit-transform: translateY(-50%);
+        -ms-transform: translateY(-50%);
+            transform: translateY(-50%);
+    right: 30px;
+    background-color: #fff; }
+  .dealers__select:after {
+    content: '';
+    position: absolute;
+    width: 9px;
+    height: 5px;
+    background-image: url(../img/dropdown_white.png);
+    right: 11px;
+    top: 50%;
+    -webkit-transform: translateY(-50%);
+        -ms-transform: translateY(-50%);
+            transform: translateY(-50%); }
+
+.dealers__list {
+  display: none;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  top: 32px;
+  left: 114px;
+  width: 21%;
+  background-color: #fff;
+  z-index: 11;
+  border: #ccc solid 1px;
+  border-top: 0;
+  border-bottom: 0; }
+
+.dealers__item {
+  font-size: 16px;
+  cursor: pointer;
+  padding: 8px;
+  border-bottom: #ccc solid 1px;
+  -webkit-transition: all ease .2s;
+  -o-transition: all ease .2s;
+  transition: all ease .2s; }
+  .dealers__item:hover {
+    background-color: #ccc; }
+  .dealers__item.active {
+    background-color: #ccc; }
+
+.dealers__map {
+  width: 100%;
+  height: 200px;
+  position: relative; }
+  .dealers__map-wrap {
+    position: relative;
+    margin-bottom: 40px; }
+  .dealers__map-over {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: 10;
+    background-color: rgba(255, 255, 255, 0.5); }
+  .dealers__map-show {
+    position: absolute;
+    width: 200px;
+    height: 40px;
+    background-color: #fff;
+    bottom: 0;
+    left: 50%;
+    -webkit-transform: translateX(-50%);
+        -ms-transform: translateX(-50%);
+            transform: translateX(-50%);
+    z-index: 10;
+    padding-left: 30px; }
+    .dealers__map-show .chevron {
+      position: absolute;
+      width: 9px;
+      height: 5px;
+      background-image: url(../img/dropdown_red.png);
+      right: 20px;
+      top: 50%;
+      -webkit-transform: translateY(-50%);
+          -ms-transform: translateY(-50%);
+              transform: translateY(-50%); }
+  .dealers__map-toggle {
+    line-height: 40px;
+    text-transform: uppercase;
+    color: #eb1414;
+    font-size: 14px; }
+    .dealers__map-toggle:hover, .dealers__map-toggle:focus {
+      color: #eb1414; }
+
+.dealers__block {
+  display: none; }
+  .dealers__block.active {
+    display: block; }
+
+.dealers__row {
+  padding: 15px 0;
+  border-bottom: 1px solid #ccc; }
+
+.dealers__name {
+  text-transform: uppercase;
+  padding-left: 0; }
+
+.dealers__link, .dealers__link:hover {
+  color: #eb1414; }
 
