@@ -212,7 +212,7 @@ $(document).ready(function() {
 		//основная карта
 		myMap1 = new ymaps.Map ("map-main", {
 	        center: [56.854234, 53.360813],
-	        zoom: 12,
+	        zoom: 14,
 	        duration: 50
 	    });
 
@@ -223,6 +223,8 @@ $(document).ready(function() {
 	    		preset: 'islands#redDotIcon',
 	    	}
 	    );
+	    myMap1.geoObjects.add(myPlacemark);
+
 
 	    //карта с дилерами
 		myMap = new ymaps.Map ("map", {
