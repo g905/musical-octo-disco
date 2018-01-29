@@ -1295,8 +1295,12 @@ img
 
 .dealers__name {
   text-transform: uppercase;
-  padding-left: 0; }
-
+  padding-left: 0;
+  float: left; 
+  width: 15% }
+.dealers__address {
+   float: left;
+   width: 35% }
 .dealers__link, .dealers__link:hover {
   color: #eb1414; }
 
