@@ -222,7 +222,7 @@ $(document).ready(function() {
 	    	{
 	    		preset: 'islands#redDotIcon',
 	    	}
-	    });
+	    );
 
 	    //карта с дилерами
 		myMap = new ymaps.Map ("map", {
