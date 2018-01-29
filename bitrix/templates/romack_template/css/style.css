@@ -1122,4 +1122,35 @@ img
     text-align: left;
 }
 
+/*Доработки страницы контакты*/
+.contact__block {
+    position: relative;
+    display: block;
+    padding-left: 32px;
+}
+.contact__block:before {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 0;
+    width: 22px;
+    height: 22px;
+}
+.contact__block--adress:before {
+    background-image: url(../img/geo.png);
+    width: 20px;
+}
+.contact__block--tel:before {
+    background-image: url(../img/phone.png);
+}
+.contact__block--mode:before {
+    background-image: url(../img/workhours.png);
+}
+.contact__block--requisites:before {
+    background-image: url(../img/rekviz.png);
+}
+.contact__block--email:before {
+    background-image: url(../img/email.png);
+    top: 0;
+}
 
