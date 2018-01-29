@@ -67,6 +67,51 @@ $(document).ready(function() {
 			}
 		}
 	});
+
+	$("#izhevsk").click(function(){
+		myMap.action.execute(myAction1);
+		$('.dealers__block').removeClass('active');
+		$('.izhevsk').addClass('active');
+	});
+	$("#moscow").click(function(){
+		myMap.action.execute(myAction2);
+		$('.dealers__block').removeClass('active');
+		$('.moscow').addClass('active');
+	});
+	$("#petersburg").click(function(){
+		myMap.action.execute(myAction3);
+		$('.dealers__block').removeClass('active');
+		$('.petersburg').addClass('active');
+	});
+	$("#ekaterinburg").click(function(){
+		myMap.action.execute(myAction4);
+		$('.dealers__block').removeClass('active');
+		$('.ekaterinburg').addClass('active');
+	});
+	$("#ufa").click(function(){
+		myMap.action.execute(myAction5);
+		$('.dealers__block').removeClass('active');
+		$('.ufa').addClass('active');
+	});
+	$("#permian").click(function(){
+		myMap.action.execute(myAction6);
+		$('.dealers__block').removeClass('active');
+		$('.permian').addClass('active');
+	});
+	$("#novgorod").click(function(){
+		myMap.action.execute(myAction7);
+		$('.dealers__block').removeClass('active');
+		$('.novgorod').addClass('active');
+	});
+	$("#chelyabinsk").click(function(){
+		myMap.action.execute(myAction8);
+		$('.dealers__block').removeClass('active');
+		$('.chelyabinsk').addClass('active');
+	});
+	$("#all").click(function(){
+		myMap.action.execute(myAction9);
+		$('.dealers__block').addClass('active');
+	});
 })
 
 
@@ -191,7 +236,6 @@ function init () {
 	//myMap.geoObjects.add(myPlacemark);
 	clusterer.add(geoObjects);
 
-    
     myAction1 = new ymaps.map.action.Single({
           center: [56.85247279343317,53.216654071533114],
           zoom: 12,
@@ -239,47 +283,4 @@ function init () {
   	}); 
 }
 
-$("#izhevsk").click(function(){
-	myMap.action.execute(myAction1);
-	$('.dealers__block').removeClass('active');
-	$('.izhevsk').addClass('active');
-});
-$("#moscow").click(function(){
-	myMap.action.execute(myAction2);
-	$('.dealers__block').removeClass('active');
-	$('.moscow').addClass('active');
-});
-$("#petersburg").click(function(){
-	myMap.action.execute(myAction3);
-	$('.dealers__block').removeClass('active');
-	$('.petersburg').addClass('active');
-});
-$("#ekaterinburg").click(function(){
-	myMap.action.execute(myAction4);
-	$('.dealers__block').removeClass('active');
-	$('.ekaterinburg').addClass('active');
-});
-$("#ufa").click(function(){
-	myMap.action.execute(myAction5);
-	$('.dealers__block').removeClass('active');
-	$('.ufa').addClass('active');
-});
-$("#permian").click(function(){
-	myMap.action.execute(myAction6);
-	$('.dealers__block').removeClass('active');
-	$('.permian').addClass('active');
-});
-$("#novgorod").click(function(){
-	myMap.action.execute(myAction7);
-	$('.dealers__block').removeClass('active');
-	$('.novgorod').addClass('active');
-});
-$("#chelyabinsk").click(function(){
-	myMap.action.execute(myAction8);
-	$('.dealers__block').removeClass('active');
-	$('.chelyabinsk').addClass('active');
-});
-$("#all").click(function(){
-	myMap.action.execute(myAction9);
-	$('.dealers__block').addClass('active');
-});
+

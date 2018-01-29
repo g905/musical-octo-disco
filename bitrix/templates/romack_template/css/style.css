@@ -1179,7 +1179,7 @@ img
   float: left;
   font-size: 16px;
   color: #fff;
-  width: 21%;
+  width: 24%;
   text-transform: uppercase;
   line-height: 1;
   background-image: url(../img/header/headerbotbg2.png);
@@ -1218,7 +1218,7 @@ img
   position: absolute;
   top: 32px;
   left: 114px;
-  width: 21%;
+  width: 24%;
   background-color: #fff;
   z-index: 11;
   border: #ccc solid 1px;
@@ -1227,6 +1227,7 @@ img
 
 .dealers__item {
   font-size: 16px;
+  list-style: none;
   cursor: pointer;
   padding: 8px;
   border-bottom: #ccc solid 1px;
