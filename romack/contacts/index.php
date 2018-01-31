@@ -44,6 +44,12 @@ $APPLICATION->SetTitle("Контакты");
 				<span class="red">8 (800) 200-3221, 8 (3412) 65-07-64</span>
 			</span>  
 			<br>
+			<span class="contact__block contact__block--mode"> 			 
+				<b>Режим работы:</b> 
+				<br>
+				<span>Пн-Пт с 8:00 до 17:00 (по Москве)</span>
+			</span>  
+			<br>
 			<span class="contact__block contact__block--requisites">
 				<b>Реквизиты организации:</b> <br>
 				ИП Родионова Гузалия Альбертовна <br>

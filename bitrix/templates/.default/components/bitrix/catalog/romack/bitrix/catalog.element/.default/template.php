@@ -219,7 +219,7 @@
 <?endif?>
 						</div>
 	<!-- Закладки -->
-						<p class="text-left">Данное изделие имеет <a href="/sertifikaty/" target="_blank">сертификат качества</a></p>
+						<p class="text-center">Данное изделие имеет <a href="/sertifikaty/" target="_blank">сертификат качества</a></p>
 						<p class="text-left">
 							<?=$arResult["DETAIL_TEXT"];?>
 						</p>

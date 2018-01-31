@@ -44,7 +44,7 @@ foreach($arResult["arMap"] as $index => $arItem) {
 
 			<div class="row">
 
-				<div class="col-xs-7 text-center" id="foot1">
+				<div class="col-xs-5 text-center" id="foot1">
 					<ul class="media-list">
 		<?foreach($arResultMain as $index => $arItem0):?>
 						<li><h4 class="h3"><a href="<?=$arItem0["FULL_PATH"]?>"><?=$arItem0["NAME"]?></a></h4></li>
@@ -52,7 +52,7 @@ foreach($arResult["arMap"] as $index => $arItem) {
 					</ul>
 				</div>
 
-				<div class="col-xs-7 text-center" id="foot2">
+				<div class="col-xs-10 text-center" id="foot2">
 					<h3 class="h3"><a href="/products/">Продукция</a></h3>
 					<div id="links">
 						<ul class="media-list text-left">
