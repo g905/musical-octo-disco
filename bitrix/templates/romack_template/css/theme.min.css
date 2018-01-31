@@ -39,6 +39,7 @@ margin-right: auto;
 margin-left: auto;
 padding-top: 15px;
 padding-bottom: 15px;
+min-height: 50vh;
 }
 #content .h2,
 #content .h3
