@@ -4,9 +4,9 @@ $APPLICATION->SetTitle("Продукция");
 ?>
 		<div class="container slyder">
 <?$APPLICATION->IncludeComponent(
-	"bitrix:catalog",
-	"romack",
-	Array(
+	"bitrix:catalog", 
+	"romack", 
+	array(
 		"DETAIL_SHOW_PICTURE" => "Y",
 		"AJAX_MODE" => "N",
 		"SEF_MODE" => "Y",
@@ -21,12 +21,33 @@ $APPLICATION->SetTitle("Продукция");
 		"LINE_ELEMENT_COUNT" => "1",
 		"ELEMENT_SORT_FIELD" => "sort",
 		"ELEMENT_SORT_ORDER" => "asc",
-		"LIST_PROPERTY_CODE" => array("PRICECURRENCY"),
+		"LIST_PROPERTY_CODE" => array(
+			0 => "",
+			1 => "PRICECURRENCY",
+			2 => "",
+		),
 		"INCLUDE_SUBSECTIONS" => "Y",
 		"LIST_META_KEYWORDS" => "-",
 		"LIST_META_DESCRIPTION" => "-",
 		"LIST_BROWSER_TITLE" => "-",
-		"DETAIL_PROPERTY_CODE" => array("SIZE", "S_SIZE", "ARTNUMBER", "MATERIAL", "MANUFACTURER", "MAGNETS", "LIGHTS", "COLOR", "SEO_IMAGE"),
+		"DETAIL_PROPERTY_CODE" => array(
+			0 => "SIZE",
+			1 => "COLOR",
+			2 => "SIZE_MATTRESS",
+			3 => "HEIGHT_MATTRESS",
+			4 => "LOAD",
+			5 => "ADD_OPTIONS",
+			6 => "MATERIALS",
+			7 => "BASE",
+			8 => "S_SIZE",
+			9 => "ARTNUMBER",
+			10 => "MATERIAL",
+			11 => "MANUFACTURER",
+			12 => "MAGNETS",
+			13 => "LIGHTS",
+			14 => "SEO_IMAGE",
+			15 => "",
+		),
 		"DETAIL_META_KEYWORDS" => "-",
 		"DETAIL_META_DESCRIPTION" => "-",
 		"DETAIL_BROWSER_TITLE" => "-",
@@ -42,12 +63,14 @@ $APPLICATION->SetTitle("Продукция");
 		"CACHE_GROUPS" => "Y",
 		"SET_TITLE" => "Y",
 		"SET_STATUS_404" => "Y",
-		"PRICE_CODE" => array(),
+		"PRICE_CODE" => array(
+		),
 		"USE_PRICE_COUNT" => "N",
 		"SHOW_PRICE_COUNT" => "1",
 		"PRICE_VAT_INCLUDE" => "N",
 		"PRICE_VAT_SHOW_VALUE" => "N",
-		"PRODUCT_PROPERTIES" => array(),
+		"PRODUCT_PROPERTIES" => array(
+		),
 		"USE_PRODUCT_QUANTITY" => "N",
 		"LINK_IBLOCK_TYPE" => "",
 		"LINK_IBLOCK_ID" => "",
@@ -67,19 +90,43 @@ $APPLICATION->SetTitle("Продукция");
 		"AJAX_OPTION_STYLE" => "Y",
 		"AJAX_OPTION_HISTORY" => "N",
 		"SEF_FOLDER" => "/products/",
-		"SEF_URL_TEMPLATES" => Array(
+		"COMPONENT_TEMPLATE" => "romack",
+		"AJAX_OPTION_ADDITIONAL" => "",
+		"USE_MAIN_ELEMENT_SECTION" => "N",
+		"DETAIL_STRICT_SECTION_CHECK" => "N",
+		"SET_LAST_MODIFIED" => "N",
+		"ADD_SECTIONS_CHAIN" => "Y",
+		"ADD_ELEMENT_CHAIN" => "N",
+		"COMPOSITE_FRAME_MODE" => "A",
+		"COMPOSITE_FRAME_TYPE" => "AUTO",
+		"ADD_PROPERTIES_TO_BASKET" => "Y",
+		"PARTIAL_PRODUCT_PROPERTIES" => "N",
+		"ELEMENT_SORT_FIELD2" => "id",
+		"ELEMENT_SORT_ORDER2" => "desc",
+		"SECTION_BACKGROUND_IMAGE" => "-",
+		"DETAIL_SET_CANONICAL_URL" => "N",
+		"DETAIL_CHECK_SECTION_ID_VARIABLE" => "N",
+		"DETAIL_BACKGROUND_IMAGE" => "-",
+		"SHOW_DEACTIVATED" => "N",
+		"PAGER_BASE_LINK_ENABLE" => "N",
+		"SHOW_404" => "N",
+		"MESSAGE_404" => "",
+		"COMPATIBLE_MODE" => "Y",
+		"DISABLE_INIT_JS_IN_COMPONENT" => "N",
+		"SEF_URL_TEMPLATES" => array(
+			"sections" => "",
 			"section" => "#SECTION_CODE_PATH#/",
 			"element" => "#SECTION_CODE_PATH#/#ELEMENT_CODE#.html",
-			"compare" => "compare.php?action=#ACTION_CODE#"
+			"compare" => "compare.php?action=#ACTION_CODE#",
+			"smart_filter" => "#SECTION_CODE_PATH#/filter/#SMART_FILTER_PATH#/apply/",
 		),
-		"VARIABLE_ALIASES" => Array(
-			"section" => Array(),
-			"element" => Array(),
-			"compare" => Array(
-				"ACTION_CODE" => "action"
+		"VARIABLE_ALIASES" => array(
+			"compare" => array(
+				"ACTION_CODE" => "action",
 			),
 		)
-	)
+	),
+	false
 );?>
 		</div>
 <?require($_SERVER["DOCUMENT_ROOT"]."/bitrix/footer.php");?>
