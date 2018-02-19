@@ -84,11 +84,11 @@ $APPLICATION->SetTitle("Контакты");
 <div>
 </div>
 <div class="dealers__top clearfix">
-	<h2 class="dealers__title">Дилеры</h2>
-	<div class="dealers__select">г. Ижевск (2)</div>
-	<ul class="dealers__list">
-		<li id="all" class="dealers__item">Все дилеры(14)</li>
-		<li id="izhevsk" class="dealers__item active">Ижевск(2)</li>
+	<h2 class="dealers__title" style="width:20%">Ключевые партнеры</h2>
+	<div class="dealers__select">Все(14)</div>
+	<ul class="dealers__list" style="left: 204px;">
+		<li id="all" class="dealers__item active">Все(14)</li>
+		<li id="izhevsk" class="dealers__item">Ижевск(2)</li>
 		<li id="moscow" class="dealers__item">Москва(5)</li>
 		<li id="petersburg" class="dealers__item">Санкт-Петербург(1)</li>
 		<li id="ekaterinburg" class="dealers__item">Екатеринбург(2)</li>
@@ -130,7 +130,7 @@ $APPLICATION->SetTitle("Контакты");
 			</div>
 		</div>
 	</div>
-	<div class="dealers__block moscow">
+	<div class="dealers__block moscow active">
 		<h2 class="dealers__title dealers__title--table">г. Москва</h2>
 		<div class="dealers__row clearfix">
 			<div class="dealers__name">
@@ -183,7 +183,7 @@ $APPLICATION->SetTitle("Контакты");
 			</div>
 		</div>
 	</div>
-	<div class="dealers__block petersburg">
+	<div class="dealers__block petersburg active">
 		<h2 class="dealers__title dealers__title--table">г. Санкт-Петербург</h2>
 		<div class="dealers__row clearfix">
 			<div class="dealers__name">
@@ -196,7 +196,7 @@ $APPLICATION->SetTitle("Контакты");
 			</div>
 		</div>
 	</div>
-	<div class="dealers__block ekaterinburg">
+	<div class="dealers__block ekaterinburg active">
 		<h2 class="dealers__title dealers__title--table">г. Екатеринбург</h2>
 		<div class="dealers__row clearfix">
 			<div class="dealers__name">
@@ -219,7 +219,7 @@ $APPLICATION->SetTitle("Контакты");
 			</div>
 		</div>
 	</div>
-	<div class="dealers__block ufa">
+	<div class="dealers__block ufa active">
 		<h2 class="dealers__title dealers__title--table">г. Уфа</h2>
 		<div class="dealers__row clearfix">
 			<div class="dealers__name">
@@ -232,7 +232,7 @@ $APPLICATION->SetTitle("Контакты");
 			</div>
 		</div>
 	</div>
-	<div class="dealers__block permian">
+	<div class="dealers__block permian active">
 		<h2 class="dealers__title dealers__title--table">г. Пермь</h2>
 		<div class="dealers__row clearfix">
 			<div class="dealers__name">
@@ -245,7 +245,7 @@ $APPLICATION->SetTitle("Контакты");
 			</div>
 		</div>
 	</div>
-	<div class="dealers__block novgorod">
+	<div class="dealers__block novgorod active">
 		<h2 class="dealers__title dealers__title--table">г. Нижний Новгород</h2>
 		<div class="dealers__row clearfix">
 			<div class="dealers__name">
@@ -258,7 +258,7 @@ $APPLICATION->SetTitle("Контакты");
 			</div>
 		</div>
 	</div>
-	<div class="dealers__block chelyabinsk">
+	<div class="dealers__block chelyabinsk active">
 		<h2 class="dealers__title dealers__title--table">г. Челябинск</h2>
 		<div class="dealers__row clearfix">
 			<div class="dealers__name">

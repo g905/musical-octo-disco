@@ -227,12 +227,18 @@ $(document).ready(function() {
 
 
 	    //карта с дилерами
-		myMap = new ymaps.Map ("map", {
+/*		myMap = new ymaps.Map ("map", {
 	        center: [56.85247279343317,53.216654071533114],
 	        zoom: 12,
 	        duration: 50
-	    });
+	    });*/
 
+	    //карта с дилерами
+		myMap = new ymaps.Map ("map", {
+		center: [54.41333300825061,49.995263523700785],
+		zoom: 4,
+		duration: 1000
+	    });
     
 		for (var i = 0; i < placemarks.length; i++) {
 			geoObjects[i] = new ymaps.Placemark([placemarks[i].lat, placemarks[i].long], {
