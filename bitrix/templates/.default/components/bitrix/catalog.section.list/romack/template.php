@@ -11,6 +11,8 @@
   $arProducts['55'] = Array(965, 966, 968, 970, 969); 
   $arProducts['56'] = Array(974, 976, 973, 975, 972); 
   $arProducts['57'] = Array(1229, 1226, 1227, 1228, 1230);  // junior
+  $arProducts['58'] = Array(1412, 1411, 1413, 1410, 1409);  // energy-m
+  $arProducts['59'] = Array(1414, 1415, 1418, 1416, 1417);  // energy
 ?>
 
 <?
