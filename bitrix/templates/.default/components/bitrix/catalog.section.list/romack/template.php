@@ -13,6 +13,8 @@
   $arProducts['57'] = Array(1229, 1226, 1227, 1228, 1230);  // junior
   $arProducts['58'] = Array(1412, 1411, 1413, 1410, 1409);  // energy-m
   $arProducts['59'] = Array(1414, 1415, 1418, 1416, 1417);  // energy
+  $arProducts['60'] = Array(1438, 1437, 1436, 1437, 1438);  // real-m
+  $arProducts['61'] = Array(1439, 1440, 1441, 1440, 1439);  // real
 ?>
 
 <?
