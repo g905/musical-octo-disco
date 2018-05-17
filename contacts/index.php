@@ -166,7 +166,7 @@ false
       <br />
       <br />
            -->
-     
+<a name="moscow"></a>     
     <span class="contact__block contact__block--adress">
 		<b>Наши изделия в розницу в г. Москва Вы можете приобрести по адресу:</b> 			 
 		<br />

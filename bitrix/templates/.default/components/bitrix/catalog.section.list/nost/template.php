@@ -18,6 +18,7 @@ if ($curPage == '/index.php') : ?>
   $arProducts['5'] = Array(122,123,124,169,121); // короба
   $arProducts['7'] = Array(114,118,116,117,115); // учебки
   $arProducts['8'] = Array(110,111,112,113,0); // наклейки
+  $arProducts['62'] = Array(1341,0,0,0,0); // яндекс шашки
 
 ?>
 

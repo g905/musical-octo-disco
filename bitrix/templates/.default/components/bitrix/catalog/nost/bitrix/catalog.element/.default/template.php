@@ -199,7 +199,7 @@
 			<?else:?>
 						<div class="headings text-left" style="width:370px;">
 			<?endif?>
-							<h1 class="h1"><?if ($arResult["IBLOCK_SECTION_ID"] == 54):?>Шашка <?endif?>"<?=$arResult["NAME"]?>"</h1>
+							<h1 class="h1"<?if ($arResult['ID']=='1341') echo 'style="font-size: 25.6px;"';?>><?if ($arResult["IBLOCK_SECTION_ID"] == 54):?>Шашка <?endif?>"<?=$arResult["NAME"]?>"</h1>
 	<?foreach($arResult["PRICES"] as $code=>$arPrice):?>
 		<?if($arPrice["PRINT_VALUE"] > 0):?>
 							<div class="h2"><?=$arPrice["PRINT_VALUE"];?></div>
@@ -311,7 +311,11 @@ $APPLICATION->IncludeComponent(
 					</p>
 					<p class="count">От <?=$arDiscount[0];?> шт.<br>От <?=$arDiscount[2];?> шт.<br>От <?=$arDiscount[4];?> шт.</p>
 				</div>
+<?if ($arResult['ID']=='1341'): /*adl 17.05.18 Для Яндекс.короба другой текст*/?>
+				<p class="item-note">* Розничная цена в г. Москва <font color="red"><b>3950</b> руб.</font> за шт. В стоимость входит оклейка и установка короба. Всегда в наличии: <a href="/contacts/#moscow">склад Москва</a></p>
+<?else:?>
 				<p class="item-note">* От <?=$arDiscount[6];?> шт. <?=strtolower($arDiscount[7]);?>.</p>
+<?endif?>
 			</div>
 		</div>
 	</div>
