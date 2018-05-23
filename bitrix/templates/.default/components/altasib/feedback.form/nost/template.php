@@ -145,6 +145,13 @@ endforeach;
 		</tr>
 		</table>
 	</div>
+
+<script type="text/javascript">
+    window.onload = function() {
+        yaCounter22626280.reachGoal('ORDER');
+    }
+</script>
+
 <script type="text/javascript">
 <!--
 function AltasibFeedbackRedirect_<?=$ALX?>(){
